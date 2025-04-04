@@ -65,6 +65,34 @@
       ];
     };
 
+    mkDarwin = 
+      {
+        hostname,
+        system ? "aarch64-darwin",
+        desktop ? null,
+      }:
+      inputs.nix-darwin.lib.darwinSystem {
+        inherit system;
+        specialArgs = {
+          inherit
+            self
+            inputs
+            outputs
+            stateVersion
+            username
+            hostname
+            desktop
+            flakePath
+            system
+            ;
+        };
+        modules = [
+          ../hosts
+          inputs.home-manager.darwinModules.home-manager
+          ../home
+        ];
+      };
+
   forAllSystems = inputs.nixpkgs.lib.genAttrs [
     "aarch64-linux"
     "i686-linux"
