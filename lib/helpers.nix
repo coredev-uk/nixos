@@ -64,9 +64,46 @@
       modules = [
         inputs.agenix.nixosModules.default
         inputs.lanzaboote.nixosModules.lanzaboote
+        ./config.nix
         ../hosts
       ];
     };
+
+    mkDarwin = 
+      {
+        hostname,
+        user ? username,
+        system ? "aarch64-darwin",
+        desktop ? "null",
+      }:
+      inputs.nix-darwin.lib.darwinSystem {
+        inherit system;
+        specialArgs = {
+          inherit
+            self
+            inputs
+            outputs
+            stateVersion
+            username
+            hostname
+            desktop
+            flakePath
+            system
+            ;
+        };
+        modules = [
+          ./config.nix
+          ../hosts
+          inputs.home-manager.darwinModules.home-manager
+          {
+            home-manager = {
+              useGlobalPkgs = true;
+              useUserPackages = true;
+              users.${user} = ../home;
+            };
+          }
+        ];
+      };
 
   forAllSystems = inputs.nixpkgs.lib.genAttrs [
     "aarch64-linux"

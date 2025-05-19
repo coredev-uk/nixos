@@ -1,5 +1,14 @@
-{ pkgs, lib, ... }:
+{ pkgs, lib, modulesPath, ... }:
 {
+  imports = [
+    (modulesPath + "/installer/scan/not-detected.nix")
+    
+    ../common/base
+    ../common/users/${username}
+  ]
+
+  system.isDesktop = true;
+
   environment.systemPackages = with pkgs; [
     efibootmgr
   ];

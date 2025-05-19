@@ -22,6 +22,9 @@
 
     nvf.url = "github:notashelf/nvf";
 
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "unstable";
+
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
     zen-browser.inputs.nixpkgs.follows = "unstable";
@@ -62,6 +65,12 @@
         atlas = libx.mkHost {
           hostname = "atlas";
           desktop = "hyprland"; # hyprland or i3
+        };
+      };
+
+      darwinConfigurations = {
+        Poseidon = libx.mkDarwin {
+          hostname = "Poseidon";
         };
       };
 
