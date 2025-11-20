@@ -74,8 +74,8 @@
 
   bindr = [
     # Screenshot
-    "${mod}, Print, exec, ${pkgs.grimblast}/bin/grimblast --notify copy active"
-    ", Print, exec, ${pkgs.grimblast}/bin/grimblast --notify copy area"
+    "${mod}, Print, exec, ${pkgs.hyprshot}/bin/hyprshot -m region --raw | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard-rs}/bin/wl-copy"
+    ", Print, exec, ${pkgs.hyprshot}/bin/hyprshot -m region --clipboard-only"
   ];
 
   bindm = [

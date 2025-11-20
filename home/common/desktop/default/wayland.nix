@@ -10,7 +10,6 @@
 
   home.packages = with pkgs; [
     libnotify
-    scrot
     dbus
     wl-clipboard
     wdisplays
