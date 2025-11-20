@@ -45,6 +45,8 @@
 
     nvf.url = "github:notashelf/nvf";
 
+    opencode.url = "github:sst/opencode";
+
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
     zen-browser.inputs.nixpkgs.follows = "unstable";

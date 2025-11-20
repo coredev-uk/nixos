@@ -590,6 +590,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_5": {
+      "locked": {
+        "lastModified": 1762156382,
+        "narHash": "sha256-Yg7Ag7ov5+36jEFC1DaZh/12SEXo6OO3/8rqADRxiqs=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "7241bcbb4f099a66aafca120d37c65e8dda32717",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "ref": "nixpkgs-unstable",
+        "repo": "nixpkgs",
+        "type": "github"
+      }
+    },
     "nvf": {
       "inputs": {
         "flake-compat": "flake-compat_3",
@@ -609,6 +625,24 @@
       "original": {
         "owner": "notashelf",
         "repo": "nvf",
+        "type": "github"
+      }
+    },
+    "opencode": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_5"
+      },
+      "locked": {
+        "lastModified": 1763640295,
+        "narHash": "sha256-Rg5owg+gFRhEkZkVIA2XPsHffoH37HfFa3EcwSMijKo=",
+        "owner": "sst",
+        "repo": "opencode",
+        "rev": "11373755d9497bcaae39b00633f0c384d64a824a",
+        "type": "github"
+      },
+      "original": {
+        "owner": "sst",
+        "repo": "opencode",
         "type": "github"
       }
     },
@@ -655,6 +689,7 @@
         "nixpkgs": "nixpkgs_3",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nvf": "nvf",
+        "opencode": "opencode",
         "unstable": "unstable",
         "zen-browser": "zen-browser"
       }

@@ -3,6 +3,7 @@
   self,
   lib,
   meta,
+  inputs,
   ...
 }:
 let
@@ -37,7 +38,10 @@ in
       enable = true;
       settings.promptToReturnFromSubprocess = false;
     };
-    opencode.enable = true;
+    opencode = {
+      enable = true;
+      package = inputs.opencode.packages.${meta.system}.default;
+    };
 
   };
 
