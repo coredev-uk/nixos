@@ -35,7 +35,7 @@
       "onedrive"
       "proton-drive"
       "protonvpn"
-      "twingate"
+      "cloudflare-warp"
 
       "windows-app"
     ];
