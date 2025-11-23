@@ -19,7 +19,7 @@ _: {
       ];
 
       plugins = {
-        autoDNDWhilePlaying.enable = true;
+        autoDndWhilePlaying.enable = true;
 
         disableCallIdle.enable = true;
 

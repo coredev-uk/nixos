@@ -2,7 +2,6 @@
 {
   programs = {
     dconf.enable = true;
-    file-roller.enable = true;
   };
 
   environment = {
@@ -10,6 +9,7 @@
 
     systemPackages = with pkgs; [
       nautilus
+      file-roller
       zenity
       # Enable HEIC image previews in Nautilus
       libheif
