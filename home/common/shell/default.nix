@@ -40,8 +40,7 @@ in
     };
     opencode = {
       enable = true;
-      # Hash mismatch: https://github.com/sst/opencode/issues/4498
-      # package = inputs.opencode.packages.${meta.system}.default;
+      package = inputs.opencode.packages.${meta.system}.default;
     };
 
   };
