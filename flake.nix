@@ -2,18 +2,16 @@
   description = "coredev-uk flake";
 
   inputs = {
-    # NixOS Stable Base (NixOS systems follow this)
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
 
-    # New Dedicated Darwin Stable Base (nix-darwin will follow this)
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";
 
-    # Bleeding-Edge Packages (Used for pkgs.unstable overlay)
+    # accessible from pkgs.unstable overlay
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
 
-    home-manager.url = "github:nix-community/home-manager"; # /release-25.05";
+    home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "unstable";
 
     agenix.url = "github:ryantm/agenix";
