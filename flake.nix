@@ -2,9 +2,9 @@
   description = "coredev-uk flake";
 
   inputs = {
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.05";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.05-darwin";
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
 
     # accessible from pkgs.unstable overlay
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -20,12 +20,12 @@
     ags.url = "github:/aylur/ags";
     ags.inputs.nixpkgs.follows = "unstable";
 
-    catppuccin.url = "github:catppuccin/nix/release-25.05";
+    catppuccin.url = "github:catppuccin/nix/release-25.11";
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
 
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.05";
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
 
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
@@ -58,7 +58,7 @@
     }@inputs:
     let
       inherit (self) outputs;
-      stateVersion = "25.05";
+      stateVersion = "25.11";
       username = "paul";
 
       libx = import ./lib {
