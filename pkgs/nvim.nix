@@ -80,7 +80,7 @@
       html.enable = true;
       nix = {
         enable = true;
-        format.type = "nixfmt";
+        format.type = [ "nixfmt" ];
       };
       php.enable = true;
       python.enable = true;

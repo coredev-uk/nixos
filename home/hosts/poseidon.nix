@@ -8,11 +8,16 @@
   ];
 
   home.packages = with pkgs; [
-    discord
+    discord # TODO: fix issue with nixcord
+
+    # System Packages
     mediamate
     raycast
-    alt-tab-macos
     bartender
+
+    # Utilities
+    alt-tab-macos
+    mas
   ];
 
   programs.ghostty.package = pkgs.ghostty-bin;

@@ -46,10 +46,11 @@ in
   };
 
   home.packages = with pkgs; [
+    age
     devenv
     direnv
     self.packages.${meta.system}.neovim
-    age
     termscp
+    typst
   ];
 }
