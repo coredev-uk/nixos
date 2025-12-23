@@ -33,7 +33,7 @@
     cider
     desktop-file-utils
     file-roller
-    # jellyfin-media-player
+    jellyfin-media-player
     loupe
     mpv
     nautilus
