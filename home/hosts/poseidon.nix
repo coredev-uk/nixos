@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 {
 
   imports = [
@@ -8,8 +8,17 @@
   ];
 
   home.packages = with pkgs; [
-    discord
+    discord # TODO: fix issue with nixcord
+
+    # System Packages
+    mediamate
+    raycast
+    bartender
+
+    # Utilities
+    alt-tab-macos
+    mas
   ];
 
-  programs.ghostty.enable = lib.mkForce false;
+  programs.ghostty.package = pkgs.ghostty-bin;
 }
