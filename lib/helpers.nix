@@ -46,7 +46,6 @@ let
     {
       imports = [
         flakeInputs.agenix.homeManagerModules.default
-        flakeInputs.ags.homeManagerModules.default
         flakeInputs.catppuccin.homeModules.catppuccin
         flakeInputs.nixcord.homeModules.nixcord
         flakeInputs.zen-browser.homeModules.twilight

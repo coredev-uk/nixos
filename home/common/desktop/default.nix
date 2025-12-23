@@ -30,7 +30,6 @@
   home.packages = with pkgs; [
     brave
     catppuccin-gtk
-    cider
     desktop-file-utils
     file-roller
     jellyfin-media-player
