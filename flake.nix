@@ -28,14 +28,6 @@
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
 
-    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
-
-    homebrew-core.url = "github:homebrew/homebrew-core";
-    homebrew-core.flake = false;
-
-    homebrew-cask.url = "github:homebrew/homebrew-cask";
-    homebrew-cask.flake = false;
-
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 

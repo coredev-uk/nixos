@@ -1,4 +1,4 @@
-{ lib, pkgs, ... }:
+{ pkgs, ... }:
 {
 
   imports = [
@@ -9,7 +9,11 @@
 
   home.packages = with pkgs; [
     discord
+    mediamate
+    raycast
+    alt-tab-macos
+    bartender
   ];
 
-  programs.ghostty.enable = lib.mkForce false;
+  programs.ghostty.package = pkgs.ghostty-bin;
 }
