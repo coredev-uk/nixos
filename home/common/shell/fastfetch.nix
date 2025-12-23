@@ -1,10 +1,9 @@
 { pkgs, ... }:
 {
-  home = {
-    packages = with pkgs; [ fastfetch ];
-
-    file = {
-      ".config/fastfetch/config.jsonc".text = builtins.readFile ./fastfetch.jsonc;
-    };
+  programs.fastfetch = {
+    enable = true;
   };
+
+  home.file.".config/fastfetch/config.jsonc".source =
+    "${pkgs.fastfetch}/share/fastfetch/presets/examples/25.jsonc";
 }
