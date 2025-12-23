@@ -5,6 +5,7 @@
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
+    home-manager-darwin.url = "github:nix-community/home-manager/release-25.11";
 
     # accessible from pkgs.unstable overlay
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
