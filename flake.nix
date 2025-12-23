@@ -42,6 +42,7 @@
   outputs =
     {
       self,
+      nixpkgs,
       unstable,
       ...
     }@inputs:
@@ -97,7 +98,7 @@
       packages = libx.forAllSystems (
         system:
         let
-          pkgs = unstable.legacyPackages.${system};
+          pkgs = nixpkgs.legacyPackages.${system};
         in
         import ./pkgs { inherit pkgs inputs; }
       );
@@ -110,7 +111,7 @@
       devShells = libx.forAllSystems (
         system:
         let
-          pkgs = unstable.legacyPackages.${system};
+          pkgs = nixpkgs.legacyPackages.${system};
         in
         import ./shell.nix { inherit pkgs; }
       );

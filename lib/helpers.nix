@@ -14,7 +14,6 @@ let
       user ? username,
       desktop ? null,
       type ? "desktop",
-      pkgsInput ? inputs.nixpkgs,
       system ? "x86_64-linux",
       flakePath ? "/home/${user}/.dotfiles",
     }:
@@ -24,7 +23,7 @@ let
         inputs
         outputs
         ;
-      stable = pkgsInput.legacyPackages.${system};
+      unstable = inputs.unstable.legacyPackages.${system};
       meta = {
         inherit
           hostname
@@ -62,12 +61,12 @@ in
       user ? username,
       desktop ? null,
       type ? "desktop",
-      pkgsInput ? inputs.unstable,
+      pkgs ? inputs.unstable,
       system ? "x86_64-linux",
       flakePath ? "/home/${user}/.dotfiles",
     }:
     inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = pkgsInput.legacyPackages.${system};
+      pkgs = pkgs.legacyPackages.${system};
       extraSpecialArgs = mkSpecialArgs {
         inherit
           hostname
@@ -93,11 +92,11 @@ in
       user ? username,
       desktop ? null,
       type ? "desktop",
-      pkgsInput ? inputs.unstable,
+      pkgs ? inputs.nixpkgs,
       system ? "x86_64-linux",
       flakePath ? "/home/${user}/.dotfiles",
     }:
-    pkgsInput.lib.nixosSystem {
+    pkgs.lib.nixosSystem {
       specialArgs = mkSpecialArgs {
         inherit
           hostname
@@ -122,11 +121,12 @@ in
       system ? "aarch64-darwin",
       desktop ? null,
       type ? "darwin",
-      pkgsInput ? inputs.nixpkgs-darwin,
+      pkgs ? inputs.nixpkgs-darwin,
       flakePath ? "/Users/${user}/.dotfiles",
     }:
     inputs.nix-darwin.lib.darwinSystem {
       inherit system;
+      pkgs = pkgs.legacyPackages.${system};
       specialArgs = mkSpecialArgs {
         inherit
           hostname
@@ -134,7 +134,6 @@ in
           system
           desktop
           type
-          pkgsInput
           flakePath
           ;
       };
@@ -157,7 +156,6 @@ in
                 system
                 desktop
                 type
-                pkgsInput
                 flakePath
                 ;
             };

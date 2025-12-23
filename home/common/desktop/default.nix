@@ -32,7 +32,7 @@
     catppuccin-gtk
     desktop-file-utils
     file-roller
-    jellyfin-media-player
+    jellyfin-desktop
     loupe
     mpv
     nautilus
