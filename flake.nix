@@ -20,7 +20,7 @@
     ags.url = "github:/aylur/ags";
     ags.inputs.nixpkgs.follows = "unstable";
 
-    catppuccin.url = "github:catppuccin/nix/release-25.11";
+    catppuccin.url = "github:catppuccin/nix/release-25.05"; # TODO: Change to 25.11 when catppuccin/nix#782 is resolved.
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
