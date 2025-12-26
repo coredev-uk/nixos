@@ -13,7 +13,7 @@ in
     settings = {
       theme = "Catppuccin Mocha";
       font-family = theme.fonts.monospace.name;
-      window-decoration = false;
+      # window-decoration = false;
       clipboard-paste-protection = false;
     };
   };
