@@ -1,6 +1,7 @@
 {
   meta,
   config,
+  unstable,
   ...
 }:
 {
@@ -25,6 +26,7 @@
   services.k3s = {
     enable = true;
     role = "server";
+    package = unstable.k3s;
     tokenFile = config.age.secrets.${meta.hostname}.path;
     extraFlags = toString (
       [
