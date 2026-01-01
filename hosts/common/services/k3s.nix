@@ -17,6 +17,7 @@
     # 2379 # k3s, etcd clients: required if using a "High Availability Embedded etcd" configuration
     # 2380 # k3s, etcd peers: required if using a "High Availability Embedded etcd" configuration
     51826 # HomeKit for HomeBridge
+    56581 # Govee Plugin
   ];
   networking.firewall.allowedUDPPorts = [
     # 8472 # k3s, flannel: required if using multi-node for inter-node networking
