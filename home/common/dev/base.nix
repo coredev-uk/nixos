@@ -4,6 +4,12 @@
   ...
 }:
 {
+  # Kubernetes CLI Tool
+  programs.k9s = {
+    enable = true;
+    package = pkgs.k9s;
+  };
+
   home.packages =
     with pkgs;
     [
@@ -47,6 +53,7 @@
       kubectl
       kubernetes-helm
       argocd
+      fluxcd
     ]
     ++ lib.optionals meta.isDesktop [
       # Tauri
