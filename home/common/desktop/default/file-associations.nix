@@ -4,6 +4,7 @@ let
   fileBrowser = [ "org.gnome.Nautilus" ];
   imageViewer = [ "org.gnome.Loupe.desktop" ];
   videoPlayer = [ "mpv.desktop" ];
+  documentViewer = [ "org.gnome.Papers-previewer.desktop" ];
 in
 {
   # XDG MIME types
@@ -29,7 +30,7 @@ in
     "inode/directory" = fileBrowser;
 
     "application/json" = browser;
-    "application/pdf" = browser;
+    "application/pdf" = documentViewer;
 
     # Archives / compressed files
     "application/x-7z-compressed" = archiveManager;
