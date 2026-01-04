@@ -19,10 +19,13 @@
     51826 # HomeKit for HomeBridge
     56581 # Govee Plugin
     34495 # Camera Plugin
+    554 # camera rtsp
+    8080 # onvif
   ];
   networking.firewall.allowedUDPPorts = [
     # 8472 # k3s, flannel: required if using multi-node for inter-node networking
     5353 # mDNS
+    554 # camera rtsp
   ];
 
   services.k3s = {
