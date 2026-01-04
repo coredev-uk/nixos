@@ -139,8 +139,8 @@
     allowedTCPPortRanges = [
       {
         from = 10000;
-        to = 30000;
-      } # Longhorn Engine port range
+        to = 60000;
+      } # Longhorn Engine port range (10000-30000) + HomeKit dynamic ports (30000-60000)
     ];
   };
 
