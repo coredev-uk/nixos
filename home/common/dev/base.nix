@@ -52,8 +52,8 @@
       # Kubernetes
       kubectl
       kubernetes-helm
-      argocd
       fluxcd
+      talosctl
     ]
     ++ lib.optionals meta.isDesktop [
       # Tauri
