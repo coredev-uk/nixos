@@ -54,6 +54,7 @@
       kubernetes-helm
       fluxcd
       talosctl
+      sops
     ]
     ++ lib.optionals meta.isDesktop [
       # Tauri
