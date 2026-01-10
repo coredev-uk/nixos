@@ -1,6 +1,6 @@
-_:
+{ inputs, meta, ... }:
 let
-  inherit ((import ./file-associations.nix)) associations;
+  inherit ((import ./file-associations.nix { inherit inputs meta; })) associations;
 in
 {
   xdg = {

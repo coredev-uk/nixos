@@ -1,5 +1,10 @@
+{ inputs, meta, ... }:
 let
-  browser = [ "zen-twilight.desktop" ];
+  browser =
+    let
+      zen-browser = inputs.zen-browser.packages.${meta.system}.beta;
+    in
+    [ zen-browser.meta.desktopFileName ];
   archiveManager = [ "org.gnome.FileRoller.desktop" ];
   fileBrowser = [ "org.gnome.Nautilus" ];
   imageViewer = [ "org.gnome.Loupe.desktop" ];

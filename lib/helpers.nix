@@ -47,7 +47,7 @@ let
         flakeInputs.agenix.homeManagerModules.default
         flakeInputs.catppuccin.homeModules.catppuccin
         flakeInputs.nixcord.homeModules.nixcord
-        flakeInputs.zen-browser.homeModules.twilight
+        flakeInputs.zen-browser.homeModules.beta # twilight
         ../home # This path is relative to where this function is defined and used
       ];
       home.stateVersion = flakeStateVersion;
