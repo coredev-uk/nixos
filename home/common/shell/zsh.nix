@@ -1,6 +1,7 @@
 {
   pkgs,
   meta,
+  config,
   ...
 }:
 {
@@ -26,6 +27,9 @@
     };
 
     zsh = {
+      # tmp: remove on 26.05
+      dotDir = "${config.xdg.configHome}/zsh";
+
       enable = true;
       enableCompletion = true;
       autosuggestion.enable = true;

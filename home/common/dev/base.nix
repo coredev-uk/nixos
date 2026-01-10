@@ -31,7 +31,7 @@
       nix-init
       # Wrapper
       nixfmt-plus
-      nixfmt-rfc-style
+      nixfmt
       nurl
       statix
 
