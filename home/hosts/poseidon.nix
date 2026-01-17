@@ -4,7 +4,7 @@
   imports = [
     ../common/programs/discord.nix
     ../common/programs/ghostty.nix
-    ../common/programs/zen.nix
+    ../common/programs/zen
   ];
 
   home.packages = with pkgs; [

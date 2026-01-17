@@ -23,7 +23,7 @@
     ../programs/discord.nix
     ../programs/gaming.nix
     ../programs/ghostty.nix
-    ../programs/zen.nix
+    ../programs/zen
     # ./programs/rclone.nix
   ];
 
