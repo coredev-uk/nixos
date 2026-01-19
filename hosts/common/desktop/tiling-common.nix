@@ -8,8 +8,6 @@
     # variables.NIXOS_OZONE_WL = "1";
 
     systemPackages = with pkgs; [
-      nautilus
-      file-roller
       zenity
       # Enable HEIC image previews in Nautilus
       libheif
