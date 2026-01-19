@@ -44,4 +44,11 @@ in
       inherit (theme.iconTheme) name package;
     };
   };
+
+  # Set color scheme for portals (modern standard)
+  dconf.settings = {
+    "org/gnome/desktop/interface" = {
+      color-scheme = "prefer-dark";
+    };
+  };
 }
