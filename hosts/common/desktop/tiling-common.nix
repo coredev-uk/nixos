@@ -14,8 +14,6 @@
       # Enable HEIC image previews in Nautilus
       libheif
       libheif.out
-
-      xdg-desktop-portal-gtk
     ];
 
     # Enable HEIC image previews in Nautilus
@@ -45,6 +43,10 @@
     enable = true;
     xdgOpenUsePortal = true;
 
+    extraPortals = [
+      pkgs.xdg-desktop-portal-gtk
+    ];
+
     config = {
       common = {
         default = [
@@ -53,6 +55,24 @@
         "org.freedesktop.impl.portal.Secret" = [
           "gnome-keyring"
         ];
+      };
+
+      # Hyprland-specific portal configuration
+      Hyprland = {
+        default = [
+          "hyprland"
+          "gtk"
+        ];
+        # Use hyprland portal for screencasting/screenshots
+        "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
+        "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
+        "org.freedesktop.impl.portal.GlobalShortcuts" = [ "hyprland" ];
+        # Use GTK portal for file operations and URI opening
+        "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
+        "org.freedesktop.impl.portal.OpenURI" = [ "gtk" ];
+        "org.freedesktop.impl.portal.AppChooser" = [ "gtk" ];
+        # Secret handling via gnome-keyring
+        "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
       };
     };
   };
