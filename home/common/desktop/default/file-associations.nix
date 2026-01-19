@@ -2,7 +2,7 @@
 let
   browser =
     let
-      zen-browser = inputs.zen-browser.packages.${meta.system}.beta;
+      zen-browser = inputs.zen-browser.packages.${meta.system}.twilight;
     in
     [ zen-browser.meta.desktopFileName ];
   archiveManager = [ "org.gnome.FileRoller.desktop" ];
