@@ -29,11 +29,12 @@
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
-    nixcord.url = "github:kaylorben/nixcord";
+    # TODO: Pinned until is more stable after handover
+    nixcord.url = "github:FlameFlag/nixcord/02c730b57b8ef16c62624a3410ef724d014c58db";
 
     nvf.url = "github:notashelf/nvf";
 
-    opencode.url = "github:sst/opencode";
+    opencode.url = "github:anomalyco/opencode";
 
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
