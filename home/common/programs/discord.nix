@@ -1,4 +1,9 @@
-_: {
+{ inputs, ... }:
+{
+  imports = [
+    inputs.nixcord.homeModules.nixcord
+  ];
+
   # Docs: https://kaylorben.github.io/nixcord/
   programs.nixcord = {
     enable = true;

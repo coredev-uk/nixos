@@ -1,10 +1,14 @@
-{ config, ... }:
+{ inputs, config, ... }:
 {
+  imports = [
+    inputs.zen-browser.homeModules.twilight
+  ];
+
   programs.zen-browser =
     let
       inherit
         (
-          (import ./config/pins.nix {
+          (import ./pins.nix {
             inherit (config.programs.zen-browser.profiles.default) spaces containers;
           })
         )
