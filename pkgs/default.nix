@@ -12,7 +12,7 @@
         modules = [ ./nvim.nix ];
       })
     )
-    neovim
+    nvim
     ;
   nixfmt-plus = pkgs.callPackage ./nixfmt-plus.nix { };
   cider = pkgs.callPackage ./cider.nix { };

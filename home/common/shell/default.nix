@@ -44,7 +44,7 @@ in
     age
     devenv
     direnv
-    self.packages.${meta.system}.neovim
+    self.packages.${meta.system}.nvim
     termscp
     typst
   ];
