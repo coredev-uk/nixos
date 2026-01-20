@@ -34,6 +34,9 @@
 
     nvf.url = "github:notashelf/nvf";
 
+    # TODO: remove when bun is updated
+    nixpkgs-bun.url = "github:nixos/nixpkgs/b67e9df1f0c15a54d2de2ddf4f01a812569cc649";
+    opencode.inputs.nixpkgs.follows = "nixpkgs-bun";
     opencode.url = "github:anomalyco/opencode";
 
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged

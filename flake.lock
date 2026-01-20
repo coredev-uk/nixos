@@ -421,6 +421,22 @@
         "type": "github"
       }
     },
+    "nixpkgs-bun": {
+      "locked": {
+        "lastModified": 1766000790,
+        "narHash": "sha256-0yumOb7kjtn42tHjUG0GTifJTmFFoq0A7T0yw7cpJQg=",
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b67e9df1f0c15a54d2de2ddf4f01a812569cc649",
+        "type": "github"
+      },
+      "original": {
+        "owner": "nixos",
+        "repo": "nixpkgs",
+        "rev": "b67e9df1f0c15a54d2de2ddf4f01a812569cc649",
+        "type": "github"
+      }
+    },
     "nixpkgs-darwin": {
       "locked": {
         "lastModified": 1767962478,
@@ -516,22 +532,6 @@
         "type": "github"
       }
     },
-    "nixpkgs_6": {
-      "locked": {
-        "lastModified": 1768569498,
-        "narHash": "sha256-bB6Nt99Cj8Nu5nIUq0GLmpiErIT5KFshMQJGMZwgqUo=",
-        "owner": "NixOS",
-        "repo": "nixpkgs",
-        "rev": "be5afa0fcb31f0a96bf9ecba05a516c66fcd8114",
-        "type": "github"
-      },
-      "original": {
-        "owner": "NixOS",
-        "ref": "nixpkgs-unstable",
-        "repo": "nixpkgs",
-        "type": "github"
-      }
-    },
     "nvf": {
       "inputs": {
         "flake-compat": "flake-compat_3",
@@ -557,18 +557,21 @@
     },
     "opencode": {
       "inputs": {
-        "nixpkgs": "nixpkgs_6"
+        "nixpkgs": [
+          "nixpkgs-bun"
+        ]
       },
       "locked": {
-        "lastModified": 1768873334,
-        "narHash": "sha256-WwSYIUzAnu52UsJxeoYtP6SX4Exnkab6F7G6+ZC41ws=",
+        "lastModified": 1768859727,
+        "narHash": "sha256-3PpnLiVB+MxnWmdKolUpQ9BQf7nzzRQhoTsL8m0eIBA=",
         "owner": "anomalyco",
         "repo": "opencode",
-        "rev": "088b537657a5826ad77e2b9ddef190e5e54e0b12",
+        "rev": "1ee8a9c0b2211dad0008bc8291185a98ded8f3dd",
         "type": "github"
       },
       "original": {
         "owner": "anomalyco",
+        "ref": "v1.1.26",
         "repo": "opencode",
         "type": "github"
       }
@@ -608,6 +611,7 @@
         "nixcord": "nixcord",
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_4",
+        "nixpkgs-bun": "nixpkgs-bun",
         "nixpkgs-darwin": "nixpkgs-darwin",
         "nvf": "nvf",
         "opencode": "opencode",
