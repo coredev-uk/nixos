@@ -1,6 +1,6 @@
 { inputs, meta, ... }:
 {
-  opencode = {
+  programs.opencode = {
     enable = true;
     package = inputs.opencode.packages.${meta.system}.default;
     settings = {
