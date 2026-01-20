@@ -5,15 +5,11 @@
   inputs ? { },
 }:
 {
-  inherit
-    (
-      (inputs.nvf.lib.neovimConfiguration {
-        inherit pkgs;
-        modules = [ ./nvim.nix ];
-      })
-    )
-    nvim
-    ;
+  nvim =
+    (inputs.nvf.lib.neovimConfiguration {
+      inherit pkgs;
+      modules = [ ./nvim.nix ];
+    }).neovim;
   nixfmt-plus = pkgs.callPackage ./nixfmt-plus.nix { };
   cider = pkgs.callPackage ./cider.nix { };
   beammp-launcher = pkgs.callPackage ./beammp-launcher.nix { };
