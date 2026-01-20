@@ -3,7 +3,6 @@
   self,
   lib,
   meta,
-  inputs,
   ...
 }:
 let
@@ -14,8 +13,9 @@ in
     ./bat.nix
     ./btop.nix
     ./fastfetch.nix
-    ./starship.nix
     ./nh.nix
+    ./opencode.nix
+    ./starship.nix
     ./ssh.nix
     ./zsh.nix
   ]
@@ -38,11 +38,6 @@ in
       enable = true;
       settings.promptToReturnFromSubprocess = false;
     };
-    opencode = {
-      enable = true;
-      package = inputs.opencode.packages.${meta.system}.default;
-    };
-
   };
 
   home.packages = with pkgs; [
