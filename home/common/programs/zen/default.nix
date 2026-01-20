@@ -1,7 +1,20 @@
-{ inputs, config, ... }:
+{
+  inputs,
+  config,
+  meta,
+  ...
+}:
+let
+  releaseChannel = "twilight";
+  app = inputs.zen-browser.packages.${meta.system}.${releaseChannel};
+in
 {
   imports = [
-    inputs.zen-browser.homeModules.twilight
+    inputs.zen-browser.homeModules.${releaseChannel}
+  ];
+
+  xdg.mimeApps.defaultApplicationPackages = [
+    app
   ];
 
   programs.zen-browser =

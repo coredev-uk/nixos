@@ -1,10 +1,5 @@
-{ inputs, meta, ... }:
+_:
 let
-  browser =
-    let
-      zen-browser = inputs.zen-browser.packages.${meta.system}.twilight;
-    in
-    [ zen-browser.meta.desktopFileName ];
   archiveManager = [ "org.gnome.FileRoller.desktop" ];
   fileBrowser = [ "org.gnome.Nautilus" ];
   imageViewer = [ "org.gnome.Loupe.desktop" ];
@@ -14,27 +9,13 @@ in
 {
   # XDG MIME types
   associations = {
-    "application/x-extension-htm" = browser;
-    "application/x-extension-html" = browser;
-    "application/x-extension-shtml" = browser;
-    "application/x-extension-xht" = browser;
-    "application/x-extension-xhtml" = browser;
-    "application/xhtml+xml" = browser;
-    "text/html" = browser;
-    "x-scheme-handler/about" = browser;
-    "x-scheme-handler/chrome" = browser;
-    "x-scheme-handler/ftp" = browser;
-    "x-scheme-handler/http" = browser;
-    "x-scheme-handler/https" = browser;
-    "x-scheme-handler/unknown" = browser;
-
     "audio/*" = videoPlayer;
     "video/*" = videoPlayer;
     "image/*" = imageViewer;
 
     "inode/directory" = fileBrowser;
 
-    "application/json" = browser;
+    # "application/json" = browser;
     "application/pdf" = documentViewer;
 
     # Archives / compressed files
