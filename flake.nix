@@ -2,41 +2,37 @@
   description = "coredev-uk flake";
 
   inputs = {
+    # ---------- Nixpkgs ----------
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
     nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
-    home-manager-darwin.url = "github:nix-community/home-manager/release-25.11";
 
     # accessible from pkgs.unstable overlay
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
-    nixos-hardware.url = "github:nixos/nixos-hardware/master";
-
-    home-manager.url = "github:nix-community/home-manager";
-    home-manager.inputs.nixpkgs.follows = "unstable";
-
+    # ---------- Main Stuff ----------
     agenix.url = "github:ryantm/agenix";
-    agenix.inputs.nixpkgs.follows = "unstable";
 
     catppuccin.url = "github:catppuccin/nix/release-25.11";
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
 
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
+    home-manager.url = "github:nix-community/home-manager";
+    home-manager.inputs.nixpkgs.follows = "unstable";
 
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
-    # TODO: Pinned until is more stable after handover
-    nixcord.url = "github:FlameFlag/nixcord/02c730b57b8ef16c62624a3410ef724d014c58db";
+    nixos-hardware.url = "github:nixos/nixos-hardware/master";
+
+    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
+    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
+
+    nixcord.url = "github:FlameFlag/nixcord";
 
     nvf.url = "github:notashelf/nvf";
 
-    # TODO: remove when bun is updated
-    nixpkgs-bun.url = "github:nixos/nixpkgs/b67e9df1f0c15a54d2de2ddf4f01a812569cc649";
-    opencode.inputs.nixpkgs.follows = "nixpkgs-bun";
     opencode.url = "github:anomalyco/opencode";
 
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged

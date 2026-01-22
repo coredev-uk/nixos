@@ -136,7 +136,7 @@ in
           ;
       };
       modules = [
-        inputs.home-manager-darwin.darwinModules.home-manager
+        inputs.home-manager.darwinModules.home-manager
         ../hosts
         {
           home-manager = {
