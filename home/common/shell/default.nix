@@ -30,6 +30,7 @@ in
   };
 
   programs = {
+    direnv.enable = true;
     eza.enable = true;
     git.enable = true;
     home-manager.enable = true;
@@ -43,9 +44,8 @@ in
   home.packages = with pkgs; [
     age
     devenv
-    direnv
     self.packages.${meta.system}.nvim
-    termscp
+    # termscp
     typst
   ];
 }
