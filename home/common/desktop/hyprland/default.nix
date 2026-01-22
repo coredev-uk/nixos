@@ -40,7 +40,7 @@
           "col.active_border" = "rgba(f2cdcdff) rgba(cba6f7ff) 45deg";
           "col.inactive_border" = "rgba(595959aa)";
 
-          allow_tearing = false;
+          allow_tearing = true;
           layout = "dwindle";
         };
 

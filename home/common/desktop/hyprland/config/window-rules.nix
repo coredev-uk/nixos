@@ -18,21 +18,30 @@ _: {
     "move 0 0, title:^(Wine System Tray)$"
     "size 0 0, title:^(Wine System Tray)$"
 
-    # Steam
-    "noanim, class:^(steam)$"
-    "center, title:[^\s],initialClass:^(steam)$"
+    # --- Steam Client Rules ---
+    # Float everything that isn't the main Steam window
+    "float, class:^(steam)$, title:^(?!Steam).*$"
+    "tile, class:^(steam)$, title:^Steam$"
+
+    # Center specific Steam windows
+    "center, class:^(steam)$, title:^(Steam Settings)$"
+    "center, class:^(steam)$, title:^(Friends List)$"
+
+    # Fix Steam menus/popups disappearing
     "stayfocused, title:^()$,class:^(steam)$"
     "minsize 1 1, title:^()$,class:^(steam)$"
-    "float, title:^(Steam Settings)$,initialClass:^(steam)$"
-    "float, title:^(Friends List)$,initialClass:^(steam)$"
-    "size 325 550, title:^(Friends List)$,initialClass:^(steam)$"
-    "pin, title:^(Steam Settings)$,initialClass:^(steam)$"
-    "pin, title:^(.*Dialog*.)$,initialClass:^(steam)$"
-    "pin, title:^(Shutdown)$,initialClass:^(steam)$"
-    "pin, title:^(.*Sign in to Steam*.)$,initialClass:^(steam)$"
 
-    # Games
-    "immediate, class:^(cs2)$"
+    # --- Steam Game Rules ---
+    # Matches any window with class 'steam_app_NUMBER'
+
+    # Force games to be fullscreen
+    "fullscreen, class:^(steam_app_\\d+)$"
+
+    # Prevent screen from turning off while playing
+    "idleinhibit focus, class:^(steam_app_\\d+)$"
+
+    # Allow tearing (low latency) for games
+    "immediate, class:^(steam_app_\\d+)$"
 
     # xwaylandvideobridge
     "opacity 0.0 override,class:^(xwaylandvideobridge)$"
