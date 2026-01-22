@@ -2,14 +2,6 @@
   description = "coredev-uk flake";
 
   inputs = {
-    # ---------- Nixpkgs ----------
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
-
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
-
-    # accessible from pkgs.unstable overlay
-    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
-
     # ---------- Main Stuff ----------
     agenix.url = "github:ryantm/agenix";
 
@@ -21,10 +13,17 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "unstable";
 
+    home-manager-darwin.url = "github:nix-community/home-manager/release-25.11";
+    home-manager-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
+
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
+
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+
+    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
     nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
@@ -34,6 +33,8 @@
     nvf.url = "github:notashelf/nvf";
 
     opencode.url = "github:anomalyco/opencode";
+
+    unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged
     zen-browser.url = "github:0xc000022070/zen-browser-flake";
@@ -49,8 +50,8 @@
     }@inputs:
     let
       inherit (self) outputs;
-      stateVersion = "25.11";
       username = "paul";
+      stateVersion = "25.11";
 
       libx = import ./lib {
         inherit
