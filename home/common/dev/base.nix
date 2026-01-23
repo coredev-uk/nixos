@@ -52,6 +52,7 @@
       # Kubernetes
       kubectl
       kubernetes-helm
+      kubeconform
       fluxcd
       talosctl
       sops
