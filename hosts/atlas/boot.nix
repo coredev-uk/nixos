@@ -34,27 +34,15 @@
         "usb_storage"
         "usbhid"
         "xhci_pci"
-
-        # For Nvidia
-        "nvidia"
-        "nvidia_drm"
-        "nvidia_modeset"
-        "nvidia_uvm"
       ];
 
       systemd.dbus.enable = true;
     };
 
-    # Nvidia
-    kernelParams = [
-      "nvidia-drm.modeset=1"
-      "nvidia-drm.fbdev=1"
-    ];
-
-    kernelModules = [
-      "kvm_amd"
-      "vhost_vsock"
-    ];
+    extraModprobeConfig = ''
+      # PAT Support
+      options nvidia NVreg_UsePageAttributeTable=1
+    '';
 
     # Use the Xanmod Kernel for gaming-related optimisations.
     kernelPackages = pkgs.linuxPackages_xanmod_latest;
