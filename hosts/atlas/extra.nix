@@ -20,6 +20,7 @@ in
     "${self}/hosts/common/desktop/gaming.nix"
     "${self}/hosts/common/desktop/rgb.nix"
     "${self}/hosts/common/desktop/qmk.nix"
+    "${self}/hosts/common/desktop/ddcci-driver.nix"
     "${self}/hosts/common/base/nix-ld.nix"
   ]
   ++ lib.optional (meta.desktop == "i3") ./display.nix;
@@ -43,15 +44,16 @@ in
   #systemd.extraConfig = "DefaultLimitNOFILE=1048576";
 
   # Fix hmr issue (https://github.com/phenax/nixos-dotfiles/blob/main/configuration.nix#L34)
-  # systemd.extraConfig = ''DefaultLimitNOFILE=524288''; # TODO: Fix me, extraConfig was depreciated
-  systemd.user.extraConfig = ''DefaultLimitNOFILE=524288'';
+  systemd.settings.Manager = {
+    DefaultLimitNOFILE = 65536;
+  };
   boot.kernel.sysctl."fs.inotify.max_user_instances" = 8192;
   security.pam.loginLimits = [
     {
       domain = "*";
       type = "-";
       item = "nofile";
-      value = "524288";
+      value = "65536";
     }
   ];
 
