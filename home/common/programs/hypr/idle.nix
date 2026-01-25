@@ -7,11 +7,7 @@ let
     # Find all ddcci devices in /sys/class/backlight
     # We run them in the background (&) so they update simultaneously/instantly
     for dev in $(ls /sys/class/backlight/ | grep ddcci); do
-      if ["$VAL" == "restore"]; then 
-        ${pkgs.brightnessctl}/bin/brightnessctl -d "$dev" -r &
-      else
-        ${pkgs.brightnessctl}/bin/brightnessctl -d "$dev" set "$VAL" &
-      fi
+      ${pkgs.brightnessctl}/bin/brightnessctl -d "$dev" set "$VAL" &
     done
 
     # Wait for both to finish before exiting
@@ -34,7 +30,7 @@ in
         {
           timeout = 150; # 2.5 minutes
           on-timeout = "${set-brightness-all}/bin/set-brightness-all 10%";
-          on-resume = "${set-brightness-all}/bin/set-brightness-all restore";
+          on-resume = "${set-brightness-all}/bin/set-brightness-all 100%";
         }
         {
           timeout = 300; # 5 minutes
@@ -43,7 +39,7 @@ in
         {
           timeout = 330; # 5.5 minutes
           on-timeout = "${pkgs.hyprland}/bin/hyprctl dispatch dpms off";
-          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && ${set-brightness-all}/bin/set-brightness-all restore";
+          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && ${set-brightness-all}/bin/set-brightness-all 100%";
         }
         {
           timeout = 1800; # 30 minutes
