@@ -8,7 +8,7 @@ let
     # We run them in the background (&) so they update simultaneously/instantly
     for dev in $(ls /sys/class/backlight/ | grep ddcci); do
       if ["$VAL" == "restore"]; then 
-        ${pkgs.brightnessctl}/bin/brightnessctl -r &
+        ${pkgs.brightnessctl}/bin/brightnessctl -d "$dev" -r &
       else
         ${pkgs.brightnessctl}/bin/brightnessctl -d "$dev" set "$VAL" &
       fi
