@@ -45,7 +45,6 @@
     {
       self,
       nixpkgs,
-      unstable,
       ...
     }@inputs:
     let

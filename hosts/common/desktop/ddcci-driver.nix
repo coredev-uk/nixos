@@ -1,6 +1,7 @@
 {
   config,
   lib,
+  pkgs,
   ...
 }:
 
@@ -24,16 +25,21 @@
       wantedBy = [ "graphical.target" ];
       serviceConfig = {
         Type = "oneshot";
-        script = ''
-          for i2c_path in /sys/bus/i2c/devices/i2c-*; do
-            if [ -e "$i2c_path/name" ]; then
-              if grep -q "NVIDIA" "$i2c_path/name"; then
-                echo "Detected Nvidia I2C bus at $i2c_path. Attempting to attach ddcci..."
-                echo ddcci 0x37 > "$i2c_path/new_device" || true
-              fi
-            fi
-          done
-        '';
+        ExecStart =
+          let
+            ddcciSetupScript = pkgs.writeShellScript "ddcci-setup" ''
+
+              for i2c_path in /sys/bus/i2c/devices/i2c-*; do
+                if [ -e "$i2c_path/name" ]; then
+                  if grep -q "NVIDIA" "$i2c_path/name"; then
+                    echo "Detected Nvidia I2C bus at $i2c_path. Attempting to attach ddcci..."
+                    echo ddcci 0x37 > "$i2c_path/new_device" || true
+                  fi
+                fi
+              done
+            '';
+          in
+          "${ddcciSetupScript}";
       };
     };
   };
