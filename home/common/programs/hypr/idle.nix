@@ -24,6 +24,7 @@ in
         lock_cmd = "pidof hyprlock || ${lib.getExe pkgs.hyprlock}";
         before_sleep_cmd = "${pkgs.systemdUkify}/bin/loginctl lock-session";
         after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
+        on_unlock_cmd = "${set-brightness-all}/bin/set-brightness-all 100%";
       };
 
       listener = [
