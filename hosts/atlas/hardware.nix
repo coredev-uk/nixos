@@ -13,25 +13,9 @@
     inputs.nixos-hardware.nixosModules.common-pc-ssd
 
     ../common/hardware/bluetooth.nix
+    ../common/hardware/nvidia.nix
+    ../common/hardware/razer.nix
   ];
-
-  hardware.nvidia = {
-    # Force use the proprietary Nvidia drivers
-    open = false;
-
-    # Required for proper refresh rate handling afaik
-    forceFullCompositionPipeline = true;
-
-    # Wayland
-    modesetting.enable = true;
-
-    powerManagement = {
-      enable = true;
-      finegrained = false;
-    };
-
-    nvidiaSettings = true;
-  };
 
   nixpkgs.hostPlatform = "x86_64-linux";
 }
