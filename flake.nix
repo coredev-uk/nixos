@@ -2,7 +2,6 @@
   description = "coredev-uk flake";
 
   inputs = {
-    # ---------- Main Stuff ----------
     agenix.url = "github:ryantm/agenix";
 
     catppuccin.url = "github:catppuccin/nix/release-25.11";
@@ -13,9 +12,6 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "unstable";
 
-    home-manager-darwin.url = "github:nix-community/home-manager/release-25.11";
-    home-manager-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
-
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
@@ -23,12 +19,11 @@
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
 
-    nixpkgs-darwin.url = "github:NixOS/nixpkgs/nixpkgs-25.11-darwin";
-
-    nix-darwin.url = "github:nix-darwin/nix-darwin/nix-darwin-25.11";
-    nix-darwin.inputs.nixpkgs.follows = "nixpkgs-darwin";
+    nix-darwin.url = "github:nix-darwin/nix-darwin";
+    nix-darwin.inputs.nixpkgs.follows = "unstable";
 
     nixcord.url = "github:FlameFlag/nixcord";
+    nixcord.inputs.nixpkgs.follows = "unstable";
 
     nvf.url = "github:notashelf/nvf";
 

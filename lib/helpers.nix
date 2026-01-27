@@ -119,7 +119,7 @@ in
       system ? "aarch64-darwin",
       desktop ? null,
       type ? "darwin",
-      pkgs ? inputs.nixpkgs-darwin,
+      pkgs ? inputs.unstable,
       flakePath ? "/Users/${user}/.dotfiles",
     }:
     inputs.nix-darwin.lib.darwinSystem {
@@ -136,7 +136,7 @@ in
           ;
       };
       modules = [
-        inputs.home-manager-darwin.darwinModules.home-manager
+        inputs.home-manager.darwinModules.home-manager
         ../hosts
         {
           home-manager = {
