@@ -10,20 +10,14 @@
     package = pkgs.k9s;
   };
 
+  programs.bun.enable = true;
+
   home.packages =
     with pkgs;
     [
       # C++ tooling
       clang
       gnumake
-
-      # Node.js development
-      # nodejs
-      bun
-      nodePackages.npm
-      nodePackages.pnpm
-      nodePackages.yarn
-      fnm
 
       # Nix tooling
       deadnix
