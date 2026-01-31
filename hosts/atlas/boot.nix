@@ -41,7 +41,7 @@
 
     extraModprobeConfig = ''
       # PAT Support
-      options nvidia NVreg_UsePageAttributeTable=1
+      options nvidia NVreg_UsePageAttributeTable=1 NVreg_PreserveVideoMemoryAllocations=1
     '';
 
     # Use the Xanmod Kernel for gaming-related optimisations.
