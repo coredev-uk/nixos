@@ -12,14 +12,9 @@ was a great help at getting going.
 
 |  Hostname  |         OS         | Device  |        WM        |   Status    |
 | :--------: | :----------------: | :-----: | :--------------: | :---------: |
-|  `atlas`   |       NixOS        | Desktop | Hyperland / i3wm |   Working   |
+|  `atlas`   |       NixOS        | Desktop | Hyperland        |   Working   |
 | `poseidon` | macOS (nix-darwin) | Laptop  |       N/A        |   Working   |
-| `hyperion` |       NixOS        | Server  |       N/A        | Not Started |
 |  `athena`  |      Windows       | Desktop |       N/A        |     N/A     |
-
-## Setup Summary
-
-_TBD_
 
 ## Bootstrap Guide
 
