@@ -24,4 +24,5 @@
     trusted-users = [ meta.username ];
   };
 
+  services.tailscale.enable = true;
 }
