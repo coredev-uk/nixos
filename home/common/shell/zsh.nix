@@ -45,6 +45,7 @@
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
 
+        export TERM=xterm-256color
         export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/ # Patch for webkit2gtk ssl error (https://github.com/tauri-apps/wry/issues/605#issuecomment-1215756032)
       '';
 
