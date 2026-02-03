@@ -73,7 +73,7 @@
     settings = {
       plugin = [
         "oh-my-opencode@latest"
-        "opencode-antigravity-auth@1.3.1"
+        "opencode-antigravity-auth@latest"
       ];
 
       provider = {
