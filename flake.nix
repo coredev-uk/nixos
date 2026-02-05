@@ -5,6 +5,7 @@
     agenix.url = "github:ryantm/agenix";
 
     catppuccin.url = "github:catppuccin/nix/release-25.11";
+    catppuccin.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
@@ -26,8 +27,10 @@
     nixcord.inputs.nixpkgs.follows = "unstable";
 
     nvf.url = "github:notashelf/nvf";
+    nvf.inputs.nixpkgs.follows = "unstable";
 
     opencode.url = "github:anomalyco/opencode";
+    opencode.inputs.nixpkgs.follows = "unstable";
 
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 

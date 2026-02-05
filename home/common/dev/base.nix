@@ -5,10 +5,7 @@
 }:
 {
   # Kubernetes CLI Tool
-  programs.k9s = {
-    enable = true;
-    package = pkgs.k9s;
-  };
+  programs.k9s.enable = true;
 
   programs.bun.enable = true;
 

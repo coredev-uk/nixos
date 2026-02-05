@@ -4,7 +4,7 @@ _: {
     open = false;
 
     # Required for proper refresh rate handling afaik
-    forceFullCompositionPipeline = true;
+    # forceFullCompositionPipeline = true;
 
     # Wayland
     modesetting.enable = true;

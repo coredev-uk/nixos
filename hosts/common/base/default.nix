@@ -29,12 +29,13 @@
 
   services = {
     # chrony.enable = true;
-    journald.extraConfig = "SystemMaxUse=250M";
+    journald.extraConfig = lib.mkDefault "SystemMaxUse=250M";
   };
 
   security = {
     polkit.enable = true;
     rtkit.enable = true;
+    sudo.wheelNeedsPassword = lib.mkDefault true;
   };
 
   # Create dirs for home-manager
