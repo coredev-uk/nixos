@@ -69,7 +69,7 @@ in
             command = "eww open-many bar bar-second";
           }
           {
-            command = "${wallpaper}/bin/get-wallpaper --session=i3";
+            command = "feh --bg-fill \"$(${wallpaper}/bin/get-wallpaper)\"";
           }
           {
             command = "xset s off";

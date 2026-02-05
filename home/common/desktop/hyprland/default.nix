@@ -53,7 +53,7 @@
 
         exec-once = [
           "eww open-many bar bar-second"
-          "${wallpaper}/bin/get-wallpaper --session=hyprland"
+          "hyprctl hyprpaper wallpaper \" , $(${wallpaper}/bin/get-wallpaper), cover\""
         ];
 
         decoration = {

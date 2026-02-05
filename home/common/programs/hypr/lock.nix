@@ -21,7 +21,6 @@ in
         ignore_empty_input = false;
       };
 
-      # Smooth animations for modern look
       animations = {
         enabled = true;
         bezier = "smooth, 0.25, 0.1, 0.25, 1";
@@ -36,7 +35,7 @@ in
       background = [
         {
           monitor = "";
-          path = "$HOME/.cache/current-wallpaper.jpg";
+          path = "screenshot";
           blur_passes = 3;
           blur_size = 7;
           noise = 0.0117;
@@ -47,7 +46,6 @@ in
         }
       ];
 
-      # Modern input field with gradient border
       input-field = [
         {
           monitor = "";
@@ -79,7 +77,6 @@ in
       ];
 
       label = [
-        # Current time
         {
           monitor = "";
           text = "$TIME";
@@ -93,7 +90,6 @@ in
           shadow_size = 3;
           shadow_color = "rgba(0, 0, 0, 0.5)";
         }
-        # Date
         {
           monitor = "";
           text = ''cmd[update:60000] echo "$(date +"%A, %d %B")"'';
@@ -107,7 +103,6 @@ in
           shadow_size = 3;
           shadow_color = "rgba(0, 0, 0, 0.5)";
         }
-        # User greeting
         {
           monitor = "";
           text = ''cmd[update:60000] echo "Hello, $(echo $USER | sed 's/./\U&/')!"'';

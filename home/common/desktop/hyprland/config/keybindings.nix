@@ -22,7 +22,7 @@
     "${mod}, B, exec, ${browser}"
     "${mod}, Return, exec, ${terminal}"
     "${mod}, Space, exec, ${menu}"
-    "${mod} SHIFT, P, exec, ${wallpaper}/bin/get-wallpaper --session=hyprland"
+    "${mod} SHIFT, P, exec, hyprctl hyprpaper wallpaper \" , $(${wallpaper}/bin/get-wallpaper), cover\""
 
     # WM Controls
     "${mod}, R, exec, hyprctl reload"

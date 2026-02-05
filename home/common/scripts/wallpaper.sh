@@ -1,155 +1,237 @@
 #!/bin/sh
+# Bing Wallpaper Downloader - POSIX compliant
+# Downloads Bing wallpaper and outputs the file path
 
-# Configuration variables
-COUNTRY="UK"                               # Set the country code (e.g., US, UK, IN)
-LOCALE="en-GB"                             # Set the locale (e.g., en-GB)
-ORIENTATION="landscape"                    # Set orientation: "landscape" or "portrait"
-OUTPUT_DIR="$HOME/pictures/BingWallpapers" # Directory to save images
-MAX_IMAGES=5                               # Maximum number of images to keep
-SESSION=""                                 # Variable to store the session argument
+set -e # Exit on error
+set -u # Exit on undefined variable
 
-# API endpoint
-API_URL="https://fd.api.iris.microsoft.com/v4/api/selection?placement=88000820&bcnt=1&country=$COUNTRY&locale=$LOCALE&fmt=json"
+# Configuration variables with defaults
+COUNTRY="${COUNTRY:-UK}"
+LOCALE="${LOCALE:-en-GB}"
+ORIENTATION="${ORIENTATION:-landscape}"
+OUTPUT_DIR="${XDG_CACHE_HOME:-${HOME}/.cache}/bing-wallpapers"
+DEBUG="${DEBUG:-false}"
+RETURN_EXISTING="${RETURN_EXISTING:-false}"
 
-# Set a User-Agent to avoid "No ad available" issue
-USER_AGENT="Mozilla/5.0"
+# API configuration
+API_BASE="https://fd.api.iris.microsoft.com/v4/api/selection"
+USER_AGENT="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36"
 
 # Function to display help message
 show_help() {
-  echo "Usage: $0 [options]"
-  echo "Options:"
-  echo "  --country <country_code>  Set the country code (default: UK)"
-  echo "  --locale <locale_code>    Set the locale (default: en-GB)"
-  echo "  --orientation <orientation> Set orientation ('landscape' or 'portrait', default: landscape)"
-  echo "  --output_dir <directory>  Set the output directory (default: $OUTPUT_DIR)"
-  echo "  --max_images <number>     Set the maximum number of images to keep (default: $MAX_IMAGES)"
-  echo "  --session <session_type>  Specify the session type ('hyprland', 'i3')"
-  echo "  --help                    Show this help message"
+  cat <<EOF
+Usage: ${0##*/} [options]
+
+Download Bing wallpaper and output the file path.
+
+Options:
+    --country <code>        Country code (default: UK)
+    --locale <code>         Locale code (default: en-GB)
+    --orientation <type>    'landscape' or 'portrait' (default: landscape)
+    --existing              Return path to most recent wallpaper without fetching
+    --debug                 Enable debug logging to stderr
+    --help                  Show this help message
+
+Output:
+    The script outputs the absolute path to the wallpaper file on stdout.
+    Debug messages (if enabled) are sent to stderr.
+    Downloaded wallpaper is stored at: ~/.cache/bing-wallpapers/
+
+Notes:
+    - Keeps maximum of 3 most recent wallpapers
+    - Removes older wallpapers automatically
+    - API returns random image from daily set, not a fixed daily image
+
+Exit Codes:
+    0 - Success
+    1 - Error (download failed, dependencies missing, etc.)
+
+EOF
   exit 0
 }
 
+# Function to log messages (to stderr)
+log() {
+  if [ "$DEBUG" = "true" ]; then
+    printf '%s: %s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$*" >&2
+  fi
+}
+
+# Function to check required commands
+check_dependencies() {
+  for cmd in curl jq; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+      printf 'ERROR: Required command "%s" not found\n' "$cmd" >&2
+      printf 'Please install: %s\n' "$cmd" >&2
+      exit 1
+    fi
+  done
+}
+
 # Parse command-line arguments
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-  --country=*)
-    COUNTRY="${1#*=}"
-    shift
-    ;;
-  --locale=*)
-    LOCALE="${1#*=}"
-    shift
-    ;;
-  --orientation=*)
-    ORIENTATION="${1#*=}"
-    shift
-    ;;
-  --output_dir=*)
-    OUTPUT_DIR="${1#*=}"
-    shift
-    ;;
-  --max_images=*)
-    MAX_IMAGES="${1#*=}"
-    shift
-    ;;
-  --session=*)
-    SESSION="${1#*=}"
-    shift
-    ;;
-  --help)
-    show_help
-    ;;
-  *)
-    echo "Unknown option: $1"
-    show_help
-    ;;
-  esac
-done
-
-# --- Fetch and Download New Image ---
-# Create the output directory if it doesn't exist
-mkdir -p "$OUTPUT_DIR"
-
-# Fetch JSON response from the API
-RESPONSE=$(curl -s -A "$USER_AGENT" "$API_URL")
-
-# Extract image URL based on orientation
-if [ "$ORIENTATION" == "landscape" ]; then
-  IMAGE_URL=$(echo "$RESPONSE" | jq -r '.batchrsp.items[0].item | fromjson | .ad.landscapeImage.asset')
-elif [ "$ORIENTATION" == "portrait" ]; then
-  IMAGE_URL=$(echo "$RESPONSE" | jq -r '.batchrsp.items[0].item | fromjson | .ad.portraitImage.asset')
-else
-  echo "Invalid orientation. Use 'landscape' or 'portrait'."
-  exit 1
-fi
-
-# Check if IMAGE_URL was extracted successfully
-if [ -z "$IMAGE_URL" ] || [ "$IMAGE_URL" == "null" ]; then
-  echo "Failed to retrieve image URL."
-  exit 1
-fi
-
-# Determine the filename from the URL
-FILENAME=$(basename "$IMAGE_URL")
-OUTPUT_PATH="$OUTPUT_DIR/$FILENAME"
-
-# Download the image
-curl -s -o "$OUTPUT_PATH" "$IMAGE_URL"
-
-# Confirm download success
-if [ $? -ne 0 ]; then
-  echo "Failed to download image."
-  exit 1
-fi
-
-echo "Image downloaded successfully to: $OUTPUT_PATH"
-
-find "$OUTPUT_DIR" -maxdepth 1 -type f -printf '%T@\t%p\n' | sort -n | head -n "$(($(find "$OUTPUT_DIR" -maxdepth 1 -type f | wc -l) - MAX_IMAGES))" | cut -f 2- | while IFS= read -r file; do
-  echo "Removing old image: $file"
-  rm "$file"
-done
-
-UNAME=$(uname -s)
-
-if [ "$UNAME" == "Linux" ]; then
-  case "$SESSION" in
-  hyprland)
-    echo "Setting wallpaper for Hyprland..."
-    hyprctl hyprpaper unload all
-    hyprctl hyprpaper preload "$OUTPUT_PATH"
-    hyprctl hyprpaper wallpaper ",$OUTPUT_PATH"
-    cp -f $OUTPUT_PATH $HOME/.cache/current-wallpaper.jpg
-    echo "Hyprland wallpaper set to: $OUTPUT_PATH"
-    ;;
-  i3)
-    echo "Setting wallpaper for i3..."
-    DISPLAY=:0.0 feh --bg-fill "$OUTPUT_PATH"
-    echo "i3 wallpaper set to: $OUTPUT_PATH"
-    ;;
-  "") # If --session is not provided, fallback to XDG_SESSION_DESKTOP
-    DESKTOP_ENV="$XDG_SESSION_DESKTOP"
-    case "$DESKTOP_ENV" in
-    Hyprland)
-      echo "Setting wallpaper for Hyprland (auto-detected)..."
-      hyprctl hyprpaper unload all
-      hyprctl hyprpaper preload "$OUTPUT_PATH"
-      hyprctl hyprpaper wallpaper ",$OUTPUT_PATH"
-      echo "Hyprland wallpaper set to: $OUTPUT_PATH"
+parse_args() {
+  while [ $# -gt 0 ]; do
+    case "$1" in
+    --country=*)
+      COUNTRY="${1#*=}"
       ;;
-    i3)
-      echo "Setting wallpaper for i3 (auto-detected)..."
-      DISPLAY=:0.0 feh --bg-fill "$OUTPUT_PATH"
-      echo "i3 wallpaper set to: $OUTPUT_PATH"
+    --locale=*)
+      LOCALE="${1#*=}"
+      ;;
+    --orientation=*)
+      ORIENTATION="${1#*=}"
+      ;;
+    --existing)
+      RETURN_EXISTING="true"
+      ;;
+    --debug)
+      DEBUG="true"
+      ;;
+    --help | -h)
+      show_help
       ;;
     *)
-      echo "Desktop environment '$DESKTOP_ENV' not specifically handled for wallpaper setting."
-      echo "Use the --session argument to specify 'hyprland' or 'i3'."
+      printf 'ERROR: Unknown option: %s\n' "$1" >&2
+      show_help
       ;;
     esac
+    shift
+  done
+}
+
+# Validate orientation
+validate_orientation() {
+  case "$ORIENTATION" in
+  landscape | portrait)
+    return 0
     ;;
   *)
-    echo "Invalid session type: '$SESSION'. Use 'hyprland' or 'i3'."
+    printf 'ERROR: Invalid orientation "%s". Use "landscape" or "portrait".\n' "$ORIENTATION" >&2
+    exit 1
     ;;
   esac
-else
-  echo "Wallpaper setting is only implemented for Linux."
-fi
+}
+
+# Get most recently created wallpaper from output directory
+get_existing_wallpaper() {
+  _existing=$(find "$OUTPUT_DIR" -maxdepth 1 -type f \
+    \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" \) \
+    -exec ls -t {} + 2>/dev/null | head -n 1)
+
+  if [ -z "$_existing" ]; then
+    printf 'ERROR: No existing wallpaper found in %s\n' "$OUTPUT_DIR" >&2
+    exit 1
+  fi
+
+  printf '%s\n' "$_existing"
+}
+
+# Clean up old wallpapers (keep 3 most recent, remove rest)
+cleanup_old_wallpapers() {
+  # Get all wallpaper files sorted by modification time (newest first)
+  _all_files=$(find "$OUTPUT_DIR" -maxdepth 1 -type f \
+    \( -name "*.jpg" -o -name "*.jpeg" -o -name "*.png" -o -name "*.webp" \) \
+    -exec ls -t {} + 2>/dev/null)
+
+  if [ -z "$_all_files" ]; then
+    return 0
+  fi
+
+  # Count total files
+  _total=$(printf '%s\n' "$_all_files" | wc -l)
+
+  # If we have 3 or fewer files, nothing to clean up
+  if [ "$_total" -le 3 ]; then
+    return 0
+  fi
+
+  # Remove everything beyond the 3 most recent
+  printf '%s\n' "$_all_files" | tail -n +4 | while IFS= read -r file; do
+    log "Removing old wallpaper: $file"
+    rm -f "$file"
+  done
+}
+
+# Fetch image URL from API
+fetch_image_url() {
+  _api_url="${API_BASE}?placement=88000820&bcnt=1&country=${COUNTRY}&locale=${LOCALE}&fmt=json"
+
+  log "Fetching image data from Bing API..."
+  _response=$(curl -fsSL -A "$USER_AGENT" "$_api_url") || {
+    printf 'ERROR: Failed to fetch data from API\n' >&2
+    exit 1
+  }
+
+  # Determine which image field to extract
+  if [ "$ORIENTATION" = "landscape" ]; then
+    _image_field=".ad.landscapeImage.asset"
+  else
+    _image_field=".ad.portraitImage.asset"
+  fi
+
+  # Extract image URL
+  IMAGE_URL=$(printf '%s' "$_response" |
+    jq -r ".batchrsp.items[0].item | fromjson | ${_image_field}") || {
+    printf 'ERROR: Failed to parse JSON response\n' >&2
+    exit 1
+  }
+
+  if [ -z "$IMAGE_URL" ] || [ "$IMAGE_URL" = "null" ]; then
+    printf 'ERROR: Failed to retrieve image URL from response\n' >&2
+    exit 1
+  fi
+
+  log "Image URL: $IMAGE_URL"
+}
+
+# Download the image
+download_image() {
+  _filename=$(basename "$IMAGE_URL" | sed 's/[?#].*//') # Remove query parameters
+  OUTPUT_PATH="${OUTPUT_DIR}/${_filename}"
+
+  # Check if file already exists
+  if [ -f "$OUTPUT_PATH" ]; then
+    log "Wallpaper already exists: $OUTPUT_PATH"
+    return 0
+  fi
+
+  log "Downloading image to: $OUTPUT_PATH"
+  curl -fsSL -o "$OUTPUT_PATH" "$IMAGE_URL" || {
+    printf 'ERROR: Failed to download image\n' >&2
+    exit 1
+  }
+
+  log "Download successful"
+}
+
+# Main execution
+main() {
+  parse_args "$@"
+
+  # Create output directory
+  mkdir -p "$OUTPUT_DIR"
+
+  # If --existing flag is set, return most recent wallpaper without fetching
+  if [ "$RETURN_EXISTING" = "true" ]; then
+    get_existing_wallpaper
+    exit 0
+  fi
+
+  check_dependencies
+  validate_orientation
+
+  # Clean up old wallpapers before downloading new one
+  cleanup_old_wallpapers
+
+  # Download new wallpaper
+  fetch_image_url
+  download_image
+
+  log "Complete!"
+
+  # Output the path to stdout
+  printf '%s\n' "$OUTPUT_PATH"
+}
+
+# Run main function
+main "$@"
