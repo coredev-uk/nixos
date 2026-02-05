@@ -25,6 +25,8 @@
       foldlevel = 99;
       foldlevelstart = 99;
       foldenable = true;
+
+      laststatus = 3;
     };
 
     #------------------------------------------------------------------------------
@@ -214,17 +216,15 @@
     assistant.avante-nvim = {
       enable = true;
       setupOpts = {
-        provider = "copilot";
+        provider = "claude";
         providers = {
-          copilot = {
-            model = "claude-3.5-sonnet";
-            endpoint = "https://api.githubcopilot.com";
-            allow_insecure = false;
-            timeout = 10 * 60 * 1000;
-            max_completion_tokens = 1000000;
-            reasoning_effort = "high";
+          claude = {
+            endpoint = "https://api.anthropic.com";
+            model = "claude-sonnet-4-20250514";
+            timeout = 30000;
             extra_request_body = {
-              temperature = 0;
+              temperature = 0.75;
+              max_tokens = 20480;
             };
           };
         };
