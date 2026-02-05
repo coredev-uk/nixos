@@ -35,7 +35,6 @@
   security = {
     polkit.enable = true;
     rtkit.enable = true;
-    sudo.wheelNeedsPassword = lib.mkDefault true;
   };
 
   # Create dirs for home-manager

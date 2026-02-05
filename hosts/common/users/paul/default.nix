@@ -36,17 +36,4 @@ in
   environment.sessionVariables = {
     EDITOR = "vim";
   };
-
-  # Passwordless sudo (not very security compliant but cba atm fyi ty)
-  security.sudo.extraRules = [
-    {
-      users = [ "${user}" ];
-      commands = [
-        {
-          command = "ALL";
-          options = [ "NOPASSWD" ];
-        }
-      ];
-    }
-  ];
 }
