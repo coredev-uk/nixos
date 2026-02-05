@@ -32,6 +32,8 @@
     opencode.url = "github:anomalyco/opencode";
     opencode.inputs.nixpkgs.follows = "unstable";
 
+    vicinae.url = "github:vicinaehq/vicinae";
+
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged

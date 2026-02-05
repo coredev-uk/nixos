@@ -4,7 +4,7 @@
   imports = [
     ../../programs/eww
     ../../programs/swaync.nix
-    ../../programs/rofi.nix
+    ../../programs/vicinae.nix
   ];
 
   home.packages = with pkgs; [

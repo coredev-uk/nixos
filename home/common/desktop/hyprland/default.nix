@@ -23,7 +23,7 @@
         mod = "Mod4";
         browser = "zen";
         terminal = "${pkgs.ghostty}/bin/ghostty";
-        menu = "rofi -show drun";
+        menu = "vicinae open"; # rofi -show drun";
         lock = "${pkgs.hyprlock}/bin/hyprlock";
         wallpaper = pkgs.writeScriptBin "get-wallpaper" (builtins.readFile ../../scripts/wallpaper.sh);
       in
