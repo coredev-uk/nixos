@@ -16,7 +16,10 @@
   ];
 
   fonts.fontconfig.enable = true;
-  services.gnome-keyring.enable = true;
+  services = {
+    gnome-keyring.enable = true;
+    swayosd.enable = true;
+  };
 
   systemd.user.services.hyprpolkitagent = {
     Unit = {

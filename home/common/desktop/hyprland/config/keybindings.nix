@@ -11,11 +11,11 @@
 {
   bind = [
     # Media Keys
-    ", XF86AudioMute, exec, ${pkgs.wireplumber}/bin/wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle"
-    ", XF86AudioPlay, exec, ${pkgs.playerctl}/bin/playerctl play-pause"
-    ", XF86AudioPause, exec, ${pkgs.playerctl}/bin/playerctl play-pause"
-    ", XF86AudioNext, exec, ${pkgs.playerctl}/bin/playerctl next"
-    ", XF86AudioPrev, exec, ${pkgs.playerctl}/bin/playerctl previous"
+    ", XF86AudioMute, exec, ${pkgs.swayosd}/bin/swayosd-client --input-volume mute-toggle"
+    ", XF86AudioPlay, exec, ${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"
+    ", XF86AudioPause, exec,  ${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"
+    ", XF86AudioNext, exec,  ${pkgs.swayosd}/bin/swayosd-client --playerctl next"
+    ", XF86AudioPrev, exec, ${pkgs.swayosd}/bin/swayosd-client --playerctl previous"
 
     # Main Apps
     "${mod}, L, exec, ${lock}"
@@ -85,10 +85,10 @@
 
   # MultiMedia: Volume Up/Down
   binde = [
-    ", XF86AudioRaiseVolume, exec, ${pkgs.wireplumber}/bin/wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%+"
+    ", XF86AudioRaiseVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume +5"
   ];
   bindl = [
-    ", XF86AudioLowerVolume, exec, ${pkgs.wireplumber}/bin/wpctl set-volume -l 1.5 @DEFAULT_AUDIO_SINK@ 5%-"
+    ", XF86AudioLowerVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume -5%"
     ", XF86MonBrightnessDown, exec, hyprctl hyprsunset gamma -10"
     ", XF86MonBrightnessUp, exec, hyprctl hyprsunset gamma +10"
   ];
