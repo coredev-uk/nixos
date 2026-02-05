@@ -12,6 +12,7 @@
     ./locale.nix
     ./zramswap.nix
 
+    ../services/fail2ban.nix
     ../services/openssh.nix
   ];
 
