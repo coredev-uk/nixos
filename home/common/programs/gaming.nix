@@ -1,10 +1,10 @@
 { pkgs, ... }:
 {
+  catppuccin.mangohud.enable = true;
+
   programs = {
     mangohud = {
       enable = true;
-
-      package = pkgs.mangohud;
 
       settings = {
         table_columns = 2;
@@ -24,7 +24,6 @@
       extraPackages = with pkgs; [
         corefonts
         gamescope
-        mangohud
         winetricks
       ];
       winePackages = with pkgs.wineWowPackages; [
@@ -35,5 +34,6 @@
 
   home.packages = with pkgs; [
     beammp-launcher
+    vulkan-tools
   ];
 }

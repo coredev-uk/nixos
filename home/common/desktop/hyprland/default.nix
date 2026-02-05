@@ -9,6 +9,8 @@
     ../../programs/hypr
   ];
 
+  catppuccin.hyprland.enable = true;
+
   wayland.windowManager.hyprland = {
     enable = true;
     xwayland.enable = true;
@@ -36,9 +38,6 @@
           border_size = 2; # 0
 
           no_border_on_floating = true;
-
-          "col.active_border" = "rgba(f2cdcdff) rgba(cba6f7ff) 45deg";
-          "col.inactive_border" = "rgba(595959aa)";
 
           allow_tearing = true;
           layout = "dwindle";

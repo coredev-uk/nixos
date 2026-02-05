@@ -4,8 +4,10 @@
   ...
 }:
 {
+
   # Kubernetes CLI Tool
   programs.k9s.enable = true;
+  catppuccin.k9s.enable = true;
 
   programs.bun.enable = true;
 
