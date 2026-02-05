@@ -40,7 +40,6 @@
     proton-vpn-cli
     papers
     spotify
-    thunderbird
   ];
 
 }
