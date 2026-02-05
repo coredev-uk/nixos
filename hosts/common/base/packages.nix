@@ -4,6 +4,7 @@
     agenix
     bat
     binutils
+    cabextract
     curl
     eza
     file

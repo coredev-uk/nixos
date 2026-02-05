@@ -1,4 +1,7 @@
-{ pkgs, ... }:
+{
+  pkgs,
+  ...
+}:
 {
   catppuccin.mangohud.enable = true;
 
@@ -18,22 +21,13 @@
         width = 100;
       };
     };
-
-    lutris = {
-      enable = true;
-      extraPackages = with pkgs; [
-        corefonts
-        gamescope
-        winetricks
-      ];
-      winePackages = with pkgs.wineWowPackages; [
-        staging
-      ];
-    };
   };
 
   home.packages = with pkgs; [
     beammp-launcher
     vulkan-tools
+    umu-launcher
+    wineWowPackages.staging
+    winetricks
   ];
 }

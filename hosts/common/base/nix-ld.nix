@@ -39,5 +39,6 @@
       alsa-lib
       libusb1
       libGL.out
+      libunwind.out
     ]);
 }
