@@ -13,6 +13,13 @@
       softtabstop = 2;
       clipboard = "unnamedplus";
 
+      # Line numbers
+      number = true;
+      relativenumber = true;
+
+      # Better indentation
+      smartindent = true;
+
       # Folding Options
       foldcolumn = "1";
       foldlevel = 99;
@@ -34,10 +41,7 @@
     ui = {
       noice.enable = true;
       nvim-ufo.enable = true;
-      borders = {
-        enable = true;
-        plugins.lspsaga.enable = true;
-      };
+      borders.enable = true;
       colorful-menu-nvim = {
         enable = true;
         setupOpts = {
@@ -110,12 +114,31 @@
     lsp = {
       enable = true;
       formatOnSave = true;
-      lspsaga.enable = true;
 
-      # https://github.com/justDeeevin/nvim-config/blob/main/config/plugins/lsp.nix#L8
+      # Vue + TypeScript hybrid mode: volar handles .vue, vtsls handles .ts/.js
       servers = {
-        vue_ls = { };
-        vtsls = { };
+        volar = {
+          filetypes = [
+            "vue"
+            "typescript"
+            "javascript"
+          ];
+          extraOptions = {
+            init_options = {
+              vue = {
+                hybridMode = true; # Let vtsls handle TS, Volar handles Vue
+              };
+            };
+          };
+        };
+        vtsls = {
+          filetypes = [
+            "typescript"
+            "javascript"
+            "typescriptreact"
+            "javascriptreact"
+          ];
+        };
       };
     };
 
@@ -138,12 +161,22 @@
     formatter.conform-nvim = {
       enable = true;
       setupOpts = {
-        formatters_by_fs = {
+        formatters_by_ft = {
           astro = [
             "prettierd"
             "eslint_d"
           ];
+          typescript = [ "prettierd" ];
+          javascript = [ "prettierd" ];
+          vue = [
+            "prettierd"
+            "eslint_d"
+          ];
           nix = [ "nixfmt-plus" ];
+        };
+        format_on_save = {
+          timeout_ms = 3000;
+          lsp_fallback = true;
         };
       };
     };
@@ -169,7 +202,7 @@
         copilot = {
           name = "copilot";
           module = "blink-copilot";
-          score_offset = 100;
+          score_offset = 10;
           async = true;
         };
       };
@@ -220,7 +253,18 @@
     #------------------------------------------------------------------------------
     # GIT INTEGRATION
     #------------------------------------------------------------------------------
-    git.enable = true;
+    git = {
+      enable = true;
+      gitsigns = {
+        enable = true;
+        setupOpts = {
+          current_line_blame = true;
+          current_line_blame_opts = {
+            delay = 300;
+          };
+        };
+      };
+    };
 
     #------------------------------------------------------------------------------
     # KEYBINDINGS
@@ -260,20 +304,38 @@
         action = "<cmd>Neotree reveal<CR>";
         desc = "Reveal filetree";
       }
-      # LSP actions
+      # LSP actions (using built-in LSP)
       {
         key = "caa";
         mode = "n";
         silent = true;
-        action = "<cmd>Lspsaga code_action<CR>";
-        desc = "Lsp Sage Code action";
+        action = "function() vim.lsp.buf.code_action() end";
+        lua = true;
+        desc = "LSP Code action";
       }
       {
         key = "cgg";
         mode = "n";
         silent = true;
-        action = "<cmd>Lspsaga goto_definition<CR>";
-        desc = "Lsp Sage Goto definition";
+        action = "function() vim.lsp.buf.definition() end";
+        lua = true;
+        desc = "LSP Goto definition";
+      }
+      {
+        key = "crr";
+        mode = "n";
+        silent = true;
+        action = "function() vim.lsp.buf.rename() end";
+        lua = true;
+        desc = "LSP Rename";
+      }
+      {
+        key = "K";
+        mode = "n";
+        silent = true;
+        action = "function() vim.lsp.buf.hover() end";
+        lua = true;
+        desc = "LSP Hover";
       }
     ];
 
@@ -290,6 +352,9 @@
     #------------------------------------------------------------------------------
     # UTILITIES
     #------------------------------------------------------------------------------
+    # Auto-detect indentation
+    utility.sleuth.enable = true;
+
     # Snacks utilities
     utility.snacks-nvim = {
       enable = true;
