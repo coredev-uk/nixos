@@ -11,6 +11,6 @@ pkgs.writeShellApplication {
     set -x
     deadnix --edit
     statix fix
-    nixfmt .
+    treefmt .
   '';
 }

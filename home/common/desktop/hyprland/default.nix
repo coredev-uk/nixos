@@ -92,7 +92,7 @@
 
         # https://wiki.hypr.land/Configuring/Variables/#misc
         misc = {
-          force_default_wallpaper = true;
+          force_default_wallpaper = 1;
           disable_hyprland_logo = false;
         };
 
