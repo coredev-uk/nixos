@@ -52,4 +52,9 @@
     "vm.max_map_count" = 16777216;
     "fs.file-max" = 524288;
   };
+
+  # Required for Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)
+  systemd.settings.Manager = {
+    DefaultLimitNOFILE = 524288;
+  };
 }

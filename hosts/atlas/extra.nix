@@ -21,6 +21,7 @@ in
     "${self}/hosts/common/desktop/rgb.nix"
     "${self}/hosts/common/desktop/qmk.nix"
     "${self}/hosts/common/desktop/ddcci-driver.nix"
+    "${self}/hosts/common/desktop/dev.nix"
     "${self}/hosts/common/base/nix-ld.nix"
   ]
   ++ lib.optional (meta.desktop == "i3") ./display.nix;
@@ -38,24 +39,6 @@ in
 
   # Enforce Static DNS
   networking.networkmanager.dns = "none";
-
-  # networking.timeServers = options.networking.timeServers.default ++ [ "ntp.example.com" ];
-
-  #systemd.extraConfig = "DefaultLimitNOFILE=1048576";
-
-  # Fix hmr issue (https://github.com/phenax/nixos-dotfiles/blob/main/configuration.nix#L34)
-  systemd.settings.Manager = {
-    DefaultLimitNOFILE = 65536;
-  };
-  boot.kernel.sysctl."fs.inotify.max_user_instances" = 8192;
-  security.pam.loginLimits = [
-    {
-      domain = "*";
-      type = "-";
-      item = "nofile";
-      value = "65536";
-    }
-  ];
 
   # Disable suspend of Toslink output to prevent audio popping.
   services.pipewire.wireplumber.extraConfig."99-disable-suspend" = {
