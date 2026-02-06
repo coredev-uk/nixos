@@ -11,7 +11,8 @@
 {
   bind = [
     # Media Keys
-    ", XF86AudioMute, exec, ${pkgs.swayosd}/bin/swayosd-client --input-volume mute-toggle"
+    ", XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" # ${pkgs.swayosd}/bin/swayosd-client --input-volume mute-toggle"
+    ", XF86AudioMute, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume mute-toggle"
     ", XF86AudioPlay, exec, ${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"
     ", XF86AudioPause, exec,  ${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"
     ", XF86AudioNext, exec,  ${pkgs.swayosd}/bin/swayosd-client --playerctl next"
@@ -86,10 +87,10 @@
   # MultiMedia: Volume Up/Down
   binde = [
     ", XF86AudioRaiseVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume +5"
-  ];
-  bindl = [
-    ", XF86AudioLowerVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume -5%"
     ", XF86MonBrightnessDown, exec, hyprctl hyprsunset gamma -10"
     ", XF86MonBrightnessUp, exec, hyprctl hyprsunset gamma +10"
+  ];
+  bindl = [
+    ", XF86AudioLowerVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume -5"
   ];
 }
