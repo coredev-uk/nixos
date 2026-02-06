@@ -1,5 +1,8 @@
 {
   pkgs,
+  meta,
+  inputs,
+  self,
   ...
 }:
 {
@@ -25,8 +28,15 @@
 
   home.packages = with pkgs; [
     beammp-launcher
-    vulkan-tools
+    heroic-unwrapped
+    (inputs.nix-citizen.packages.${meta.system}.rsi-launcher.override {
+      location = "$HOME/games/star-citizen";
+      extraEnvVars = {
+        MANGOHUD = 1;
+      };
+    })
     umu-launcher
+    vulkan-tools
     wineWowPackages.staging
     winetricks
   ];

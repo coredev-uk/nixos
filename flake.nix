@@ -26,6 +26,8 @@
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
 
+    nix-citizen.url = "github:LovingMelody/nix-citizen";
+
     nvf.url = "github:notashelf/nvf";
     nvf.inputs.nixpkgs.follows = "unstable";
 
