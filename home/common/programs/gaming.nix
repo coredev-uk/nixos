@@ -5,24 +5,46 @@
   self,
   ...
 }:
+let
+  theme = import "${self}/lib/theme" { inherit pkgs; };
+  stripHash = str: builtins.substring 1 (-1) str;
+in
 {
-  catppuccin.mangohud.enable = true;
+  programs.mangohud = {
+    enable = true;
 
-  programs = {
-    mangohud = {
-      enable = true;
+    settings = {
+      table_columns = 2;
+      hud_compact = true;
+      width = 150;
 
-      settings = {
-        table_columns = 2;
-        hud_compact = true;
-        gpu_stats = true;
-        cpu_stats = true;
-        fps = true;
-        frametime = false;
-        frame_timing = false;
-        round_corners = 3;
-        width = 100;
-      };
+      ## Background
+      round_corners = 5;
+      background_alpha = 0.4;
+      background_color = stripHash theme.colours.mantle;
+
+      ## Text
+      font_size = 20;
+      text_outline = true;
+      text_outline_color = stripHash theme.colours.crust;
+      text_outline_thickness = 1.5;
+      text_color = stripHash theme.colours.text;
+
+      fps = true;
+      fps_color_change = true;
+      fps_value = "60,144";
+      fps_color = "${stripHash theme.colours.red},${stripHash theme.colours.yellow},${stripHash theme.colours.green}";
+      fps_sampling_period = 500;
+      fps_metrics = "avg,0.01";
+
+      frametime = false;
+      frame_timing = false;
+      gpu_stats = false;
+      cpu_stats = false;
+
+      ## Toggle hotkeys
+      toggle_hud = "Shift_R+F12";
+      toggle_fps_limit = "Shift_L+F1";
     };
   };
 
