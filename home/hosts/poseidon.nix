@@ -19,7 +19,6 @@
 
     # Apps
     protonmail-desktop
-    tailscale
   ];
   programs.ghostty.package = pkgs.ghostty-bin;
 }
