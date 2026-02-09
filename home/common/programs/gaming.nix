@@ -52,7 +52,7 @@ in
     beammp-launcher
     heroic-unwrapped
     (inputs.nix-citizen.packages.${meta.system}.rsi-launcher.override {
-      location = "$HOME/games/star-citizen";
+      location = "$HOME/games/Star Citizen";
       extraEnvVars = {
         MANGOHUD = 1;
       };

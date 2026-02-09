@@ -35,14 +35,15 @@
       enable = true;
       settings = {
         custom = {
-          start = "killall picom";
-          end = "if not pgrep picom && not pgrep Hyprland; then exec picom; fi";
+          # start = "killall picom";
+          # end = "if not pgrep picom && not pgrep Hyprland; then exec picom; fi";
         };
       };
     };
-  };
 
-  environment.sessionVariables.VK_ICD_FILENAMES = "/run/opengl-driver/share/vulkan/icd.d/nvidia_icd.x86_64.json";
+    # gamescope
+    gamescope.enable = true;
+  };
 
   # For Epic Games Store in Lutris
   hardware.graphics.enable32Bit = true;
