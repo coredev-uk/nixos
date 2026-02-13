@@ -49,5 +49,9 @@ _: {
     "noinitialfocus,class:^(xwaylandvideobridge)$"
     "maxsize 1 1,class:^(xwaylandvideobridge)$"
     "noblur,class:^(xwaylandvideobridge)$"
+
+    # Jellyfin Desktop - fix flickering by disabling compositor effects
+    "noblur,class:^(jellyfin-desktop)$"
+    "noanim,class:^(jellyfin-desktop)$"
   ];
 }
