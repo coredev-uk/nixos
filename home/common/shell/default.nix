@@ -30,20 +30,12 @@ in
   };
 
   programs = {
-    direnv.enable = true;
     eza.enable = true;
-    git.enable = true;
     home-manager.enable = true;
-    jq.enable = true;
-    lazygit = {
-      enable = true;
-      settings.promptToReturnFromSubprocess = false;
-    };
   };
 
   home.packages = with pkgs; [
     age
-    devenv
     self.packages.${meta.system}.nvim
     # termscp
     typst

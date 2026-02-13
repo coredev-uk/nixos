@@ -4,12 +4,35 @@
   ...
 }:
 {
-
-  # Kubernetes CLI Tool
-  programs.k9s.enable = true;
   catppuccin.k9s.enable = true;
+  programs = {
 
-  programs.bun.enable = true;
+    # Kubernetes CLI
+    k9s.enable = true;
+
+    # Node
+    bun.enable = true;
+
+    # env
+    direnv = {
+      enable = true;
+      enableZshIntegration = true;
+      mise.enable = true;
+    };
+    mise = {
+      enable = true;
+      enableZshIntegration = true;
+    };
+
+    # Git
+    git.enable = true;
+    lazygit = {
+      enable = true;
+      settings.promptToReturnFromSubprocess = false;
+    };
+
+    jq.enable = true;
+  };
 
   home.packages =
     with pkgs;
@@ -49,6 +72,9 @@
       fluxcd
       talosctl
       sops
+
+      # env
+      devenv
     ]
     ++ lib.optionals meta.isDesktop [
       # Tauri
