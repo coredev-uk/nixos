@@ -12,6 +12,8 @@
       # Enable HEIC image previews in Nautilus
       libheif
       libheif.out
+      # Required for Electron apps to use gnome-keyring for password storage
+      libsecret
     ];
 
     # Enable HEIC image previews in Nautilus

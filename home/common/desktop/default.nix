@@ -21,8 +21,10 @@
 
     # Standard Programs
     ../programs/discord.nix
+    ../programs/element.nix
     ../programs/gaming.nix
     ../programs/ghostty.nix
+    ../programs/halloy.nix
     ../programs/zen
     # ./programs/rclone.nix
   ];
