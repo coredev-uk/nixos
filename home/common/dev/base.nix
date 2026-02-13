@@ -22,6 +22,13 @@
     mise = {
       enable = true;
       enableZshIntegration = true;
+      globalConfig = {
+        tools.python = "system";
+        env.PYTHON_CONFIGURE_OPTS = "--without-ensurepip";
+        settings = {
+          all_compile = false;
+        };
+      };
     };
 
     # Git
@@ -59,6 +66,7 @@
           distutils
         ]
       ))
+      pipx
 
       # Shell tooling
       shellcheck
