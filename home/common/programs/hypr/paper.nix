@@ -4,14 +4,6 @@
 
     settings = {
       splash = false;
-
-      wallpaper = [
-        {
-          monitor = "";
-          path = "~/.local/cache/bing-wallpapers";
-          fit_mode = "cover";
-        }
-      ];
     };
   };
 
