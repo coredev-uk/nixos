@@ -34,7 +34,8 @@
     catppuccin-gtk
     desktop-file-utils
     file-roller
-    jellyfin-desktop
+    fladder
+    #jellyfin-desktop # buggy package on wayland with nvidia, using fladder until its better
     loupe
     mpv
     nautilus
