@@ -485,16 +485,16 @@ in
 
           # Extensions
           ExtensionSettings = extensions;
-
-          profiles.default = {
-            name = "Default";
-            isDefault = true;
-
-            containersForce = true;
-            spacesForce = true;
-            pinsForce = true;
-            inherit containers spaces pins;
-          };
         };
+
+      profiles.default = {
+        name = "Default";
+        isDefault = true;
+
+        containersForce = true;
+        spacesForce = true;
+        pinsForce = true;
+        inherit containers spaces pins;
+      };
     };
 }
