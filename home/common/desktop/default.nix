@@ -25,7 +25,7 @@
     ../programs/gaming.nix
     ../programs/ghostty.nix
     ../programs/halloy.nix
-    ../programs/zen
+    ../programs/zen.nix
     # ./programs/rclone.nix
   ];
 
