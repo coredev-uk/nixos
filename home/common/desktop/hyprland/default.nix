@@ -21,7 +21,7 @@
     settings =
       let
         mod = "Mod4";
-        browser = "zen";
+        browser = "zen-twilight";
         terminal = "${pkgs.ghostty}/bin/ghostty";
         menu = "vicinae open"; # rofi -show drun";
         lock = "${pkgs.hyprlock}/bin/hyprlock";

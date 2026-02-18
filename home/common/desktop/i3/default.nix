@@ -30,7 +30,7 @@ in
   xsession.windowManager.i3 =
     let
       mod = "Mod4";
-      browser = "zen";
+      browser = "zen-twilight";
       terminal = "${pkgs.ghostty}/bin/ghostty";
       menu = "rofi -show drun";
       lock = "${pkgs.betterlockscreen}/bin/betterlockscreen -l dim";
