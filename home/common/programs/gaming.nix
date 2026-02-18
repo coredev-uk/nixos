@@ -59,7 +59,7 @@ in
     })
     umu-launcher
     vulkan-tools
-    wineWowPackages.staging
+    wineWow64Packages.staging
     winetricks
   ];
 }
