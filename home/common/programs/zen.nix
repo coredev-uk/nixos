@@ -18,7 +18,6 @@ in
 
   programs.zen-browser =
     let
-
       # Browser Extensions
       extensions =
         let
@@ -227,42 +226,42 @@ in
       pins = {
         # Essential Pins - Personal (Always visible across Programming/Universal spaces)
         Google = {
-          id = "ae1c1f6e-7cce-49e2-81e2-f5bfae4fbdd8";
+          id = "8e566870-19b6-42d2-81d1-12a2880f313b";
           container = containers.Personal.id;
           url = "https://www.google.com/";
           isEssential = true;
           position = 101;
         };
         YouTube = {
-          id = "e18e8a47-6d30-496e-ac32-4943086cd3ed";
+          id = "66bbbc19-aca9-42e9-bf89-e6953006696b";
           container = containers.Personal.id;
           url = "https://www.youtube.com/";
           isEssential = true;
           position = 102;
         };
         GitHub = {
-          id = "0cd944c9-8245-4f87-bdbb-9005d512da29";
+          id = "071b7d28-378a-4db4-ae58-b91af06d85aa";
           container = containers.Personal.id;
           url = "https://github.com/";
           isEssential = true;
           position = 103;
         };
         AppleMusic = {
-          id = "d3c40307-d13c-411a-9d61-082d51326454";
+          id = "6a79ea2e-15c3-41a6-bca4-b1f9f3bb95f8";
           container = containers.Personal.id;
           url = "https://music.apple.com/";
           isEssential = true;
           position = 104;
         };
         Glance = {
-          id = "02a4cb5d-c3f2-4a0d-aa1e-987a170144e8";
+          id = "a83d151a-eda8-4d53-8e8c-eb01a02b3e40";
           container = containers.Personal.id;
           url = "https://glance.home.coredev.uk/";
           isEssential = true;
           position = 105;
         };
         ProtonMail = {
-          id = "dda52019-c903-407a-b03a-bf6885131068";
+          id = "acc6e781-d6d3-4d23-858a-355553d8ba33";
           container = containers.Personal.id;
           url = "https://mail.proton.me/u/0/inbox";
           isEssential = true;
@@ -271,37 +270,37 @@ in
 
         # Universal Space Pins
         Outlook = {
-          id = "f477aaa9-5e4a-4cdb-8f3c-e960d83f8d01";
+          id = "85fa2c24-c107-41a2-aaa4-acb9abf16486";
           workspace = spaces.Universal.id;
           url = "https://outlook.office.com/mail/";
           position = 201;
         };
         Netflix = {
-          id = "4c83bd38-f865-40b1-9179-eaab4d8fc712";
+          id = "0a7c203a-c4a8-4cfd-a534-2852cc4a56c7";
           workspace = spaces.Universal.id;
           url = "https://www.netflix.com/browse";
           position = 202;
         };
         Amazon = {
-          id = "e30f7203-747c-4405-874c-326924949782";
+          id = "699e50b2-abb3-403f-a5ec-52b474565f26";
           workspace = spaces.Universal.id;
           url = "https://www.amazon.co.uk/";
           position = 203;
         };
         X = {
-          id = "d153dec8-e6c4-4b67-a43a-8aeaa04815ad";
+          id = "11fde474-8d63-48af-9bc0-338ea3b1f932";
           workspace = spaces.Universal.id;
           url = "https://x.com/";
           position = 204;
         };
         Overleaf = {
-          id = "e2533eca-3334-4bbf-9055-56985d06d3c1";
+          id = "f1648f48-024b-4471-af68-e3bf0b15bf44";
           workspace = spaces.Universal.id;
           url = "https://www.overleaf.com/project";
           position = 205;
         };
         Typst = {
-          id = "cb6996d4-662d-4299-8c23-c358a7206ab0";
+          id = "254a2436-ae49-4ab7-a110-9189f72849d1";
           workspace = spaces.Universal.id;
           url = "https://typst.app/";
           position = 206;
@@ -309,42 +308,43 @@ in
 
         # Careers Folder (Universal Space)
         Careers = {
-          id = "32e52ed2-3472-428d-9e30-aeab8384542b";
+          id = "cd4f5481-d0ca-4f31-8ed5-e694302ba7f4";
           workspace = spaces.Universal.id;
           isFolderCollapsed = false;
           isGroup = true;
+          editedTitle = true;
           position = 207;
         };
         LinkedIn = {
-          id = "2e208ec8-6567-4c04-a321-5a45ac2ae12b";
+          id = "de743df8-edff-4b43-b37f-165c19363088";
           workspace = spaces.Universal.id;
           url = "https://www.linkedin.com/feed/";
           folderParentId = pins.Careers.id;
           position = 208;
         };
         BrightNetwork = {
-          id = "2a8928f8-d39f-411d-8153-7456f6d59ecc";
+          id = "19a8c304-708f-455b-af36-73bb36b9472c";
           workspace = spaces.Universal.id;
           url = "https://www.brightnetwork.co.uk/dashboard/";
           folderParentId = pins.Careers.id;
           position = 209;
         };
         CVLibrary = {
-          id = "ab0c7e6b-d760-4c15-8357-a54f07f22451";
+          id = "88323f4c-b1a8-43f4-af05-f2e12d99ff11";
           workspace = spaces.Universal.id;
           url = "https://www.cv-library.co.uk/";
           folderParentId = pins.Careers.id;
           position = 210;
         };
         Gradcracker = {
-          id = "03729110-d576-4dc8-8d24-24e7bb1816fb";
+          id = "f177c620-c586-4496-bf45-1d72c27a7f08";
           workspace = spaces.Universal.id;
           url = "https://www.gradcracker.com/my-gradcracker";
           folderParentId = pins.Careers.id;
           position = 211;
         };
         TotalJobs = {
-          id = "f0dbd77e-9424-406f-9b32-59401b915c86";
+          id = "c5a18413-f1a1-4278-a921-f22f9b73eb87";
           workspace = spaces.Universal.id;
           url = "https://www.totaljobs.com/";
           folderParentId = pins.Careers.id;
@@ -353,79 +353,79 @@ in
 
         # Programming Space Pins
         Cloudflare = {
-          id = "f740d7ea-f7fb-4c81-9dfc-b1234f07f987";
+          id = "8977af52-68e1-4aa1-9fbf-e4c1be5c0d03";
           workspace = spaces.Programming.id;
           url = "https://dash.cloudflare.com/";
           position = 301;
         };
         "Cloudflare Zero Trust" = {
-          id = "fc1c9f49-dc36-4cd0-bf66-6cda3b7c482b";
+          id = "ecd206ac-c6bc-4332-8a99-9c3cb716a65a";
           workspace = spaces.Programming.id;
           url = "https://one.dash.cloudflare.com/";
           position = 302;
         };
         MyNixOS = {
-          id = "10914dc0-6e68-47ae-a888-c1e9b1059c43";
+          id = "56e19b2c-f0b9-4eb4-8f7c-227fe799b371";
           workspace = spaces.Programming.id;
           url = "https://mynixos.com/";
           position = 303;
         };
         "nvf Configuration" = {
-          id = "2a296552-f54f-49c8-aeee-36dcae189b88";
+          id = "64234880-c45f-460f-9b9e-c2e627542575";
           workspace = spaces.Programming.id;
           url = "https://notashelf.github.io/nvf/options.html";
           position = 304;
         };
         ProtonDB = {
-          id = "52743e74-9d79-487a-8d63-84897c58bded";
+          id = "baf77b10-5045-4986-8e1e-ef7cb57ee63f";
           workspace = spaces.Programming.id;
           url = "https://www.protondb.com/";
           position = 305;
         };
         AreWeAntiCheatYet = {
-          id = "8c43b75c-413b-4616-9554-69ca40e44695";
+          id = "0e13eef7-18ed-41ea-9f1c-82423ec882ff";
           workspace = spaces.Programming.id;
           url = "https://areweanticheatyet.com/";
           position = 306;
         };
         "MDN Web Docs" = {
-          id = "31be7483-7051-46c8-81b8-0e91f9905ace";
+          id = "b46ad31e-e4f1-4a39-8113-c50bead8f610";
           workspace = spaces.Programming.id;
           url = "https://developer.mozilla.org/";
           position = 307;
         };
         DevDocs = {
-          id = "511f9092-542b-46fd-95aa-eb4d0e1e1fbc";
+          id = "8bac26d4-a81c-439d-bed3-eddea780ae28";
           workspace = spaces.Programming.id;
           url = "https://devdocs.io/";
           position = 308;
         };
         "Can I Use" = {
-          id = "1b42522f-de4b-456b-9e48-151b6f64b912";
+          id = "f53f18f3-c268-4b8b-b5f2-62724e276d83";
           workspace = spaces.Programming.id;
           url = "https://caniuse.com/";
           position = 309;
         };
         "Talos Docs" = {
-          id = "d814d6e6-0f9d-4980-8237-a71e40fc7999";
+          id = "ed075b34-67a5-4547-a390-7b69b7fcabb2";
           workspace = spaces.Programming.id;
           url = "https://www.talos.dev/";
           position = 310;
         };
         "Kubernetes Docs" = {
-          id = "05019cc1-a8de-4182-a3a4-f8176850fbc0";
+          id = "620b4234-a4ef-4b74-87fe-6734bffad0a7";
           workspace = spaces.Programming.id;
           url = "https://kubernetes.io/docs/";
           position = 311;
         };
         RegExr = {
-          id = "219610bd-6c24-4d62-a5cc-78c8a666d8af";
+          id = "31a2e7ec-16e8-438f-a0d6-22e4b69f5953";
           workspace = spaces.Programming.id;
           url = "https://regexr.com/";
           position = 312;
         };
         "JSON Formatter" = {
-          id = "94aa339b-8272-4da6-9acf-ae08b474b9b5";
+          id = "4805f77b-a2dd-4c73-9659-5f1385cd11f2";
           workspace = spaces.Programming.id;
           url = "https://jsonformatter.org/";
           position = 313;
@@ -433,7 +433,7 @@ in
 
         # Essential Pins - Work (Always visible in Work space)
         "Google (Work)" = {
-          id = "d9730e40-c741-4506-b28c-bc86b928f3e6";
+          id = "79abdada-cc50-4a99-b2cc-c9bf96b4bdb0";
           container = containers.Work.id;
           url = "https://www.google.com/";
           isEssential = true;
