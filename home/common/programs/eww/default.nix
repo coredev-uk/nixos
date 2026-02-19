@@ -5,16 +5,13 @@
 
     configDir = ./config;
     enableZshIntegration = true;
-    package = pkgs.eww;
   };
 
+  # Needed for scripts
   home.packages = with pkgs; [
-    eww
-    ffmpeg
-
-    # Needed for scripts
     jq
     socat
+    ffmpeg
   ];
 
   systemd.user.services.eww = {

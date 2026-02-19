@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CACHE_DIR="$HOME/.cache/eww/music"
+CACHE_DIR="$XDG_CACHE_HOME/eww/music"
 CACHE_LIMIT=20
 mkdir -p "$CACHE_DIR"
 
@@ -53,7 +53,6 @@ art() {
 	local meta url id file_path
 	meta=$(playerctl --player="$player" metadata 2>/dev/null)
 	url=$(echo "$meta" | awk '/artUrl/{print $3}')
-	id=$(echo "$meta" | awk -F'/' '/trackid/{print $NF}' | tr -d "'")
 
 	[ -z "$url" ] && echo "" && return
 
@@ -63,9 +62,7 @@ art() {
 		src=$(printf '%b' "${src//%/\\x}")
 	fi
 
-	if [ -z "$id" ]; then
-		id=$(echo "$url" | md5sum | awk '{print $1}')
-	fi
+	id=$(echo "$url" | md5sum | awk '{print $1}')
 	file_path="${CACHE_DIR}/${id}.jpg"
 
 	if [ ! -f "$file_path" ]; then

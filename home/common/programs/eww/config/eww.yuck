@@ -1,38 +1,63 @@
-(defpoll time           :interval "1s" "date '+%H:%M'")
-(defpoll date           :interval "60s" "date '+%a %d %b'")
-(defpoll volume         :interval "1s" "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2 * 100}'")
-(defpoll music_art      :interval "5s" "~/.config/eww/scripts/music.sh --art")
-(defpoll music_title    :interval "5s" "~/.config/eww/scripts/music.sh --title")
-(defpoll music_artist   :interval "5s" "~/.config/eww/scripts/music.sh --artist")
-(defpoll music_status   :interval "5s" "~/.config/eww/scripts/music.sh --status")
-(defpoll memory         :interval "15s" "free | awk '/Mem/ {print int($3/$2 * 100 + 0.5)}'")
+;; ── Variables ──────────────────────────────────────────────────────────────────
 
+(defpoll volume         :interval "1s" :initial "0" "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2 * 100}'")
+(defpoll brightness     :interval "2s" :initial "0" "brightnessctl -m | head -1 | awk -F, '{print $4}' | tr -d '%'")
+(defpoll music_art      :interval "5s" :initial "" "~/.config/eww/scripts/music.sh --art")
+(defpoll music_title    :interval "5s" :initial "" "~/.config/eww/scripts/music.sh --title")
+(defpoll music_artist   :interval "5s" :initial "" "~/.config/eww/scripts/music.sh --artist")
+(defpoll music_status   :interval "5s" :initial "false" "~/.config/eww/scripts/music.sh --status")
+(defpoll notif_count    :interval "5s" :initial "0" "swaync-client -c 2>/dev/null || echo 0")
 
-(deflisten workspaces_listen_0 "~/.config/eww/scripts/workspace.sh 0")
-(defwidget workspaces_0 []
-  (literal :content workspaces_listen_0))
+(defpoll net_status     :interval "5s"  :initial '{"type":"disconnected","name":"","ip":"","signal":0,"iface":"","wifi_hw":false}' "~/.config/eww/scripts/network.sh --status")
+(defpoll vpn_status     :interval "10s" :initial '{"connected":false,"ip":"","server":""}' "~/.config/eww/scripts/vpn.sh --status")
+(defpoll bt_status      :interval "10s" :initial '{"powered":false,"scanning":false}' "~/.config/eww/scripts/bluetooth.sh --status")
 
-(deflisten workspaces_listen_1 "~/.config/eww/scripts/workspace.sh 1")
-(defwidget workspaces_1 []
-  (literal :content workspaces_listen_1))
+(deflisten workspaces_listen :initial "[]" "~/.config/eww/scripts/workspace.sh")
 
 (defvar volume_reveal false)
+(defvar brightness_reveal false)
+(defvar net_panel_view 0)
+(defvar wifi_list "[]")
+(defvar bt_devices "[]")
+(defvar vpn_countries "[]")
+(defvar wifi_password "")
 
-(defvar eww "/usr/bin/env eww -c $HOME/.config/eww/")
+;; ── Workspaces ────────────────────────────────────────────────────────────────
 
-(defwidget center[]
-  (box :orientation "h" :space-evenly "false" :halign "center"
-    (music)
-    ))
+(defwidget workspaces [ws]
+  (box :class "workspaces" :halign "start" :valign "center" :vexpand true :spacing 10
+    (for entry in ws
+      (box :class {entry.active ? "selected" : "workspace"} {entry.active ? "" : ""}))))
 
-(defwidget right[]
-  (box :orientation "h" :space-evenly "false" :halign "end" :spacing 15
+;; ── Separator ─────────────────────────────────────────────────────────────────
+
+(defwidget sep []
+  (box :class "sep" :vexpand true :valign "center"
+    (box :class "sep_line")))
+
+;; ── Bar Layout ────────────────────────────────────────────────────────────────
+
+(defwidget center []
+  (box :orientation "h" :space-evenly "false" :halign "center" :hexpand true
+    (music)))
+
+(defwidget right []
+  (box :orientation "h" :space-evenly "false" :halign "end" :spacing 10
     (systray :orientation "h" :icon-size 15 :spacing 10)
+    (sep)
     (system)
+    (sep)
+    (network)
+    (sep)
+    (brightness)
     (volume)
-    (date)
+    (sep)
+    (date_widget)
     (clock)
-    ))
+    (sep)
+    (notifications)))
+
+;; ── Music ─────────────────────────────────────────────────────────────────────
 
 (defwidget music []
   (box :orientation "h" :hexpand "true" :space-evenly "false" :visible music_status
@@ -40,32 +65,213 @@
     (box :hexpand "true" "${music_title} ")
     (box :hexpand "true" " - ${music_artist}")))
 
+;; ── System ────────────────────────────────────────────────────────────────────
+
 (defwidget system []
   (box
     :spacing 6
     (circular-progress
-      :class "system_bar"
+      :class "system_bar sys_cpu"
       :value "${EWW_CPU.avg}"
       :tooltip "CPU ${round(EWW_CPU.avg, 1)}%"
       :thickness 4
-      (box :class "system_icon" "" ))
+      (box :class "system_icon sys_cpu_icon" ""))
 
     (circular-progress
-      :class "system_bar"
+      :class "system_bar sys_ram"
       :value "${EWW_RAM.used_mem_perc}"
       :tooltip "RAM ${round(EWW_RAM.used_mem_perc, 1)}%"
       :thickness 4
-      (box :class "system_icon" "" ))))
+      (box :class "system_icon sys_ram_icon" ""))
 
-(defwidget volume []
+    (circular-progress
+      :class "system_bar sys_disk"
+      :value {EWW_DISK["/"].used_perc}
+      :tooltip "Disk ${round(EWW_DISK["/"].used_perc, 1)}%"
+      :thickness 4
+      (box :class "system_icon sys_disk_icon" ""))
+
+    (circular-progress
+      :class "system_bar sys_bat"
+      :value {EWW_BATTERY != "" ? jq(EWW_BATTERY, "first(.[])").capacity : 0}
+      :tooltip {EWW_BATTERY != "" ? "Battery ${jq(EWW_BATTERY, "first(.[])").capacity}% (${jq(EWW_BATTERY, "first(.[])").status})" : "No battery"}
+      :visible {EWW_BATTERY != ""}
+      :thickness 4
+      (box :class "system_icon sys_bat_icon" {
+        EWW_BATTERY == "" ? "" :
+        jq(EWW_BATTERY, "first(.[])").status == "Charging" ? "" :
+        jq(EWW_BATTERY, "first(.[])").capacity > 75 ? "" :
+        jq(EWW_BATTERY, "first(.[])").capacity > 50 ? "" :
+        jq(EWW_BATTERY, "first(.[])").capacity > 25 ? "" :
+        ""}))))
+
+;; ── Network ───────────────────────────────────────────────────────────────────
+
+(defwidget network []
+  (button
+    :class "network"
+    :onclick "${EWW_CMD} update net_panel_view=0 && ${EWW_CMD} open-many --toggle network_panel_dismiss network_panel"
+    :tooltip {net_status.type == "wifi" ? "${net_status.name} (${net_status.ip})" :
+               net_status.type == "ethernet" ? "${net_status.name} (${net_status.ip})" :
+               "Disconnected"}
+    (label :class "network_icon" :text {
+      net_status.type == "wifi" ?
+        (net_status.signal >= 80 ? "" :
+         net_status.signal >= 60 ? "" :
+         net_status.signal >= 40 ? "" :
+         net_status.signal >= 20 ? "" :
+         "") :
+      net_status.type == "ethernet" ? "" :
+      ""})))
+
+;; ── Network Panel ─────────────────────────────────────────────────────────────
+
+(defwidget network_panel_widget []
+  (box :class "net_panel" :orientation "v" :space-evenly false :spacing 0
+      (stack :selected net_panel_view :transition "slideright" :same-size false
+
+        (box :orientation "v" :space-evenly false :spacing 4 :class "net_panel_main"
+
+          (box :class {net_status.wifi_hw ? "net_menu_item" : "net_menu_item net_menu_disabled"} :orientation "h" :space-evenly false :spacing 10
+            (button :class "net_wifi_toggle" :onclick "~/.config/eww/scripts/panel.sh --wifi-toggle &"
+              (label :class "net_menu_icon net_wifi_icon" :text ""))
+            (button :class "net_wifi_open" :hexpand true
+              :onclick {net_status.wifi_hw ? "~/.config/eww/scripts/panel.sh --open-wifi &" : ""}
+              (box :orientation "h" :space-evenly false :spacing 10 :hexpand true
+                (box :orientation "v" :space-evenly false :hexpand true
+                  (label :class "net_menu_label" :halign "start" :text "WiFi")
+                  (label :class "net_menu_sub" :halign "start" :text {
+                    net_status.type == "wifi" ? net_status.name :
+                    net_status.wifi_hw ? "Not connected" :
+                    "No WiFi hardware"}))
+                (label :class "net_menu_arrow" :visible {net_status.wifi_hw} :text ""))))
+
+          (box :class "net_menu_item" :orientation "h" :space-evenly false :spacing 10
+            (button :class "net_vpn_toggle" :onclick "~/.config/eww/scripts/panel.sh --vpn-toggle &"
+              (label :class "net_menu_icon net_vpn_icon" :text ""))
+            (button :class "net_vpn_open" :hexpand true
+              :onclick "~/.config/eww/scripts/panel.sh --open-vpn &"
+              (box :orientation "h" :space-evenly false :spacing 10 :hexpand true
+                (box :orientation "v" :space-evenly false :hexpand true
+                  (label :class "net_menu_label" :halign "start" :text "VPN")
+                  (label :class "net_menu_sub" :halign "start" :text {
+                    vpn_status.connected ? "Connected - ${vpn_status.server}" : "Disconnected"}))
+                (label :class "net_menu_arrow" :text ""))))
+
+          (box :class "net_menu_item" :orientation "h" :space-evenly false :spacing 10
+            (button :class "net_bt_toggle" :onclick "~/.config/eww/scripts/panel.sh --bt-toggle-power &"
+              (label :class "net_menu_icon net_bt_icon" :text ""))
+            (button :class "net_bt_open" :hexpand true
+              :onclick {bt_status.powered ? "~/.config/eww/scripts/panel.sh --open-bt &" : ""}
+              (box :orientation "h" :space-evenly false :spacing 10 :hexpand true
+                (box :orientation "v" :space-evenly false :hexpand true
+                  (label :class "net_menu_label" :halign "start" :text "Bluetooth")
+                  (label :class "net_menu_sub" :halign "start" :text {bt_status.powered ? "On" : "Off"}))
+                (label :class "net_menu_arrow" :visible {bt_status.powered} :text ""))))
+        )
+
+        (box :orientation "v" :space-evenly false :spacing 4 :class "net_panel_sub"
+          (button :class "net_back_btn" :onclick "${EWW_CMD} update net_panel_view=0"
+            (box :orientation "h" :space-evenly false :spacing 8
+              (label :class "net_back_icon" :text "")
+              (label :text "WiFi Networks")))
+          (scroll :vscroll true :height 250
+            (box :orientation "v" :space-evenly false :spacing 2
+              (for entry in wifi_list
+                (button
+                  :class {entry.connected ? "net_list_item net_list_active" : "net_list_item"}
+                  :onclick "~/.config/eww/scripts/network.sh --connect '${entry.ssid}' &"
+                  (box :orientation "h" :space-evenly false :spacing 8
+                    (label :class "net_list_icon" :text {entry.secured ? "" : ""})
+                    (label :class "net_list_label" :hexpand true :halign "start" :text {entry.ssid})
+                    (label :class "net_list_signal" :text "${entry.signal}%")))))))
+
+        (box :orientation "v" :space-evenly false :spacing 4 :class "net_panel_sub"
+          (button :class "net_back_btn" :onclick "${EWW_CMD} update net_panel_view=0"
+            (box :orientation "h" :space-evenly false :spacing 8
+              (label :class "net_back_icon" :text "")
+              (label :text "VPN Countries")))
+          (scroll :vscroll true :height 250
+            (box :orientation "v" :space-evenly false :spacing 2
+              (for entry in vpn_countries
+                (button
+                  :class "net_list_item"
+                  :onclick "~/.config/eww/scripts/panel.sh --vpn-connect-country '${entry.code}' &"
+                  (box :orientation "h" :space-evenly false :spacing 8
+                    (label :class "net_list_flag" :text {entry.flag})
+                    (label :class "net_list_label" :hexpand true :halign "start" :text {entry.name})
+                    (label :class "net_list_sub" :text {entry.code})))))))
+
+        (box :orientation "v" :space-evenly false :spacing 4 :class "net_panel_sub"
+          (button :class "net_back_btn" :onclick "${EWW_CMD} update net_panel_view=0"
+            (box :orientation "h" :space-evenly false :spacing 8
+              (label :class "net_back_icon" :text "")
+              (label :text "Bluetooth Devices")))
+          (button :class "net_scan_btn"
+            :onclick "~/.config/eww/scripts/panel.sh --bt-scan &"
+            (box :orientation "h" :space-evenly false :spacing 8
+              (label :class "net_scan_icon" :text "")
+              (label :text "Scan for devices")))
+          (scroll :vscroll true :height 220
+            (box :orientation "v" :space-evenly false :spacing 2
+              (for entry in bt_devices
+                (button
+                  :class {entry.connected ? "net_list_item net_list_active" : "net_list_item"}
+                  :onclick "~/.config/eww/scripts/panel.sh ${entry.connected ? '--bt-disconnect' : '--bt-connect'} '${entry.mac}' &"
+                  (box :orientation "h" :space-evenly false :spacing 8
+                    (label :class "net_list_icon" :text "")
+                    (label :class "net_list_label" :hexpand true :halign "start" :text {entry.name})
+                    (label :class "net_list_sub" :text {entry.connected ? "Connected" : entry.paired ? "Paired" : "Available"}))))))))))
+
+;; ── Dismiss Overlay (click-outside-to-close) ──────────────────────────────────
+
+(defwidget dismiss_overlay_widget [window]
   (eventbox
-    :onhover      "${eww} update volume_reveal=true"
-    :onhoverlost  "${eww} update volume_reveal=false"
+    :onclick "echo \"stupid cunt\" > ~/help && ${EWW_CMD} close ${window} && ${EWW_CMD} close ${window}_dismiss"))
+
+;; ── Notifications ─────────────────────────────────────────────────────────────
+
+(defwidget notifications []
+  (button
+    :class "notifications ${notif_count > 0 ? "has_notifs" : ""}"
+    :onclick "swaync-client -t -sw"
+    :tooltip "${notif_count} notification${notif_count == 1 ? "" : "s"}"
+    {notif_count > 0 ? " ${notif_count}" : ""}))
+
+;; ── Brightness ────────────────────────────────────────────────────────────────
+
+(defwidget brightness []
+  (eventbox
+    :onhover      "${EWW_CMD} update brightness_reveal=true"
+    :onhoverlost  "${EWW_CMD} update brightness_reveal=false"
     (box
       :orientation "h"
       :space-evenly "false"
       :spacing 10
-      (button :onclick 'wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle' "")
+      (label :class "brightness_icon" :text "")
+      (revealer
+        :transition "slideleft"
+        :duration "300ms"
+        :reveal brightness_reveal
+        (scale
+          :class "brightbar"
+          :orientation "h"
+          :max 100
+          :min 0
+          :value brightness
+          :onchange "set-brightness-all {}")))))
+
+;; ── Volume ────────────────────────────────────────────────────────────────────
+
+(defwidget volume []
+  (eventbox
+    :onhover      "${EWW_CMD} update volume_reveal=true"
+    :onhoverlost  "${EWW_CMD} update volume_reveal=false"
+    (box
+      :orientation "h"
+      :space-evenly "false"
+      :spacing 10
+      (button :class "volume_icon" :onclick "wpctl set-mute @DEFAULT_AUDIO_SINK@ toggle" "")
       (revealer
         :transition "slideleft"
         :duration "300ms"
@@ -76,32 +282,37 @@
           :max 100
           :min 0
           :value volume
-          :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ $(awk \"BEGIN {print {} / 100}\")"
-          )))))
+          :onchange "wpctl set-volume @DEFAULT_AUDIO_SINK@ {}%")))))
+
+;; ── Clock / Date / Calendar ───────────────────────────────────────────────────
 
 (defwidget clock []
-  (box "${time}"))
+  (box "${formattime(EWW_TIME, '%H:%M')}"))
 
-(defwidget date []
-  (box "${date}"))
+(defwidget date_widget []
+  (button
+    :onclick "${EWW_CMD} open-many --toggle calendar_dismiss calendar "
+    "${formattime(EWW_TIME, '%a %d %b')}"))
+
+(defwidget calendar_widget []
+  (box :class "calendar_window" :orientation "v"
+    (calendar)))
+
+;; ── Bar Containers ────────────────────────────────────────────────────────────
 
 (defwidget bar_container_0 []
-  (box :orientation "h"
-    (box :orientation "h" :space-evenly "false"
-      (workspaces_0)
-      )
+  (box :orientation "h" :space-evenly "false"
+    (workspaces :ws workspaces_listen)
     (center)
-    (right)
-    ))
+    (right)))
 
 (defwidget bar_container_1 []
-  (box :orientation "h"
-    (box :orientation "h" :space-evenly "false"
-      (workspaces_1)
-      )
+  (box :orientation "h" :space-evenly "false"
+    (workspaces :ws workspaces_listen)
     (center)
-    (right)
-    ))
+    (right)))
+
+;; ── Windows ───────────────────────────────────────────────────────────────────
 
 (defwindow bar
   :monitor 0
@@ -109,10 +320,10 @@
   :namespace "bar"
   :exclusive "true"
   :geometry (geometry :x "0%"
-  :y "0%"
-  :width "100%"
-  :height "0px"
-  :anchor "bottom center")
+    :y "0%"
+    :width "100%"
+    :height "0px"
+    :anchor "bottom center")
   :reserve (struts :side "bottom" :distance "4%")
   (bar_container_0))
 
@@ -122,10 +333,49 @@
   :namespace "bar"
   :exclusive "true"
   :geometry (geometry :x "0%"
-  :y "0%"
-  :width "100%"
-  :height "0px"
-  :anchor "bottom center")
+    :y "0%"
+    :width "100%"
+    :height "0px"
+    :anchor "bottom center")
   :reserve (struts :side "bottom" :distance "4%")
   (bar_container_1))
 
+(defwindow calendar
+  :monitor 0
+  :windowtype "dock"
+  :namespace "calendar"
+  :stacking "fg"
+  :focusable "ondemand"
+  :geometry (geometry :x "0%"
+    :y "0%"
+    :width "350px"
+    :anchor "bottom right")
+  (calendar_widget))
+
+(defwindow network_panel
+  :monitor 0
+  :windowtype "dock"
+  :namespace "network_panel"
+  :stacking "fg"
+  :focusable "ondemand"
+  :geometry (geometry :x "0%"
+    :y "0%"
+    :width "320px"
+    :anchor "bottom right")
+  (network_panel_widget))
+
+(defwindow network_panel_dismiss
+  :monitor 0
+  :geometry (geometry :width "100%" :height "100%" :anchor "center")
+  :stacking "fg"
+  :exclusive true
+  :focusable false
+  (dismiss_overlay_widget :window "network_panel"))
+
+(defwindow calendar_dismiss
+  :monitor 0
+  :geometry (geometry :width "100%" :height "100%" :anchor "center")
+  :stacking "fg"
+  :exclusive true
+  :focusable false
+  (dismiss_overlay_widget :window "calendar"))

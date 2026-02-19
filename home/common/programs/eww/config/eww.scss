@@ -1,17 +1,37 @@
+$crust:     #11111b;
+$mantle:    #181825;
+$base:      #1e1e2e;
+$surface0:  #313244;
+$surface1:  #45475a;
+$surface2:  #585b70;
+$overlay0:  #6c7086;
+$text:      #cdd6f4;
+$subtext0:  #a6adc8;
+$subtext1:  #bac2de;
+$pink:      #f5c2e7;
+$mauve:     #cba6f7;
+$red:       #f38ba8;
+$peach:     #fab387;
+$yellow:    #f9e2af;
+$green:     #a6e3a1;
+$teal:      #94e2d5;
+$sky:       #89dceb;
+$sapphire:  #74c7ec;
+$blue:      #89b4fa;
+$lavender:  #b4befe;
+
+@mixin fa-icon {
+  font-family: "Font Awesome 7 Free Solid";
+}
+
 * {
-  all: unset; // Unsets everything so you can style everything from scratch
+  all: unset;
 }
 
-// Global Styles
-.bar {
-  background-color: #11111b;
-  color: #b0b4bc;
-  padding: 0px 10px;
-}
-
+.bar,
 .bar-second {
-  background-color: #11111b;
-  color: #b0b4bc;
+  background-color: $crust;
+  color: $text;
   padding: 0px 10px;
 }
 
@@ -24,48 +44,334 @@
   margin: 4px;
 }
 
-.system_bar_container {
-  margin: 5px;
+.system_bar {
+  background-color: $base;
+  border-radius: 10px;
+  color: $pink;
 }
 
-.system_bar {
-  background-color: #1e1e2e;
-  border-radius: 10px;
-  color: #f5c2e7;
-}
+.sys_cpu  { color: $sky; }
+.sys_ram  { color: $mauve; }
+.sys_disk { color: $peach; }
+.sys_bat  { color: $green; }
 
 .system_icon {
+  @include fa-icon;
   margin: 7px;
   font-size: 7px;
-  color: #f5c2e7;
-  font-family: "Font Awesome 6 Free Solid";
+  color: $pink;
 }
+
+.sys_cpu_icon  { color: $sky; }
+.sys_ram_icon  { color: $mauve; }
+.sys_disk_icon { color: $peach; }
+.sys_bat_icon  { color: $green; }
 
 scale trough {
   all: unset;
-  background-color: #22242b;
+  background-color: $surface0;
   border-radius: 16px;
   min-height: 6px;
   min-width: 70px;
 }
 
 .volbar trough highlight {
-  background-color: #f5c2e7;
+  background-color: $blue;
+  border-radius: 10px;
+}
+
+.brightbar trough highlight {
+  background-color: $yellow;
   border-radius: 10px;
 }
 
 .workspace {
-  color: #f5c2e7;
+  @include fa-icon;
+  color: $surface2;
 }
 
 .selected {
-  font-family: "Font Awesome 6 Free Solid";
+  @include fa-icon;
+  color: $pink;
+}
+
+.sep {
+  padding: 0 4px;
+}
+
+.sep_line {
+  min-width: 1px;
+  min-height: 14px;
+  background-color: $surface1;
+  border-radius: 1px;
+}
+
+.volume_icon {
+  @include fa-icon;
+  color: $blue;
+}
+
+.brightness_icon {
+  @include fa-icon;
+  color: $yellow;
+}
+
+.network_icon {
+  @include fa-icon;
+  color: $green;
+}
+
+.notifications {
+  @include fa-icon;
+  color: $subtext0;
+
+  &.has_notifs {
+    color: $peach;
+  }
+}
+
+.calendar_window {
+  background-color: $mantle;
+  border-radius: 12px;
+  border: 1px solid $surface0;
+  padding: 16px;
+}
+
+calendar {
+  color: $text;
+  font-size: 12px;
+  padding: 4px;
+
+  &:selected {
+    color: $base;
+    background-color: $pink;
+    border-radius: 6px;
+  }
+
+  &:indeterminate {
+    color: $surface2;
+  }
+
+  &.header {
+    color: $lavender;
+    font-weight: bold;
+    font-size: 13px;
+  }
+
+  &.button {
+    color: $lavender;
+
+    &:hover {
+      background-color: $surface0;
+      border-radius: 6px;
+    }
+  }
+
+  &.highlight {
+    color: $peach;
+    font-weight: bold;
+  }
 }
 
 menu {
-  background-color: rgba(30, 30, 30, 0.9);
-  color: #f0f0f0;
-  border: 1px solid #555;
+  background-color: rgba(30, 30, 46, 0.9);
+  color: $text;
+  border: 1px solid $surface1;
   border-radius: 5px;
   padding: 5px;
+}
+
+// ── Network Panel ────────────────────────────────────────────────────────────
+
+.net_panel {
+  background-color: $mantle;
+  border-radius: 12px;
+  border: 1px solid $surface0;
+  padding: 12px;
+}
+
+.net_panel_main,
+.net_panel_sub {
+  padding: 4px 0;
+}
+
+// ── Menu items (main view rows) ──────────────────────────────────────────────
+
+.net_menu_item {
+  padding: 10px 12px;
+  border-radius: 8px;
+
+  &:hover {
+    background-color: $surface0;
+  }
+}
+
+.net_menu_disabled {
+  opacity: 0.4;
+
+  &:hover {
+    background-color: transparent;
+  }
+}
+
+.net_menu_icon {
+  @include fa-icon;
+  font-size: 14px;
+  color: $green;
+  min-width: 20px;
+}
+
+.net_vpn_icon {
+  color: $mauve;
+}
+
+.net_bt_icon {
+  color: $blue;
+}
+
+.net_wifi_icon {
+  color: $green;
+}
+
+.net_bt_toggle,
+.net_vpn_toggle,
+.net_wifi_toggle {
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover {
+    background-color: $surface1;
+  }
+}
+
+.net_bt_open,
+.net_vpn_open,
+.net_wifi_open {
+  padding: 4px 8px;
+  border-radius: 6px;
+
+  &:hover {
+    background-color: $surface0;
+  }
+}
+
+.net_menu_label {
+  font-size: 13px;
+  font-weight: bold;
+  color: $text;
+}
+
+.net_menu_sub {
+  font-size: 11px;
+  color: $subtext0;
+}
+
+.net_menu_arrow {
+  @include fa-icon;
+  font-size: 10px;
+  color: $overlay0;
+}
+
+// ── Back button / navigation ─────────────────────────────────────────────────
+
+.net_back_btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: $subtext1;
+  font-size: 12px;
+  font-weight: bold;
+  margin-bottom: 4px;
+
+  &:hover {
+    background-color: $surface0;
+  }
+}
+
+.net_back_icon {
+  @include fa-icon;
+  font-size: 10px;
+  color: $overlay0;
+}
+
+// ── Scan button (bluetooth) ──────────────────────────────────────────────────
+
+.net_scan_btn {
+  padding: 8px 12px;
+  border-radius: 8px;
+  color: $blue;
+  font-size: 12px;
+  margin-bottom: 4px;
+
+  &:hover {
+    background-color: $surface0;
+  }
+}
+
+.net_scan_icon {
+  @include fa-icon;
+  font-size: 11px;
+  color: $blue;
+}
+
+// ── List items (wifi, vpn countries, bt devices) ─────────────────────────────
+
+.net_list_item {
+  padding: 8px 12px;
+  border-radius: 6px;
+
+  &:hover {
+    background-color: $surface0;
+  }
+}
+
+.net_list_active {
+  background-color: rgba($green, 0.1);
+
+  .net_list_label {
+    color: $green;
+  }
+
+  .net_list_icon {
+    color: $green;
+  }
+}
+
+.net_list_icon {
+  @include fa-icon;
+  font-size: 11px;
+  color: $overlay0;
+  min-width: 16px;
+}
+
+.net_list_flag {
+  font-family: "Noto Color Emoji";
+  font-size: 14px;
+  min-width: 20px;
+}
+
+.net_list_label {
+  font-size: 12px;
+  color: $text;
+}
+
+.net_list_signal {
+  font-size: 11px;
+  color: $subtext0;
+}
+
+.net_list_sub {
+  font-size: 11px;
+  color: $overlay0;
+}
+
+// ── Scrollbar styling ────────────────────────────────────────────────────────
+
+.net_panel_sub scrollbar {
+  background-color: transparent;
+
+  slider {
+    background-color: $surface1;
+    border-radius: 4px;
+    min-width: 4px;
+  }
 }
