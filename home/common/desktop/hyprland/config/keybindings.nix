@@ -87,8 +87,8 @@
   # MultiMedia: Volume Up/Down
   binde = [
     ", XF86AudioRaiseVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume +5"
-    ", XF86MonBrightnessDown, exec, hyprctl hyprsunset gamma -10"
-    ", XF86MonBrightnessUp, exec, hyprctl hyprsunset gamma +10"
+    ", XF86MonBrightnessDown, exec, set-brightness-all 10%-"
+    ", XF86MonBrightnessUp, exec, set-brightness-all 10%+"
   ];
   bindl = [
     ", XF86AudioLowerVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume -5"

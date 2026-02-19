@@ -1,20 +1,4 @@
 { pkgs, lib, ... }:
-let
-  set-brightness-all = pkgs.writeScriptBin "set-brightness-all" ''
-    # Usage: set-brightness-all +10%  OR  set-brightness-all 50%
-    VAL=$1
-
-    # Find all ddcci devices in /sys/class/backlight
-    # We run them in the background (&) so they update simultaneously/instantly
-    for dev in $(ls /sys/class/backlight/ | grep ddcci); do
-      ${pkgs.brightnessctl}/bin/brightnessctl -d "$dev" set "$VAL" &
-    done
-
-    # Wait for both to finish before exiting
-    wait
-  '';
-
-in
 {
 
   services.hypridle = {
@@ -24,14 +8,14 @@ in
         lock_cmd = "pidof hyprlock || ${lib.getExe pkgs.hyprlock}";
         before_sleep_cmd = "${pkgs.systemdUkify}/bin/loginctl lock-session";
         after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
-        on_unlock_cmd = "${set-brightness-all}/bin/set-brightness-all 100%";
+        on_unlock_cmd = "set-brightness-all 100%";
       };
 
       listener = [
         {
           timeout = 150; # 2.5 minutes
-          on-timeout = "${set-brightness-all}/bin/set-brightness-all 10%";
-          on-resume = "${set-brightness-all}/bin/set-brightness-all 100%";
+          on-timeout = "set-brightness-all 10%";
+          on-resume = "set-brightness-all 100%";
         }
         {
           timeout = 300; # 5 minutes
@@ -40,7 +24,7 @@ in
         {
           timeout = 330; # 5.5 minutes
           on-timeout = "${pkgs.hyprland}/bin/hyprctl dispatch dpms off";
-          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && ${set-brightness-all}/bin/set-brightness-all 100%";
+          on-resume = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on && set-brightness-all 100%";
         }
         {
           timeout = 1800; # 30 minutes
