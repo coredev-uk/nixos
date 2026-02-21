@@ -28,8 +28,7 @@
 
     nix-citizen.url = "github:LovingMelody/nix-citizen";
 
-    nvf.url = "github:notashelf/nvf";
-    nvf.inputs.nixpkgs.follows = "unstable";
+    nixvim.url = "github:nix-community/nixvim";
 
     opencode.url = "github:anomalyco/opencode";
     opencode.inputs.nixpkgs.follows = "unstable";

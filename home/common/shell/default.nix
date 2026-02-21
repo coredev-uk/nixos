@@ -18,6 +18,7 @@ in
     ./starship.nix
     ./ssh.nix
     ./zsh.nix
+    ../programs/nixvim
   ]
   ++ lib.optional (!meta.isHeadless) ./git.nix
   ++ lib.optionals meta.isDesktop [
@@ -36,7 +37,6 @@ in
 
   home.packages = with pkgs; [
     age
-    self.packages.${meta.system}.nvim
     # termscp
     typst
   ];

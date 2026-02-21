@@ -46,6 +46,7 @@ let
       imports = [
         flakeInputs.agenix.homeManagerModules.default
         flakeInputs.catppuccin.homeModules.catppuccin
+        flakeInputs.nixvim.homeModules.nixvim
         ../home # This path is relative to where this function is defined and used
       ];
       home.stateVersion = flakeStateVersion;
