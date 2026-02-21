@@ -121,8 +121,9 @@
       vim.lsp.handlers["textDocument/signatureHelp"] = vim.lsp.with(vim.lsp.handlers.signature_help, { border = "rounded" })
     '';
 
-    # Extra packages for LSP servers not managed by nixvim
+    # Extra packages for LSP servers and tools
     extraPackages = with pkgs; [
+      fd # Required by snacks.picker / snacks.explorer
       yamlfmt
     ];
   };
