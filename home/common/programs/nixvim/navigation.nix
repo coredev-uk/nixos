@@ -1,16 +1,4 @@
 {
-  programs.nixvim.plugins = {
-    # File explorer
-    neo-tree = {
-      enable = true;
-      settings = {
-        filesystem.hijack_netrw_behavior = "open_current";
-      };
-    };
-
-    # Fuzzy finder
-    telescope = {
-      enable = true;
-    };
-  };
+  # Navigation is handled entirely by snacks.picker and snacks.explorer
+  # See plugins.nix for snacks config and keymaps.nix for bindings
 }

@@ -8,10 +8,8 @@
         integrations = {
           blink_cmp = true;
           gitsigns = true;
-          neotree = true;
           noice = true;
           snacks = true;
-          telescope.enabled = true;
           treesitter = true;
           which_key = true;
           mini.enabled = true;
