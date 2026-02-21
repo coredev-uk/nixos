@@ -43,6 +43,7 @@
     proton-vpn-cli
     papers
     spotify
+    teamspeak6-client
   ];
 
 }
