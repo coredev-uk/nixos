@@ -155,6 +155,7 @@
     extraPackages = with pkgs; [
       vue-language-server
       vtsls
+      yamlfmt
     ];
 
     #------------------------------------------------------------------------------
@@ -175,6 +176,7 @@
             "eslint_d"
           ];
           nix = [ "nixfmt-plus" ];
+          yaml = [ "yamlfmt" ];
         };
         format_on_save = {
           timeout_ms = 3000;
