@@ -17,6 +17,7 @@ in
 {
   imports = [
     "${self}/hosts/common/services/networkmanager.nix"
+    "${self}/hosts/common/desktop/1password.nix"
     "${self}/hosts/common/desktop/gaming.nix"
     "${self}/hosts/common/desktop/rgb.nix"
     "${self}/hosts/common/desktop/qmk.nix"
