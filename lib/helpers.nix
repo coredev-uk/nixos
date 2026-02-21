@@ -124,7 +124,10 @@ in
     }:
     inputs.nix-darwin.lib.darwinSystem {
       inherit system;
-      pkgs = pkgs.legacyPackages.${system};
+      pkgs = import pkgs {
+        inherit system;
+        config.allowUnfree = true;
+      };
       specialArgs = mkSpecialArgs {
         inherit
           hostname
