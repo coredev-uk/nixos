@@ -44,6 +44,8 @@ in
           "wappalyzer@crunchlabz.com" = "wappalyzer";
           # AdBlocker
           "uBlock0@raymondhill.net" = "ublock-origin";
+          # 1Password
+          "{d634138d-c276-4fc8-924b-40a0ea21d284}" = "1password-x-password-manager";
         };
 
       # Containers
@@ -443,6 +445,8 @@ in
     in
     {
       enable = true;
+
+      suppressXdgMigrationWarning = true; # TODO: remove at some point
 
       languagePacks = [
         "en-GB"
