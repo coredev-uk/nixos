@@ -10,7 +10,7 @@
   home.packages = with pkgs; [
     # System Packages
     mediamate
-    raycast
+    # raycast
     # bartender # Need v6
 
     # Utilities

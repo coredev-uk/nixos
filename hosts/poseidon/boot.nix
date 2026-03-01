@@ -8,10 +8,6 @@
   system.primaryUser = meta.username;
   system.stateVersion = lib.mkForce 6;
 
-  imports = [
-    ../common/desktop/1password.nix
-  ];
-
   users.users.${meta.username} = {
     name = meta.username;
     home = lib.mkForce "/Users/${meta.username}";
