@@ -18,7 +18,7 @@
         if meta.isDarwin then
           "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
         else
-          "/opt/1Password/op-ssh-sign";
+          "${pkgs._1password-gui}/share/1password/op-ssh-sign";
     in
     {
       enable = true;
