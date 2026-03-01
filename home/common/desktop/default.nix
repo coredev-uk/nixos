@@ -39,7 +39,6 @@
     loupe
     mpv
     nautilus
-    proton-pass
     proton-vpn-cli
     papers
     spotify

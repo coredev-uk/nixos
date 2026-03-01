@@ -23,8 +23,8 @@
       enable = true;
       enableZshIntegration = true;
       globalConfig = {
-        tools.python = "system";
         env.PYTHON_CONFIGURE_OPTS = "--without-ensurepip";
+        env.MISE_DISABLE_TOOLS = "python";
         settings = {
           all_compile = false;
         };

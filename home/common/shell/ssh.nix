@@ -89,5 +89,5 @@ in
   };
 
   # Agenix Identity
-  age.identityPaths = [ "${meta.homeDirectory}/.ssh/github.pub" ];
+  age.identityPaths = [ "${meta.homeDirectory}/.ssh/github" ];
 }
