@@ -1,4 +1,9 @@
-{ pkgs, meta, ... }:
+{
+  pkgs,
+  meta,
+  lib,
+  ...
+}:
 
 let
   fullKnownHostsContent = pkgs.lib.strings.concatLines [
@@ -18,7 +23,8 @@ let
 
   toTOML = (pkgs.formats.toml { }).generate "1Password-Agents";
   opAgentMac = "${meta.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
-  identityAgent = if meta.isDarwin then opAgentMac else "${meta.homeDirectory}/.1password/agent.sock";
+  SSH_AUTH_SOCK = if meta.isDarwin then opAgentMac else "${meta.homeDirectory}/.1password/agent.sock";
+  identityAgent = lib.replaceStrings [ " " ] [ "\\ " ] SSH_AUTH_SOCK;
 in
 {
   home.file.".ssh/common_hosts" = {
@@ -43,6 +49,11 @@ in
     ];
   };
 
+  home.sessionVariables = {
+    inherit SSH_AUTH_SOCK;
+    SSH_AGENT_PID = "";
+  };
+
   # Enable the SSH program for your user
   programs.ssh = {
     enable = true;
@@ -52,8 +63,6 @@ in
       "*" = {
         inherit identityAgent;
         userKnownHostsFile = "~/.ssh/common_hosts ~/.ssh/known_hosts";
-        forwardAgent = true;
-        addKeysToAgent = "yes";
       };
 
       "github.com" = {
