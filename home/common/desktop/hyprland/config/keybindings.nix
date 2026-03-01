@@ -24,6 +24,7 @@
     "${mod}, Return, exec, ${terminal}"
     "${mod}, Space, exec, ${menu}"
     "${mod} SHIFT, P, exec, hyprctl hyprpaper wallpaper \" , $(${wallpaper}/bin/get-wallpaper), cover\""
+    "CTRL SHIFT, Space, exec, ${pkgs._1password-gui}/bin/1password --quick-access"
 
     # WM Controls
     "${mod}, R, exec, hyprctl reload"
