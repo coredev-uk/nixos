@@ -1,37 +1,6 @@
 { pkgs, meta, ... }:
 
 let
-  # Define the content of your ~/.ssh/config within Home Manager
-  sshConfigContent = pkgs.lib.strings.concatLines [
-    "# SSH Config File managed by NixOS Home Manager"
-    ""
-    "# 1. The Arch User Repository (using private key ~/.ssh/id_aur)"
-    "Host aur.archlinux.org"
-    "    User aur"
-    "    IdentityFile ~/.ssh/id_aur"
-    "    IdentitiesOnly yes"
-    ""
-    "# 2. GitHub Configuration (using private key ~/.ssh/id_github)"
-    "Host github.com"
-    "  HostName github.com"
-    "  User git"
-    "  IdentityFile ~/.ssh/id_github"
-    "  IdentitiesOnly yes"
-    ""
-    "# 3. BitBucket Configuration (using private key ~/.ssh/id_bitbucket)"
-    "Host bitbucket.org"
-    " HostName bitbucket.org"
-    " User git"
-    " IdentityFile ~/.ssh/id_bitbucket"
-    " IdentitiesOnly yes"
-    ""
-    "# 4. Oracle VPS (using private key ~/.ssh/id_oracle)"
-    "Host 130.162.183.212"
-    "    User ubuntu"
-    "    IdentityFile ~/.ssh/id_oracle"
-    "    IdentitiesOnly yes"
-  ];
-
   fullKnownHostsContent = pkgs.lib.strings.concatLines [
     "# SSH Known Hosts File managed by NixOS Home Manager"
     "# GitHub"
@@ -46,6 +15,10 @@ let
     "# VPS"
     "130.162.183.212 ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIH+3rWNWdqywSQoSRfVyp6qAuHO1TQae3GwzsA7kinsq"
   ];
+
+  toTOML = (pkgs.formats.toml { }).generate "1Password-Agents";
+  opAgentMac = "${meta.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
+  identityAgent = if meta.isDarwin then opAgentMac else "${meta.homeDirectory}/.1password/agent.sock";
 in
 {
   home.file.".ssh/common_hosts" = {
@@ -53,21 +26,59 @@ in
     recursive = true;
   };
 
+  xdg.configFile."1Password/ssh/agent.toml".source = toTOML {
+    ssh-keys = [
+      {
+        item = "GitHub";
+        vault = "Development";
+      }
+      {
+        item = "BitBucket";
+        vault = "Development";
+      }
+      {
+        item = "Oracle";
+        vault = "Development";
+      }
+    ];
+  };
+
   # Enable the SSH program for your user
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;
 
-    extraConfig = sshConfigContent;
+    matchBlocks = {
+      "*" = {
+        inherit identityAgent;
+        userKnownHostsFile = "~/.ssh/common_hosts ~/.ssh/known_hosts";
+        forwardAgent = true;
+        addKeysToAgent = "yes";
+      };
 
-    matchBlocks."*" = {
-      userKnownHostsFile = "~/.ssh/common_hosts ~/.ssh/known_hosts";
-      forwardAgent = true;
-      addKeysToAgent = "yes";
+      "github.com" = {
+        user = "git";
+        hostname = "github.com";
+        identityFile = "~/.ssh/github.pub";
+        identitiesOnly = true;
+      };
+
+      "bitbucket.org" = {
+        user = "git";
+        hostname = "bitbucket.org";
+      };
+
+      "aur.archlinux.org" = {
+        user = "aur";
+        hostname = "aur.archlinux.org";
+      };
+
+      "130.162.183.212" = {
+        user = "ubuntu";
+      };
     };
   };
 
   # Agenix Identity
-  age.identityPaths = [ "${meta.homeDirectory}/.ssh/id_github" ];
-
+  age.identityPaths = [ "${meta.homeDirectory}/.ssh/github.pub" ];
 }
