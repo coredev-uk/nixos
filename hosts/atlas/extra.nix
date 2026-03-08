@@ -32,15 +32,6 @@ in
     bootwin
   ];
 
-  # DNS
-  networking.nameservers = [
-    "192.168.20.20"
-    "192.168.10.1"
-  ];
-
-  # Enforce Static DNS
-  networking.networkmanager.dns = "none";
-
   # Disable suspend of Toslink output to prevent audio popping.
   services.pipewire.wireplumber.extraConfig."99-disable-suspend" = {
     "monitor.alsa.rules" = [
