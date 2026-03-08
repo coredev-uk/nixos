@@ -1,7 +1,7 @@
 {
   autoPatchelfHook,
+  fetchurl,
   lib,
-  requireFile,
   stdenv,
   wrapGAppsHook3,
   makeShellWrapper,
@@ -57,10 +57,11 @@ in
 stdenv.mkDerivation rec {
   inherit pname version;
 
-  src = requireFile {
-    name = "Cider.deb";
-    url = "https://cidercollective.itch.io/cider";
-    # sha256sum /nix/store/m2ada8dfgnh0kz9jvpqsn60mfg3n1mp3-Cider.deb
+  src = fetchurl {
+    name = "cider.deb";
+    urls = [
+      "file:///home/paul/apps/Cider.deb"
+    ];
     sha256 = "0xj3a6vzw9lv9w78yf2vkdgh2wwg6azbpjfd8cvb038cknm5gd6f";
   };
 

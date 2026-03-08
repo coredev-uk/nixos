@@ -41,6 +41,7 @@
     nautilus
     proton-vpn-cli
     papers
+    cider
     spotify
     teamspeak6-client
   ];
