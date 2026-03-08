@@ -7,44 +7,35 @@
     # example = prev.example.overrideAttrs (oldAttrs: rec {
     # ...
     # });
-    fladder =
-      (prev.fladder.override {
-        targetFlutterPlatform = "linux";
-      }).overrideAttrs
-        (oldAttrs: {
-          buildInputs = (oldAttrs.buildInputs or [ ]) ++ final.mpv-unwrapped.buildInputs;
 
-          desktopItems = (oldAttrs.desktopItems or [ ]) ++ [
-            (final.makeDesktopItem {
-              name = "fladder";
-              desktopName = "Fladder";
-              comment = oldAttrs.meta.description;
-              exec = "Fladder";
-              icon = "fladder";
-              terminal = false;
-              type = "Application";
-              categories = [
-                "AudioVideo"
-                "Video"
-                "Network"
-              ];
-              keywords = [
-                "Jellyfin"
-                "Media"
-                "Streaming"
-              ];
-            })
-          ];
+    cider-2 = prev.cider-2.overrideAttrs (_old: {
+      version = "2.0.3";
+      src = final.fetchurl {
+        name = "Cider.deb";
+        urls = [
+          "file:///home/paul/apps/cider-v2.0.3-linux-x64.deb"
+        ];
+        sha256 = "0xj3a6vzw9lv9w78yf2vkdgh2wwg6azbpjfd8cvb038cknm5gd6f";
+      };
 
-          nativeBuildInputs = (oldAttrs.nativeBuildInputs or [ ]) ++ [
-            final.copyDesktopItems
-          ];
+      postInstall = ''
+        if [ -f "$out/lib/cider/resources/app.asar" ]; then
+          ${final.lib.getExe final.asar} extract $out/lib/cider/resources/app.asar ./cider-build
 
-          postInstall = (oldAttrs.postInstall or "") + ''
-            install -Dm644 $out/app/fladder/data/flutter_assets/icons/fladder_icon.svg \
-              $out/share/icons/hicolor/scalable/apps/fladder.svg
-          '';
-        });
+          if ls ./cider-build/.vite/build/events-*.js >/dev/null 2>&1; then
+            for eventsFile in ./cider-build/.vite/build/events-*.js; do
+              substituteInPlace "$eventsFile" \
+                --replace-warn 'else if(c.includes(r))return{action:"allow"}' 'else if(c.includes(r))return{action:"allow",overrideBrowserWindowOptions:{webPreferences:{devTools:!0,nodeIntegration:!1,contextIsolation:!0,webSecurity:!1,sandbox:!1,experimentalFeatures:!0}}}'
+            done
+          fi
+
+          ${final.lib.getExe final.asar} pack ./cider-build $out/lib/cider/resources/app.asar
+          rm -rf ./cider-build
+        fi
+
+        ln -sf ${final.widevine-cdm}/share/google/chrome/WidevineCdm $out/lib/cider/
+      '';
+    });
   };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will

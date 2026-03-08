@@ -34,14 +34,13 @@
     catppuccin-gtk
     desktop-file-utils
     file-roller
-    fladder
-    #jellyfin-desktop # buggy package on wayland with nvidia, using fladder until its better
+    jellyfin-desktop
     loupe
     mpv
     nautilus
     proton-vpn-cli
     papers
-    cider
+    cider-2
     spotify
     teamspeak6-client
   ];
