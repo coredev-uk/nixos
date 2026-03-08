@@ -446,8 +446,6 @@ in
     {
       enable = true;
 
-      suppressXdgMigrationWarning = true; # TODO: remove at some point
-
       languagePacks = [
         "en-GB"
       ];
