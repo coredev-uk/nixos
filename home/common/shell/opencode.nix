@@ -9,11 +9,5 @@
   programs.opencode = {
     enable = true;
     package = inputs.opencode.packages.${meta.system}.default;
-
-    settings = {
-      plugin = [
-        "opencode-openai-codex-auth@latest"
-      ];
-    };
   };
 }

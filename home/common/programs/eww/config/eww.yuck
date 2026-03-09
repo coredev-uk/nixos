@@ -227,7 +227,7 @@
 
 (defwidget dismiss_overlay_widget [window]
   (eventbox
-    :onclick "echo \"stupid cunt\" > ~/help && ${EWW_CMD} close ${window} && ${EWW_CMD} close ${window}_dismiss"))
+    :onclick "${EWW_CMD} close ${window} && ${EWW_CMD} close ${window}_dismiss"))
 
 ;; ── Notifications ─────────────────────────────────────────────────────────────
 
