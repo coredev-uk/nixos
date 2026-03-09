@@ -1,7 +1,7 @@
 { inputs, meta, ... }:
 {
 
-  xdg.configFile."opencode/tui.json".source = builtins.toJSON {
+  xdg.configFile."opencode/tui.json".text = builtins.toJSON {
     "$schema" = "https://opencode.ai/tui.json";
     theme = "system";
   };
