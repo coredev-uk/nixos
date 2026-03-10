@@ -53,6 +53,7 @@
         exec-once = [
           "eww open-many bar bar-second"
           "hyprctl hyprpaper wallpaper \" , $(${wallpaper}/bin/get-wallpaper), cover\""
+          "1password --silent"
         ];
 
         decoration = {
