@@ -36,6 +36,29 @@
         ln -sf ${final.widevine-cdm}/share/google/chrome/WidevineCdm $out/lib/cider/
       '';
     });
+
+    discord-krisp-patcher =
+      assert !(prev ? krisp-patcher);
+      prev.writers.writePython3Bin "krisp-patcher"
+        {
+          libraries = with prev.python3Packages; [
+            capstone
+            pyelftools
+          ];
+          flakeIgnore = [
+            "E501"
+            "F403"
+            "F405"
+          ];
+        }
+        (
+          builtins.readFile (
+            builtins.fetchurl {
+              url = "https://codeberg.org/keysmashes/sys/raw/branch/main/common/nixpkgs/programs/krisp-patcher.py";
+              sha256 = "sha256-h8Jjd9ZQBjtO3xbnYuxUsDctGEMFUB5hzR/QOQ71j/E=";
+            }
+          )
+        );
   };
 
   # When applied, the unstable nixpkgs set (declared in the flake inputs) will
