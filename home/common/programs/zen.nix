@@ -463,7 +463,7 @@ in
           # Standard Policies
           AutofillAddressEnabled = true;
           AutofillCreditCardEnabled = false;
-          DisableAppUpdate = true;
+          DisableAppUpdate = !meta.isDarwin;
           DisableFeedbackCommands = true;
           DisableFirefoxStudies = true;
           DisablePocket = true;
