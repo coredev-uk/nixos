@@ -258,7 +258,7 @@ in
         Glance = {
           id = "a83d151a-eda8-4d53-8e8c-eb01a02b3e40";
           container = containers.Personal.id;
-          url = "https://glance.home.coredev.uk/";
+          url = "https://home.hera.ac/";
           isEssential = true;
           position = 105;
         };
