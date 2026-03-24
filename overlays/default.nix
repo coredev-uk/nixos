@@ -10,11 +10,8 @@
 
     cider-2 = prev.cider-2.overrideAttrs (_old: {
       version = "2.0.3";
-      src = final.fetchurl {
-        name = "Cider.deb";
-        urls = [
-          "file:///home/paul/apps/cider-v2.0.3-linux-x64.deb"
-        ];
+      src = builtins.fetchurl {
+        url = "file:///home/paul/apps/cider-v2.0.3-linux-x64.deb";
         sha256 = "0xj3a6vzw9lv9w78yf2vkdgh2wwg6azbpjfd8cvb038cknm5gd6f";
       };
 
