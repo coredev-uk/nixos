@@ -13,6 +13,8 @@
     # Node
     bun.enable = true;
 
+    claude-code.enable = true;
+
     # env
     direnv = {
       enable = true;
