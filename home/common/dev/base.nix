@@ -14,11 +14,6 @@
     bun.enable = true;
 
     # env
-    direnv = {
-      enable = true;
-      enableZshIntegration = true;
-      mise.enable = true;
-    };
     mise = {
       enable = true;
       enableZshIntegration = true;
