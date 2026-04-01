@@ -35,7 +35,7 @@
           };
 
           # Vue (hybrid mode - volar handles .vue, vtsls handles .ts/.js)
-          volar = {
+          vue_ls = {
             enable = true;
             filetypes = [
               "vue"
