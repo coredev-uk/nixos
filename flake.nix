@@ -30,7 +30,7 @@
 
     nixvim.url = "github:nix-community/nixvim";
 
-    opencode.url = "github:anomalyco/opencode/v1.4.1";
+    opencode.url = "github:anomalyco/opencode/v1.4.10";
     opencode.inputs.nixpkgs.follows = "unstable";
 
     vicinae.url = "github:vicinaehq/vicinae";
