@@ -1,6 +1,7 @@
 {
   self,
   pkgs,
+  meta,
   ...
 }:
 let
@@ -11,7 +12,11 @@ in
 
   programs.ghostty = {
     enable = true;
+
+    package = if meta.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
+
     enableZshIntegration = true;
+
     settings = {
       font-family = theme.fonts.monospace.name;
       # window-decoration = false;

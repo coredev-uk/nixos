@@ -1,6 +1,7 @@
 {
   inputs,
   meta,
+  pkgs,
   ...
 }:
 let
@@ -446,6 +447,8 @@ in
     {
       enable = true;
 
+      package = if pkgs.stdenv.isDarwin then null else app;
+
       languagePacks = [
         "en-GB"
       ];
@@ -463,7 +466,7 @@ in
           # Standard Policies
           AutofillAddressEnabled = true;
           AutofillCreditCardEnabled = false;
-          DisableAppUpdate = !meta.isDarwin;
+          DisableAppUpdate = !pkgs.stdenv.isDarwin;
           DisableFeedbackCommands = true;
           DisableFirefoxStudies = true;
           DisablePocket = true;

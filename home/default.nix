@@ -11,10 +11,10 @@
   ]
   ++ lib.optional (!meta.isHeadless) ./common/dev
   ++ lib.optional meta.isDesktop ./common/desktop
-  ++ lib.optional (builtins.pathExists (
-    ./. + "/hosts/${meta.hostname}.nix"
-  )) ./hosts/${meta.hostname}.nix;
-
+  ++ lib.optionals meta.isDarwin [
+    ./common/programs/zen.nix
+    ./common/programs/ghostty.nix
+  ];
   home = {
     inherit (meta) username;
     inherit (meta) homeDirectory;
