@@ -32,6 +32,7 @@
   home.packages = with pkgs; [
     brave
     catppuccin-gtk
+    cider-2
     desktop-file-utils
     file-roller
     jellyfin-desktop
@@ -40,7 +41,6 @@
     nautilus
     proton-vpn-cli
     papers
-    cider-2
     spotify
     teamspeak6-client
   ];

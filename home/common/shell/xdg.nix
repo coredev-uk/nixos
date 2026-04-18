@@ -10,6 +10,9 @@
 
     userDirs = {
       enable = true;
+
+      setSessionVariables = false;
+
       createDirectories = lib.mkDefault true;
 
       download = config.home.homeDirectory + "/downloads";
