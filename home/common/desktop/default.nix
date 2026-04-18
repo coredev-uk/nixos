@@ -1,4 +1,5 @@
 {
+  inputs,
   pkgs,
   meta,
   self,
@@ -38,6 +39,7 @@
     jellyfin-desktop
     loupe
     mpv
+    inputs.moonfin-flake.packages.${meta.system}.default
     nautilus
     proton-vpn-cli
     papers

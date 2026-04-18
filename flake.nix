@@ -16,6 +16,9 @@
     lanzaboote.url = "github:nix-community/lanzaboote";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
+    moonfin-flake.url = "github:coredev-uk/moonfin-flake";
+    moonfin-flake.inputs.nixpkgs.follows = "unstable";
+
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
