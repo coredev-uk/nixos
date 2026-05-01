@@ -6,7 +6,7 @@
     settings = {
       general = {
         lock_cmd = "pidof hyprlock || ${lib.getExe pkgs.hyprlock}";
-        before_sleep_cmd = "${pkgs.systemdUkify}/bin/loginctl lock-session";
+        before_sleep_cmd = "${pkgs.systemd}/bin/loginctl lock-session";
         after_sleep_cmd = "${pkgs.hyprland}/bin/hyprctl dispatch dpms on";
         on_unlock_cmd = "set-brightness-all 100%";
       };
@@ -19,7 +19,7 @@
         }
         {
           timeout = 300; # 5 minutes
-          on-timeout = "${pkgs.systemdUkify}/bin/loginctl lock-session";
+          on-timeout = "${pkgs.systemd}/bin/loginctl lock-session";
         }
         {
           timeout = 330; # 5.5 minutes
@@ -28,7 +28,7 @@
         }
         {
           timeout = 1800; # 30 minutes
-          on-timeout = "${pkgs.systemdUkify}/bin/systemctl suspend";
+          on-timeout = "${pkgs.systemd}/bin/systemctl suspend";
         }
       ];
     };
