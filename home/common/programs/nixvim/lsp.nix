@@ -68,7 +68,16 @@
           helm_ls.enable = true;
 
           # YAML
-          yamlls.enable = true;
+          yamlls = {
+            enable = true;
+            settings = {
+              yaml = {
+                schemas = {
+                  "https://kubernetes-schemas-ecq.pages.dev/cert-manager.io/certificate_v1.json" = [ "**/certificates/*.yaml" ];
+                };
+              };
+            };
+          };
 
           # Markdown
           marksman.enable = true;
