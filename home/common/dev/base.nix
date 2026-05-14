@@ -47,11 +47,10 @@
       deadnix
       nil
       nix-init
-      # Wrapper
-      nixfmt-plus
       nixfmt
       nurl
       statix
+      treefmt
 
       # Python tooling
       (pkgs.python3.withPackages (

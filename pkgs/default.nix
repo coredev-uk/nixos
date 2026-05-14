@@ -4,6 +4,5 @@
   pkgs ? (import ../nixpkgs.nix) { },
 }:
 {
-  nixfmt-plus = pkgs.callPackage ./nixfmt-plus.nix { };
   beammp-launcher = pkgs.callPackage ./beammp-launcher.nix { };
 }

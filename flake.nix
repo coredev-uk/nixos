@@ -35,6 +35,8 @@
 
     opencode.url = "github:anomalyco/opencode";
 
+    treefmt-nix.url = "github:numtide/treefmt-nix";
+
     vicinae.url = "github:vicinaehq/vicinae";
 
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -111,6 +113,13 @@
         import ./shell.nix { inherit pkgs; }
       );
 
-      formatter = libx.forAllSystems (system: self.packages.${system}.nixfmt-plus);
+      formatter = libx.forAllSystems (
+        system:
+        let
+          pkgs = nixpkgs.legacyPackages.${system};
+          treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./home/common/dev/treefmt.nix;
+        in
+        treefmtEval.config.build.wrapper
+      );
     };
 }
