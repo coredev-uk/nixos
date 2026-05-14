@@ -14,19 +14,10 @@
     discord = {
       enable = true;
       krisp.enable = true;
-      openASAR.enable = true;
-      vencord = {
-        enable = true;
-        unstable = false;
-      };
+      vencord.enable = true;
     };
 
     config = {
-      useQuickCss = true;
-      themeLinks = [
-        "https://luckfire.github.io/amoled-cord/src/amoled-cord.css"
-      ];
-
       plugins = {
         ClearURLs.enable = true;
         disableCallIdle.enable = true;
