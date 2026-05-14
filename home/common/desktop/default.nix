@@ -25,7 +25,6 @@
     ../programs/element.nix
     ../programs/gaming.nix
     ../programs/ghostty.nix
-    ../programs/halloy.nix
     ../programs/zen.nix
     # ./programs/rclone.nix
   ];
@@ -43,8 +42,6 @@
     nautilus
     proton-vpn-cli
     papers
-    spotify
-    teamspeak6-client
   ];
 
 }
