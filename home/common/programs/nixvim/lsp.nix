@@ -73,7 +73,9 @@
             settings = {
               yaml = {
                 schemas = {
-                  "https://kubernetes-schemas-ecq.pages.dev/cert-manager.io/certificate_v1.json" = [ "**/certificates/*.yaml" ];
+                  "https://kubernetes-schemas-ecq.pages.dev/cert-manager.io/certificate_v1.json" = [
+                    "**/certificates/*.yaml"
+                  ];
                 };
               };
             };

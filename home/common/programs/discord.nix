@@ -1,7 +1,5 @@
 {
   inputs,
-  lib,
-  pkgs,
   ...
 }:
 {
@@ -9,12 +7,13 @@
     inputs.nixcord.homeModules.nixcord
   ];
 
-  # Docs: https://kaylorben.github.io/nixcord/
+  # Docs: https://flameflag.github.io/nixcord/
   programs.nixcord = {
     enable = true;
 
     discord = {
       enable = true;
+      krisp.enable = true;
       openASAR.enable = true;
       vencord = {
         enable = true;
@@ -29,14 +28,14 @@
       ];
 
       plugins = {
-        AutoDNDWhilePlaying.enable = true;
-
+        ClearURLs.enable = true;
         disableCallIdle.enable = true;
 
         fixCodeblockGap.enable = true;
         fixSpotifyEmbeds.enable = true;
 
         messageLogger.enable = true;
+        MutualGroupDMs.enable = true;
         openInApp.enable = true;
 
         shikiCodeblocks.enable = true;
@@ -49,36 +48,4 @@
       };
     };
   };
-
-  home.packages = [
-    pkgs.discord-krisp-patcher
-  ];
-
-  home.activation.patchDiscordKrisp = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
-    echo "[patchDiscordKrisp] checking Discord Krisp modules"
-
-    patch_missing_krisp() {
-      base="$1"
-
-      if [ ! -d "$base" ]; then
-        echo "[patchDiscordKrisp] skip: $base does not exist"
-        return 0
-      fi
-
-      for candidate in "$base"/*/modules/discord_krisp/discord_krisp.node; do
-        [ -f "$candidate" ] || continue
-        if [ -f "$candidate.orig" ]; then
-          echo "[patchDiscordKrisp] skip: already patched $candidate"
-          continue
-        fi
-
-        echo "[patchDiscordKrisp] patching: $candidate"
-        ${pkgs.discord-krisp-patcher}/bin/krisp-patcher "$candidate" || true
-      done
-    }
-
-    patch_missing_krisp "$HOME/.config/discord"
-    patch_missing_krisp "$HOME/.config/discordcanary"
-    patch_missing_krisp "$HOME/.config/discordptb"
-  '';
 }
