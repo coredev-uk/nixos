@@ -2,14 +2,9 @@
   inputs,
   pkgs,
   meta,
-  self,
   ...
 }:
 {
-
-  age.secrets.proton_username.file = "${self}/secrets/proton_username.age";
-  age.secrets.proton_password.file = "${self}/secrets/proton_password.age";
-
   imports = [
     (./. + "/${meta.desktop}")
 
