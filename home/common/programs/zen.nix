@@ -442,6 +442,136 @@ in
           isEssential = true;
           position = 401;
         };
+        Loop = {
+          id = "b0ad468e-20d2-4f59-86de-def423532d9d";
+          container = containers.Work.id;
+          url = "https://loop.moto-way.co.uk";
+          isEssential = true;
+          position = 402;
+        };
+        Dayforce = {
+          id = "503e3c4a-3cc3-4d37-9026-d5f434b265cd";
+          container = containers.Work.id;
+          url = "https://www.dayforcehcm.com/";
+          isEssential = true;
+          position = 403;
+        };
+        MADIC = {
+          id = "faedebeb-a00e-4490-8fa8-a9ec41940d68";
+          container = containers.Work.id;
+          url = "https://moto-evoconnect-portal.madic-uk.com/home";
+          isEssential = true;
+          position = 404;
+        };
+
+        # Work Space Pins
+        GSSAT = {
+          id = "ecf3d5ff-bd17-427e-bcef-a947c03334f0";
+          workspace = spaces.Work.id;
+          url = "https://gssat.portofdover.com/";
+          position = 501;
+        };
+        OurMoto = {
+          id = "5f9e672c-8c3e-4e55-808e-5e3a597f462c";
+          workspace = spaces.Work.id;
+          url = "https://our.moto-way.co.uk/";
+          position = 502;
+        };
+        InPost = {
+          id = "ee24047b-ddd4-452a-9e94-c08e2112649e";
+          workspace = spaces.Work.id;
+          url = "https://newstrade.inpost.co.uk/Home/Index";
+          position = 503;
+        };
+        MyView = {
+          id = "a9c0fa78-ca8f-4be2-9deb-7ba282ef04b5";
+          workspace = spaces.Work.id;
+          url = "https://saas.zellis.com/moto/dashboard/dashboard-ui/index.html#/index/main";
+          position = 504;
+        };
+        Tradesimple = {
+          id = "8a7e38a2-857a-4181-8f76-bfac230fd01a";
+          workspace = spaces.Work.id;
+          url = "https://moto.purchase.emea1.fourth.com/";
+          position = 505;
+        };
+        MyAviva = {
+          id = "090d1ae2-ecdb-4154-bf13-fd6c42bdad32";
+          workspace = spaces.Work.id;
+          url = "https://www.direct.aviva.co.uk/MyPortfolio/";
+          position = 506;
+        };
+        AquaVape = {
+          id = "59c07cc2-6d2a-4eed-83bd-c3ea7bd9fb35";
+          workspace = spaces.Work.id;
+          url = "https://wholesale.aquavape.co.uk/";
+          position = 507;
+        };
+        WHSmith = {
+          id = "b26c23ad-98f9-4452-a123-1da95a831e2c";
+          workspace = spaces.Work.id;
+          url = "https://www.wholesale.whsmith.com/";
+          position = 508;
+        };
+        SPAR = {
+          id = "948df98d-0321-4f84-b6a0-976ab7a0a72d";
+          workspace = spaces.Work.id;
+          url = "https://spar.afblakemore.net/pwa/#account-dashboard";
+          position = 509;
+        };
+        MyLearn = {
+          id = "d50f2a4a-99ea-416c-abf1-eae007cf8f72";
+          workspace = spaces.Work.id;
+          url = "https://mylearn.moto-way.co.uk/";
+          position = 510;
+        };
+
+        # SharePoint Folder (Work Space)
+        SharePoint = {
+          id = "fcc2411d-a967-44ae-9b11-dea5b86d2f01";
+          workspace = spaces.Work.id;
+          isFolderCollapsed = false;
+          isGroup = true;
+          editedTitle = true;
+          position = 511;
+        };
+        "Retail Planograms" = {
+          id = "66b78cc9-3bdf-4419-878d-eecb0b6e4c82";
+          workspace = spaces.Work.id;
+          url = "https://motowaycouk.sharepoint.com/:f:/s/DEPT-Retail-CS/EhUm9PVuBShNjDgoonhezIMB1pEABfEP8Tc3rYTBMT03WQ?e=crQMBT";
+          folderParentId = pins.SharePoint.id;
+          position = 512;
+        };
+        "Floor Plans" = {
+          id = "3a62c0d4-a838-4f44-bf7f-5a9e0841e0e1";
+          workspace = spaces.Work.id;
+          url = "https://motowaycouk.sharepoint.com/:f:/s/DEPT-Retail-CS/EoGyKtDOgoRJpwQhViKVDiYBSIXvb9BObXdOqq0hMdiY4g?e=UiRYAd";
+          folderParentId = pins.SharePoint.id;
+          position = 513;
+        };
+        "Promo 2026" = {
+          id = "a98132e1-78b3-4d12-a5da-e26d230f86eb";
+          workspace = spaces.Work.id;
+          url = "https://motowaycouk.sharepoint.com/:f:/s/RetailSP/IgBAudmHu8kKRrGi8SjR1v3OAY5ed6-R0nP964ss2lnMdSw?e=Tj3am7";
+          folderParentId = pins.SharePoint.id;
+          position = 514;
+        };
+        # Lockheed Folder
+        "Lockheed Martin" = {
+          id = "9bd93b81-17f1-4a10-9d4b-fbac1d245243";
+          workspace = spaces.Work.id;
+          isFolderCollapsed = true;
+          isGroup = true;
+          editedTitle = true;
+          position = 515;
+        };
+        "SAP Work Zone" = {
+          id = "70b61d52-a665-43a4-b75f-d8d1eff0815d";
+          workspace = spaces.Work.id;
+          url = "https://ambkqs9hl.accounts.ondemand.com/saml2/idp/sso?sp=https://lmc-wz4hr-prod-qcdjf9te.authentication.us10.hana.ondemand.com&idp=https://ambkqs9hl.accounts.ondemand.com";
+          folderParentId = pins."Lockheed Martin".id;
+          position = 516;
+        };
       };
     in
     {
