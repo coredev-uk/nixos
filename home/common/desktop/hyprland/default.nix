@@ -13,6 +13,7 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
+    configType = "hyprlang";
     xwayland.enable = true;
 
     # Fix weird environment variable bs
@@ -36,8 +37,6 @@
           gaps_in = 0; # 5
           gaps_out = 0; # 5
           border_size = 2; # 0
-
-          no_border_on_floating = true;
 
           allow_tearing = true;
           layout = "dwindle";
@@ -74,9 +73,9 @@
         };
 
         layerrule = [
-          "blur, bar"
-          "noanim, rofi"
-          "noanim, discord"
+          "match:namespace bar, blur true"
+          "match:namespace rofi, no_anim true"
+          "match:namespace discord, no_anim true"
         ];
 
         animations = {
@@ -84,7 +83,7 @@
           inherit (import ./config/animations.nix { }) bezier animation;
         };
 
-        windowrulev2 = (import ./config/window-rules.nix { }).window_v2;
+        windowrule = (import ./config/window-rules.nix { }).window;
 
         master = {
           new_status = "master";
