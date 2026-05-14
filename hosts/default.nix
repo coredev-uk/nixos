@@ -26,7 +26,7 @@
       outputs.overlays.unstable-packages
 
       # You can also add overlays exported from other flakes:
-      inputs.agenix.overlays.default
+      # inputs.agenix.overlays.default
 
       # Or just specify overlays directly here, for example:
       # (_: _: { embr = inputs.embr.packages."${pkgs.system}".embr; })

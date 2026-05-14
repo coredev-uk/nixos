@@ -1,7 +1,6 @@
 { pkgs, ... }:
 {
   basePackages = with pkgs; [
-    agenix
     bat
     binutils
     cabextract

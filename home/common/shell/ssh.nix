@@ -87,7 +87,4 @@ in
       };
     };
   };
-
-  # Agenix Identity
-  age.identityPaths = [ "${meta.homeDirectory}/.ssh/github" ];
 }

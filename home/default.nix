@@ -1,7 +1,6 @@
 {
   lib,
   outputs,
-  inputs,
   meta,
   ...
 }:
@@ -29,7 +28,7 @@
       outputs.overlays.unstable-packages
 
       # You can also add overlays exported from other flakes:
-      inputs.agenix.overlays.default
+      # inputs.agenix.overlays.default
     ];
 
     config = {
