@@ -34,7 +34,7 @@
     "${mod}, Q, killactive"
     "${mod} SHIFT, Space, togglefloating"
     "${mod}, P, pseudo" # dwindle
-    "${mod}, S, togglesplit" # dwindle
+    # "${mod}, S, togglesplit" # dwindle
     "${mod}, F, fullscreen"
 
     # Focus

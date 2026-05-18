@@ -9,9 +9,6 @@
       snacks = {
         enable = true;
         settings = {
-          #--------------------------------------------------------------------
-          # Already enabled features
-          #--------------------------------------------------------------------
           lazygit.enabled = true;
           bigfile.enabled = true;
           notifier.enabled = true;
