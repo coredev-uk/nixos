@@ -4,7 +4,6 @@
     enable = true;
 
     configDir = ./config;
-    enableZshIntegration = true;
   };
 
   # Needed for scripts

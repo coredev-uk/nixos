@@ -24,7 +24,7 @@ let
   toTOML = (pkgs.formats.toml { }).generate "1Password-Agents";
   opAgentMac = "${meta.homeDirectory}/Library/Group Containers/2BUA8C4S2C.com.1password/t/agent.sock";
   SSH_AUTH_SOCK = if meta.isDarwin then opAgentMac else "${meta.homeDirectory}/.1password/agent.sock";
-  identityAgent = lib.replaceStrings [ " " ] [ "\\ " ] SSH_AUTH_SOCK;
+  IdentityAgent = lib.replaceStrings [ " " ] [ "\\ " ] SSH_AUTH_SOCK;
 in
 {
   home.file.".ssh/common_hosts" = {
@@ -59,31 +59,30 @@ in
     enable = true;
     enableDefaultConfig = false;
 
-    matchBlocks = {
-      "*" = {
-        inherit identityAgent;
-        userKnownHostsFile = "~/.ssh/common_hosts ~/.ssh/known_hosts";
+    settings = {
+      "Host *" = {
+        inherit IdentityAgent;
+        UserKnownHostsFile = "~/.ssh/common_hosts ~/.ssh/known_hosts";
       };
 
-      "github.com" = {
-        user = "git";
-        hostname = "github.com";
-        identityFile = "~/.ssh/github.pub";
-        identitiesOnly = true;
+      "Host github.com" = {
+        HostName = "github.com";
+        User = "git";
+        IdentityFile = "~/.ssh/github";
       };
 
-      "bitbucket.org" = {
-        user = "git";
-        hostname = "bitbucket.org";
+      "Host bitbucket.org" = {
+        User = "git";
+        HostName = "bitbucket.org";
       };
 
-      "aur.archlinux.org" = {
-        user = "aur";
-        hostname = "aur.archlinux.org";
+      "Host aur.archlinux.org" = {
+        User = "aur";
+        HostName = "aur.archlinux.org";
       };
 
-      "130.162.183.212" = {
-        user = "ubuntu";
+      "Host 130.162.183.212" = {
+        User = "ubuntu";
       };
     };
   };
