@@ -31,7 +31,7 @@
 
     nixvim.url = "github:nix-community/nixvim";
 
-    opencode.url = "github:anomalyco/opencode";
+    opencode.url = "github:anomalyco/opencode/v1.15.4";
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
 
@@ -40,8 +40,13 @@
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
     # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/363992 is merged
-    zen-browser.url = "github:0xc000022070/zen-browser-flake";
-    zen-browser.inputs.nixpkgs.follows = "unstable";
+    zen-browser = {
+      url = "github:0xc000022070/zen-browser-flake/beta";
+      inputs = {
+        nixpkgs.follows = "unstable";
+        home-manager.follows = "home-manager";
+      };
+    };
   };
 
   outputs =
