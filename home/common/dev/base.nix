@@ -22,6 +22,7 @@
         env.MISE_DISABLE_TOOLS = "python";
         settings = {
           all_compile = false;
+          experimental = true;
         };
       };
     };
