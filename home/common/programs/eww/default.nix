@@ -3,7 +3,8 @@
   programs.eww = {
     enable = true;
 
-    configDir = ./config;
+    yuckConfig = builtins.readFile ./config/eww.yuck;
+    scssConfig = builtins.readFile ./config/eww.scss;
   };
 
   # Needed for scripts
