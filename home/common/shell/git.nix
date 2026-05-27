@@ -32,8 +32,8 @@
 
       settings = {
         user = {
-          email = "paul@coredev.uk";
           name = "Paul Thompson";
+          email = "paul@coredev.uk";
           signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINQpQFDxvGq+x6sHldr81kFtftS6KFEzbOtoRKKTXFR7";
         };
 
@@ -41,10 +41,32 @@
           lg = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
         };
 
+        core = {
+          editor = "hx";
+          whitespace = "fix,-indent-with-non-tab,trailing-space,cr-at-eol";
+        };
+
+        url."ssh://git@github.com/".insteadOf = "https://github.com/";
+
+        url."ssh://git@gitlab.com/".insteadOf = "https://gitlab.com/";
+
+        rerere = {
+          enabled = 1;
+          autoupdate = 1;
+        };
+
+        push = {
+          default = "simple";
+        };
+
         branch.sort = "-committerdate";
+
         pull.rebase = false;
+
         init.defaultBranch = "main";
+
         commit.gpgSign = true;
+
         tag.gpgSign = true;
 
         gpg = {
@@ -53,11 +75,6 @@
           ssh.program = opSignProgram;
         };
 
-        url = {
-          "git@github.com:" = {
-            insteadOf = "https://github.com/";
-          };
-        };
       };
 
       ignores = [

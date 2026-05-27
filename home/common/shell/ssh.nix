@@ -60,28 +60,28 @@ in
     enableDefaultConfig = false;
 
     settings = {
-      "Host *" = {
+      "*" = {
         inherit IdentityAgent;
         UserKnownHostsFile = "~/.ssh/common_hosts ~/.ssh/known_hosts";
       };
 
-      "Host github.com" = {
+      "github.com" = {
         HostName = "github.com";
         User = "git";
         IdentityFile = "~/.ssh/github";
       };
 
-      "Host bitbucket.org" = {
+      "bitbucket.org" = {
         User = "git";
         HostName = "bitbucket.org";
       };
 
-      "Host aur.archlinux.org" = {
+      "aur.archlinux.org" = {
         User = "aur";
         HostName = "aur.archlinux.org";
       };
 
-      "Host 130.162.183.212" = {
+      "130.162.183.212" = {
         User = "ubuntu";
       };
     };
