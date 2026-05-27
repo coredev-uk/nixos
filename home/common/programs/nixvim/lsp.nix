@@ -48,6 +48,9 @@
           # Shell
           bashls.enable = true;
 
+          # Just Files
+          just.enable = true;
+
           # Nix
           nil_ls.enable = true;
 
