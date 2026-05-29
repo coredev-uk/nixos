@@ -2,17 +2,17 @@
 
 (defpoll volume         :interval "1s" :initial "0" "wpctl get-volume @DEFAULT_AUDIO_SINK@ | awk '{print $2 * 100}'")
 (defpoll brightness     :interval "2s" :initial "0" "brightnessctl -m | head -1 | awk -F, '{print $4}' | tr -d '%'")
-(defpoll music_art      :interval "5s" :initial "" "~/.config/eww/scripts/music.sh --art")
-(defpoll music_title    :interval "5s" :initial "" "~/.config/eww/scripts/music.sh --title")
-(defpoll music_artist   :interval "5s" :initial "" "~/.config/eww/scripts/music.sh --artist")
-(defpoll music_status   :interval "5s" :initial "false" "~/.config/eww/scripts/music.sh --status")
+(defpoll music_art      :interval "5s" :initial "" "eww-music --art")
+(defpoll music_title    :interval "5s" :initial "" "eww-music --title")
+(defpoll music_artist   :interval "5s" :initial "" "eww-music --artist")
+(defpoll music_status   :interval "5s" :initial "false" "eww-music --status")
 (defpoll notif_count    :interval "5s" :initial "0" "swaync-client -c 2>/dev/null || echo 0")
 
-(defpoll net_status     :interval "5s"  :initial '{"type":"disconnected","name":"","ip":"","signal":0,"iface":"","wifi_hw":false}' "~/.config/eww/scripts/network.sh --status")
-(defpoll vpn_status     :interval "10s" :initial '{"connected":false,"ip":"","server":""}' "~/.config/eww/scripts/vpn.sh --status")
-(defpoll bt_status      :interval "10s" :initial '{"powered":false,"scanning":false}' "~/.config/eww/scripts/bluetooth.sh --status")
+(defpoll net_status     :interval "5s"  :initial '{"type":"disconnected","name":"","ip":"","signal":0,"iface":"","wifi_hw":false}' "eww-network --status")
+(defpoll vpn_status     :interval "10s" :initial '{"connected":false,"ip":"","server":""}' "eww-vpn --status")
+(defpoll bt_status      :interval "10s" :initial '{"powered":false,"scanning":false}' "eww-bluetooth --status")
 
-(deflisten workspaces_listen :initial "[]" "~/.config/eww/scripts/workspace.sh")
+(deflisten workspaces_listen :initial "[]" "eww-workspace")
 
 (defvar volume_reveal false)
 (defvar brightness_reveal false)
@@ -133,10 +133,10 @@
         (box :orientation "v" :space-evenly false :spacing 4 :class "net_panel_main"
 
           (box :class {net_status.wifi_hw ? "net_menu_item" : "net_menu_item net_menu_disabled"} :orientation "h" :space-evenly false :spacing 10
-            (button :class "net_wifi_toggle" :onclick "~/.config/eww/scripts/panel.sh --wifi-toggle &"
+            (button :class "net_wifi_toggle" :onclick "eww-panel --wifi-toggle &"
               (label :class "net_menu_icon net_wifi_icon" :text ""))
             (button :class "net_wifi_open" :hexpand true
-              :onclick {net_status.wifi_hw ? "~/.config/eww/scripts/panel.sh --open-wifi &" : ""}
+              :onclick {net_status.wifi_hw ? "eww-panel --open-wifi &" : ""}
               (box :orientation "h" :space-evenly false :spacing 10 :hexpand true
                 (box :orientation "v" :space-evenly false :hexpand true
                   (label :class "net_menu_label" :halign "start" :text "WiFi")
@@ -147,10 +147,10 @@
                 (label :class "net_menu_arrow" :visible {net_status.wifi_hw} :text ""))))
 
           (box :class "net_menu_item" :orientation "h" :space-evenly false :spacing 10
-            (button :class "net_vpn_toggle" :onclick "~/.config/eww/scripts/panel.sh --vpn-toggle &"
+            (button :class "net_vpn_toggle" :onclick "eww-panel --vpn-toggle &"
               (label :class "net_menu_icon net_vpn_icon" :text ""))
             (button :class "net_vpn_open" :hexpand true
-              :onclick "~/.config/eww/scripts/panel.sh --open-vpn &"
+              :onclick "eww-panel --open-vpn &"
               (box :orientation "h" :space-evenly false :spacing 10 :hexpand true
                 (box :orientation "v" :space-evenly false :hexpand true
                   (label :class "net_menu_label" :halign "start" :text "VPN")
@@ -159,10 +159,10 @@
                 (label :class "net_menu_arrow" :text ""))))
 
           (box :class "net_menu_item" :orientation "h" :space-evenly false :spacing 10
-            (button :class "net_bt_toggle" :onclick "~/.config/eww/scripts/panel.sh --bt-toggle-power &"
+            (button :class "net_bt_toggle" :onclick "eww-panel --bt-toggle-power &"
               (label :class "net_menu_icon net_bt_icon" :text ""))
             (button :class "net_bt_open" :hexpand true
-              :onclick {bt_status.powered ? "~/.config/eww/scripts/panel.sh --open-bt &" : ""}
+              :onclick {bt_status.powered ? "eww-panel --open-bt &" : ""}
               (box :orientation "h" :space-evenly false :spacing 10 :hexpand true
                 (box :orientation "v" :space-evenly false :hexpand true
                   (label :class "net_menu_label" :halign "start" :text "Bluetooth")
@@ -180,7 +180,7 @@
               (for entry in wifi_list
                 (button
                   :class {entry.connected ? "net_list_item net_list_active" : "net_list_item"}
-                  :onclick "~/.config/eww/scripts/network.sh --connect '${entry.ssid}' &"
+                  :onclick "eww-network --connect '${entry.ssid}' &"
                   (box :orientation "h" :space-evenly false :spacing 8
                     (label :class "net_list_icon" :text {entry.secured ? "" : ""})
                     (label :class "net_list_label" :hexpand true :halign "start" :text {entry.ssid})
@@ -196,7 +196,7 @@
               (for entry in vpn_countries
                 (button
                   :class "net_list_item"
-                  :onclick "~/.config/eww/scripts/panel.sh --vpn-connect-country '${entry.code}' &"
+                  :onclick "eww-panel --vpn-connect-country '${entry.code}' &"
                   (box :orientation "h" :space-evenly false :spacing 8
                     (label :class "net_list_flag" :text {entry.flag})
                     (label :class "net_list_label" :hexpand true :halign "start" :text {entry.name})
@@ -208,7 +208,7 @@
               (label :class "net_back_icon" :text "")
               (label :text "Bluetooth Devices")))
           (button :class "net_scan_btn"
-            :onclick "~/.config/eww/scripts/panel.sh --bt-scan &"
+            :onclick "eww-panel --bt-scan &"
             (box :orientation "h" :space-evenly false :spacing 8
               (label :class "net_scan_icon" :text "")
               (label :text "Scan for devices")))
@@ -217,7 +217,7 @@
               (for entry in bt_devices
                 (button
                   :class {entry.connected ? "net_list_item net_list_active" : "net_list_item"}
-                  :onclick "~/.config/eww/scripts/panel.sh ${entry.connected ? '--bt-disconnect' : '--bt-connect'} '${entry.mac}' &"
+                  :onclick "eww-panel ${entry.connected ? '--bt-disconnect' : '--bt-connect'} '${entry.mac}' &"
                   (box :orientation "h" :space-evenly false :spacing 8
                     (label :class "net_list_icon" :text "")
                     (label :class "net_list_label" :hexpand true :halign "start" :text {entry.name})

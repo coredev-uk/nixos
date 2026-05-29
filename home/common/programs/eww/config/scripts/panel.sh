@@ -2,68 +2,70 @@
 # panel.sh - Helper for network panel navigation and actions
 # Handles eww variable updates that require command substitution with JSON output
 
-SCRIPTS_DIR="$(dirname "$0")"
 EWW_CMD="eww"
+NETWORK_CMD="eww-network"
+VPN_CMD="eww-vpn"
+BLUETOOTH_CMD="eww-bluetooth"
 
 case "$1" in
 --open-wifi)
-	list=$("$SCRIPTS_DIR/network.sh" --wifi-list)
-	$EWW_CMD update wifi_list="$list"
-	$EWW_CMD update net_panel_view=1
+	list=$("$NETWORK_CMD" --wifi-list)
+	"$EWW_CMD" update wifi_list="$list"
+	"$EWW_CMD" update net_panel_view=1
 	;;
 --open-vpn)
-	countries=$("$SCRIPTS_DIR/vpn.sh" --countries)
-	$EWW_CMD update vpn_countries="$countries"
-	$EWW_CMD update net_panel_view=2
+	countries=$("$VPN_CMD" --countries)
+	"$EWW_CMD" update vpn_countries="$countries"
+	"$EWW_CMD" update net_panel_view=2
 	;;
 --open-bt)
-	devices=$("$SCRIPTS_DIR/bluetooth.sh" --devices)
-	$EWW_CMD update bt_devices="$devices"
-	$EWW_CMD update net_panel_view=3
+	devices=$("$BLUETOOTH_CMD" --devices)
+	"$EWW_CMD" update bt_devices="$devices"
+	"$EWW_CMD" update net_panel_view=3
 	;;
 --refresh-bt)
-	devices=$("$SCRIPTS_DIR/bluetooth.sh" --devices)
-	$EWW_CMD update bt_devices="$devices"
+	devices=$("$BLUETOOTH_CMD" --devices)
+	"$EWW_CMD" update bt_devices="$devices"
 	;;
 --vpn-toggle)
 	if ip a show proton0 &>/dev/null; then
-		"$SCRIPTS_DIR/vpn.sh" --disconnect
+		"$VPN_CMD" --disconnect
 	else
-		"$SCRIPTS_DIR/vpn.sh" --connect "$2"
+		"$VPN_CMD" --connect "$2"
 	fi
 	sleep 2
-	$EWW_CMD poll vpn_status
+	"$EWW_CMD" poll vpn_status
 	;;
 --vpn-connect-country)
-	"$SCRIPTS_DIR/vpn.sh" --connect "$2"
+	"$VPN_CMD" --connect "$2"
 	sleep 2
-	$EWW_CMD poll vpn_status
-	$EWW_CMD close network_panel network_panel_dismiss
+	"$EWW_CMD" poll vpn_status
+	"$EWW_CMD" close network_panel network_panel_dismiss
 	;;
 --bt-toggle-power)
-	"$SCRIPTS_DIR/bluetooth.sh" --toggle-power
+	"$BLUETOOTH_CMD" --toggle-power
 	sleep 1
-	$EWW_CMD poll bt_status
+	"$EWW_CMD" poll bt_status
 	;;
 --bt-connect)
-	"$SCRIPTS_DIR/bluetooth.sh" --connect "$2"
-	devices=$("$SCRIPTS_DIR/bluetooth.sh" --devices)
-	$EWW_CMD update bt_devices="$devices"
+	"$BLUETOOTH_CMD" --connect "$2"
+	devices=$("$BLUETOOTH_CMD" --devices)
+	"$EWW_CMD" update bt_devices="$devices"
 	;;
 --bt-disconnect)
-	"$SCRIPTS_DIR/bluetooth.sh" --disconnect "$2"
-	devices=$("$SCRIPTS_DIR/bluetooth.sh" --devices)
-	$EWW_CMD update bt_devices="$devices"
+	"$BLUETOOTH_CMD" --disconnect "$2"
+	devices=$("$BLUETOOTH_CMD" --devices)
+	"$EWW_CMD" update bt_devices="$devices"
 	;;
 --bt-scan)
-	"$SCRIPTS_DIR/bluetooth.sh" --scan-start
+	"$BLUETOOTH_CMD" --scan-start
 	sleep 3
-	devices=$("$SCRIPTS_DIR/bluetooth.sh" --devices)
-	$EWW_CMD update bt_devices="$devices"
+	devices=$("$BLUETOOTH_CMD" --devices)
+	"$EWW_CMD" update bt_devices="$devices"
 	;;
 --wifi-toggle)
-	"$SCRIPTS_DIR/network.sh" --toggle
+	"$NETWORK_CMD" --toggle
 	sleep 1
-	$EWW_CMD poll net_status
+	"$EWW_CMD" poll net_status
 	;;
 esac
