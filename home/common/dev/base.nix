@@ -61,7 +61,7 @@
           distutils
         ]
       ))
-      pipx
+      # pipx
 
       # Shell tooling
       shellcheck
