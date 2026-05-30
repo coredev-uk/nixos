@@ -5,4 +5,5 @@
 }:
 {
   beammp-launcher = pkgs.callPackage ./beammp-launcher.nix { };
+  flate = pkgs.callPackage ./flate.nix { };
 }

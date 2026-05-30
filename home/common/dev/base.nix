@@ -75,6 +75,7 @@
       fluxcd
       talosctl
       sops
+      flate
 
       # env
       devenv
