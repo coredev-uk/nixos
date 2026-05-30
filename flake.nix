@@ -2,7 +2,7 @@
   description = "coredev-uk flake";
 
   inputs = {
-    catppuccin.url = "github:catppuccin/nix/release-25.11";
+    catppuccin.url = "github:catppuccin/nix/release-26.05";
     catppuccin.inputs.nixpkgs.follows = "nixpkgs";
 
     disko.url = "github:nix-community/disko";
@@ -19,7 +19,7 @@
 
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
 
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-25.11";
+    nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "unstable";
@@ -58,7 +58,7 @@
     let
       inherit (self) outputs;
       username = "paul";
-      stateVersion = "25.11";
+      stateVersion = "26.05";
 
       libx = import ./lib {
         inherit
