@@ -30,6 +30,7 @@ in
   # Add bootwin script to reboot into Windows
   environment.systemPackages = [
     bootwin
+    pkgs.headsetcontrol
   ];
 
   # Disable suspend of Toslink output to prevent audio popping.
