@@ -14,6 +14,7 @@ rec {
     flavor = "mocha";
     accent = "blue";
     size = "standard";
+    cache.enable = true;
   };
 
   # src: https://unsplash.com/photos/brown-rocky-mountain-under-white-clouds-during-daytime-jdpJqWO9Sx8 (https://unsplash.com/collections/220388/macos-desktop-wallpapers)
