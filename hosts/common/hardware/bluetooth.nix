@@ -12,5 +12,5 @@
     };
   };
 
-  environment.systemPackages = if meta.isDesktop then [ pkgs.blueberry ] else [ ];
+  environment.systemPackages = if meta.isDesktop then [ pkgs.blueman ] else [ ];
 }
