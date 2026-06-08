@@ -1,5 +1,4 @@
 {
-  inputs,
   pkgs,
   meta,
   ...
@@ -30,10 +29,9 @@
     cider-2
     desktop-file-utils
     file-roller
-    jellyfin-desktop
+    plex-desktop
     loupe
     mpv
-    inputs.moonfin-flake.packages.${meta.system}.default
     nautilus
     proton-vpn-cli
     papers

@@ -287,26 +287,6 @@
         "type": "github"
       }
     },
-    "moonfin-flake": {
-      "inputs": {
-        "nixpkgs": [
-          "unstable"
-        ]
-      },
-      "locked": {
-        "lastModified": 1776913423,
-        "narHash": "sha256-hBKs/cQF0CN/bUiMCnjQJiFwZNT//Wbew9a/lUy40ks=",
-        "owner": "coredev-uk",
-        "repo": "moonfin-flake",
-        "rev": "58c557e8dd2440dfd731aed43d2cb9cd57b7df5c",
-        "type": "github"
-      },
-      "original": {
-        "owner": "coredev-uk",
-        "repo": "moonfin-flake",
-        "type": "github"
-      }
-    },
     "nix-citizen": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -636,7 +616,6 @@
         "disko": "disko",
         "home-manager": "home-manager",
         "lanzaboote": "lanzaboote",
-        "moonfin-flake": "moonfin-flake",
         "nix-citizen": "nix-citizen",
         "nix-darwin": "nix-darwin",
         "nixcord": "nixcord",
