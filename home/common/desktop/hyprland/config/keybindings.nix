@@ -6,56 +6,82 @@
   pkgs,
   terminal,
   wallpaper,
+  lua,
+  luaCall,
   ...
 }:
+let
+  bind =
+    keys: dispatcher:
+    luaCall [
+      keys
+      (lua dispatcher)
+    ];
+
+  bindWith =
+    keys: dispatcher: flags:
+    luaCall [
+      keys
+      (lua dispatcher)
+      flags
+    ];
+
+  exec = command: "hl.dsp.exec_cmd(${builtins.toJSON command})";
+  focus = direction: "hl.dsp.focus({ direction = ${builtins.toJSON direction} })";
+  workspace = workspace: "hl.dsp.focus({ workspace = ${builtins.toJSON workspace} })";
+  moveToWorkspace = workspace: "hl.dsp.window.move({ workspace = ${builtins.toJSON workspace} })";
+  resize = x: y: "hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, relative = true })";
+in
 {
   bind = [
     # Media Keys
-    ", XF86AudioMicMute, exec, wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle" # ${pkgs.swayosd}/bin/swayosd-client --input-volume mute-toggle"
-    ", XF86AudioMute, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume mute-toggle"
-    ", XF86AudioPlay, exec, ${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"
-    ", XF86AudioPause, exec,  ${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"
-    ", XF86AudioNext, exec,  ${pkgs.swayosd}/bin/swayosd-client --playerctl next"
-    ", XF86AudioPrev, exec, ${pkgs.swayosd}/bin/swayosd-client --playerctl previous"
+    (bind "XF86AudioMicMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle")) # ${pkgs.swayosd}/bin/swayosd-client --input-volume mute-toggle"
+    (bind "XF86AudioMute" (exec "${pkgs.swayosd}/bin/swayosd-client --output-volume mute-toggle"))
+    (bind "XF86AudioPlay" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"))
+    (bind "XF86AudioPause" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"))
+    (bind "XF86AudioNext" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl next"))
+    (bind "XF86AudioPrev" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl previous"))
 
     # Main Apps
-    "${mod}, L, exec, ${lock}"
-    "${mod}, B, exec, ${browser}"
-    "${mod}, Return, exec, ${terminal}"
-    "${mod}, Space, exec, ${menu}"
-    "${mod} SHIFT, P, exec, hyprctl hyprpaper wallpaper \" , $(${wallpaper}/bin/get-wallpaper), cover\""
-    "CTRL SHIFT, Space, exec, ${pkgs._1password-gui}/bin/1password --quick-access"
+    (bind "${mod} + L" (exec lock))
+    (bind "${mod} + B" (exec browser))
+    (bind "${mod} + Return" (exec terminal))
+    (bind "${mod} + Space" (exec menu))
+    (bind "${mod} + SHIFT + P" (
+      exec ''hyprctl hyprpaper wallpaper " , $(${wallpaper}/bin/get-wallpaper), cover"''
+    ))
+    (bind "CTRL + SHIFT + Space" (exec "${pkgs._1password-gui}/bin/1password --quick-access"))
 
     # WM Controls
-    "${mod}, R, exec, hyprctl reload"
-    "${mod} SHIFT, Q, exec, hyprctl dispatch exit"
+    (bind "${mod} + R" (exec "hyprctl reload"))
+    (bind "${mod} + SHIFT + Q" (exec "${pkgs.uwsm}/bin/uwsm stop"))
 
     # Window Management
-    "${mod}, Q, killactive"
-    "${mod} SHIFT, Space, togglefloating"
-    "${mod}, P, pseudo" # dwindle
+    (bind "${mod} + Q" "hl.dsp.window.close()")
+    (bind "${mod} + SHIFT + Space" "hl.dsp.window.float()")
+    (bind "${mod} + P" "hl.dsp.window.pseudo()") # dwindle
     # "${mod}, S, togglesplit" # dwindle
-    "${mod}, F, fullscreen"
+    (bind "${mod} + F" "hl.dsp.window.fullscreen()")
 
     # Focus
-    "${mod}, left, movefocus, l"
-    "${mod}, right, movefocus, r"
-    "${mod}, up, movefocus, u"
-    "${mod}, down, movefocus, d"
+    (bind "${mod} + left" (focus "l"))
+    (bind "${mod} + right" (focus "r"))
+    (bind "${mod} + up" (focus "u"))
+    (bind "${mod} + down" (focus "d"))
 
     # Resize
-    "${mod} CTRL, left, resizeactive, -20 0"
-    "${mod} CTRL, right, resizeactive, 20 0"
-    "${mod} CTRL, up, resizeactive, 0 -20"
-    "${mod} CTRL, down, resizeactive, 0 20"
+    (bind "${mod} + CTRL + left" (resize (-20) 0))
+    (bind "${mod} + CTRL + right" (resize 20 0))
+    (bind "${mod} + CTRL + up" (resize 0 (-20)))
+    (bind "${mod} + CTRL + down" (resize 0 20))
 
     # Tabbed
-    "${mod}, w, togglegroup"
-    "${mod}, tab, changegroupactive"
+    (bind "${mod} + w" "hl.dsp.group.toggle()")
+    (bind "${mod} + tab" "hl.dsp.group.next()")
 
     # Mouse Movement
-    "${mod}, mouse_down, workspace, e+1" # Scroll-Up
-    "${mod}, mouse_up, workspace, e-1" # Scroll-Down
+    (bind "${mod} + mouse_down" (workspace "e+1")) # Scroll-Up
+    (bind "${mod} + mouse_up" (workspace "e-1")) # Scroll-Down
   ]
   ++ (
     # workspaces
@@ -67,31 +93,33 @@
           ws = i + 1;
         in
         [
-          "${mod}, code:1${toString i}, workspace, ${toString ws}"
-          "${mod} SHIFT, code:1${toString i}, movetoworkspace, ${toString ws}"
+          (bind "${mod} + code:1${toString i}" (workspace ws))
+          (bind "${mod} + SHIFT + code:1${toString i}" (moveToWorkspace ws))
         ]
       ) 10
     )
-  );
-
-  bindr = [
+  )
+  ++ [
     # Screenshot
-    "${mod}, Print, exec, ${pkgs.hyprshot}/bin/hyprshot -m region --raw | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard-rs}/bin/wl-copy"
-    ", Print, exec, ${pkgs.hyprshot}/bin/hyprshot -m region --clipboard-only"
-  ];
+    (bindWith "${mod} + Print"
+      (exec "${pkgs.hyprshot}/bin/hyprshot -m region --raw | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard-rs}/bin/wl-copy")
+      { release = true; }
+    )
+    (bindWith "Print" (exec "${pkgs.hyprshot}/bin/hyprshot -m region --clipboard-only") {
+      release = true;
+    })
 
-  bindm = [
-    "${mod}, mouse:272, movewindow" # Left-Click
-    "${mod}, mouse:273, resizewindow" # Right-Click
-  ];
+    (bindWith "${mod} + mouse:272" "hl.dsp.window.drag()" { mouse = true; }) # Left-Click
+    (bindWith "${mod} + mouse:273" "hl.dsp.window.resize()" { mouse = true; }) # Right-Click
 
-  # MultiMedia: Volume Up/Down
-  binde = [
-    ", XF86AudioRaiseVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume +5"
-    ", XF86MonBrightnessDown, exec, set-brightness-all 10%-"
-    ", XF86MonBrightnessUp, exec, set-brightness-all 10%+"
-  ];
-  bindl = [
-    ", XF86AudioLowerVolume, exec, ${pkgs.swayosd}/bin/swayosd-client --output-volume -5"
+    # MultiMedia: Volume Up/Down
+    (bindWith "XF86AudioRaiseVolume" (exec "${pkgs.swayosd}/bin/swayosd-client --output-volume +5") {
+      repeating = true;
+    })
+    (bindWith "XF86MonBrightnessDown" (exec "set-brightness-all 10%-") { repeating = true; })
+    (bindWith "XF86MonBrightnessUp" (exec "set-brightness-all 10%+") { repeating = true; })
+    (bindWith "XF86AudioLowerVolume" (exec "${pkgs.swayosd}/bin/swayosd-client --output-volume -5") {
+      locked = true;
+    })
   ];
 }

@@ -1,53 +1,164 @@
 _: {
   window = [
     # Floating Windows
-    "float true, match:class ^$, match:title ^$"
-    "no_focus true, match:class ^$, match:title ^$"
+    {
+      match = {
+        class = "^$";
+        title = "^$";
+      };
+      float = true;
+    }
+    {
+      match = {
+        class = "^$";
+        title = "^$";
+      };
+      no_focus = true;
+    }
 
     # Miscellaneous
-    "center true, match:class ^(polkit-gnome-authentication-agent-1)$"
-    "center true, match:title ^(.*notificationtoasts*.)$"
+    {
+      match.class = "^(polkit-gnome-authentication-agent-1)$";
+      center = true;
+    }
+    {
+      match.title = "^(.*notificationtoasts*.)$";
+      center = true;
+    }
 
     # Picture-in-Picture
-    "float true, match:title ^(Picture-in-Picture|Firefox)$"
-    "size 800 450, match:title ^(Picture-in-Picture|Firefox)$"
-    "pin true, match:title ^(Picture-in-Picture|Firefox)$"
-    "move 100%-850 100%-500, match:title ^(Picture-in-Picture|Firefox)$"
+    {
+      match.title = "^(Picture-in-Picture|Firefox)$";
+      float = true;
+    }
+    {
+      match.title = "^(Picture-in-Picture|Firefox)$";
+      size = [
+        800
+        450
+      ];
+    }
+    {
+      match.title = "^(Picture-in-Picture|Firefox)$";
+      pin = true;
+    }
+    {
+      match.title = "^(Picture-in-Picture|Firefox)$";
+      move = [
+        "100%-850"
+        "100%-500"
+      ];
+    }
 
     # Wine
-    "move 0 0, match:title ^(Wine System Tray)$"
-    "size 0 0, match:title ^(Wine System Tray)$"
+    {
+      match.title = "^(Wine System Tray)$";
+      move = [
+        0
+        0
+      ];
+    }
+    {
+      match.title = "^(Wine System Tray)$";
+      size = [
+        0
+        0
+      ];
+    }
 
     # --- Steam Client Rules ---
     # Float everything that isn't the main Steam window
-    "float true, match:class ^(steam)$"
-    "tile true, match:class ^(steam)$, match:title ^Steam$"
+    {
+      match.class = "^(steam)$";
+      float = true;
+    }
+    {
+      match = {
+        class = "^(steam)$";
+        title = "^Steam$";
+      };
+      tile = true;
+    }
 
     # Center specific Steam windows
-    "center true, match:class ^(steam)$, match:title ^(Steam Settings)$"
-    "center true, match:class ^(steam)$, match:title ^(Friends List)$"
+    {
+      match = {
+        class = "^(steam)$";
+        title = "^(Steam Settings)$";
+      };
+      center = true;
+    }
+    {
+      match = {
+        class = "^(steam)$";
+        title = "^(Friends List)$";
+      };
+      center = true;
+    }
 
     # Fix Steam menus/popups disappearing
-    "stay_focused true, match:title ^()$, match:class ^(steam)$"
-    "min_size 1 1, match:title ^()$, match:class ^(steam)$"
+    {
+      match = {
+        title = "^()$";
+        class = "^(steam)$";
+      };
+      stay_focused = true;
+    }
+    {
+      match = {
+        title = "^()$";
+        class = "^(steam)$";
+      };
+      min_size = [
+        1
+        1
+      ];
+    }
 
     # --- Steam Game Rules ---
     # Matches any window with class 'steam_app_NUMBER'
 
     # Force games to be fullscreen
-    "fullscreen true, match:class ^(steam_app_\\d+)$"
+    {
+      match.class = "^(steam_app_\\d+)$";
+      fullscreen = true;
+    }
 
     # Prevent screen from turning off while playing
-    "idle_inhibit focus, match:class ^(steam_app_\\d+)$"
+    {
+      match.class = "^(steam_app_\\d+)$";
+      idle_inhibit = "focus";
+    }
 
     # Allow tearing (low latency) for games
-    "immediate true, match:class ^(steam_app_\\d+)$"
+    {
+      match.class = "^(steam_app_\\d+)$";
+      immediate = true;
+    }
 
     # xwaylandvideobridge
-    "opacity 0.0 override, match:class ^(xwaylandvideobridge)$"
-    "no_anim true, match:class ^(xwaylandvideobridge)$"
-    "no_focus true, match:class ^(xwaylandvideobridge)$"
-    "max_size 1 1, match:class ^(xwaylandvideobridge)$"
-    "no_blur true, match:class ^(xwaylandvideobridge)$"
+    {
+      match.class = "^(xwaylandvideobridge)$";
+      opacity = "0.0 override";
+    }
+    {
+      match.class = "^(xwaylandvideobridge)$";
+      no_anim = true;
+    }
+    {
+      match.class = "^(xwaylandvideobridge)$";
+      no_focus = true;
+    }
+    {
+      match.class = "^(xwaylandvideobridge)$";
+      max_size = [
+        1
+        1
+      ];
+    }
+    {
+      match.class = "^(xwaylandvideobridge)$";
+      no_blur = true;
+    }
   ];
 }

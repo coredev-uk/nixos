@@ -1,4 +1,5 @@
 {
+  lib,
   pkgs,
   meta,
   ...
@@ -13,7 +14,7 @@
 
   wayland.windowManager.hyprland = {
     enable = true;
-    configType = "hyprlang";
+    configType = "lua";
     xwayland.enable = true;
 
     # Fix weird environment variable bs
@@ -21,84 +22,104 @@
 
     settings =
       let
-        mod = "Mod4";
+        lua = lib.generators.mkLuaInline;
+        luaCall = args: { _args = args; };
+        mod = "SUPER";
         browser = "zen-twilight";
         terminal = "${pkgs.ghostty}/bin/ghostty";
         menu = "vicinae open"; # rofi -show drun";
         lock = "${pkgs.hyprlock}/bin/hyprlock";
         wallpaper = pkgs.writeScriptBin "get-wallpaper" (builtins.readFile ../../scripts/wallpaper.sh);
+        animations = import ./config/animations.nix { inherit luaCall; };
       in
       {
-        "$MOD" = "${mod}";
-
         monitor = (import ./config/monitors.nix { })."${meta.hostname}";
 
-        general = {
-          gaps_in = 0; # 5
-          gaps_out = 0; # 5
-          border_size = 2; # 0
-
-          allow_tearing = true;
-          layout = "dwindle";
+        on = {
+          _args = [
+            "hyprland.start"
+            (lua ''
+              function()
+                hl.exec_cmd("eww open-many bar bar-second")
+                hl.exec_cmd(${builtins.toJSON ''hyprctl hyprpaper wallpaper " , $(${wallpaper}/bin/get-wallpaper), cover"''})
+                hl.exec_cmd("1password --silent")
+              end
+            '')
+          ];
         };
 
-        input = {
-          kb_layout = "gb";
-          follow_mouse = 1;
-          sensitivity = 0;
-          accel_profile = "flat";
-        };
+        config = {
+          general = {
+            gaps_in = 0; # 5
+            gaps_out = 0; # 5
+            border_size = 2; # 0
 
-        exec-once = [
-          "eww open-many bar bar-second"
-          "hyprctl hyprpaper wallpaper \" , $(${wallpaper}/bin/get-wallpaper), cover\""
-          "1password --silent"
-        ];
-
-        decoration = {
-          # Rounding
-          rounding = 4;
-
-          # Opacity
-          active_opacity = 1.0;
-          inactive_opacity = 0.95;
-
-          # Blur
-          blur = {
-            enabled = true;
-            size = 3;
-            passes = 2;
-            new_optimizations = true;
+            allow_tearing = true;
+            layout = "dwindle";
           };
+
+          input = {
+            kb_layout = "gb";
+            follow_mouse = 1;
+            sensitivity = 0;
+            accel_profile = "flat";
+          };
+
+          decoration = {
+            # Rounding
+            rounding = 4;
+
+            # Opacity
+            active_opacity = 1.0;
+            inactive_opacity = 0.95;
+
+            # Blur
+            blur = {
+              enabled = true;
+              size = 3;
+              passes = 2;
+              new_optimizations = true;
+            };
+          };
+
+          animations = {
+            enabled = true;
+          };
+
+          master = {
+            new_status = "master";
+          };
+
+          # https://wiki.hypr.land/Configuring/Variables/#misc
+          misc = {
+            force_default_wallpaper = 0;
+            disable_hyprland_logo = true;
+            disable_splash_rendering = true;
+          };
+
+          # debug = {
+          #   disable_logs = true;
+          # };
         };
 
-        layerrule = [
-          "match:namespace bar, blur true"
-          "match:namespace rofi, no_anim true"
-          "match:namespace discord, no_anim true"
+        layer_rule = [
+          {
+            match.namespace = "bar";
+            blur = true;
+          }
+          {
+            match.namespace = "rofi";
+            no_anim = true;
+          }
+          {
+            match.namespace = "discord";
+            no_anim = true;
+          }
         ];
 
-        animations = {
-          enabled = true;
-          inherit (import ./config/animations.nix { }) bezier animation;
-        };
+        inherit (animations) curve animation;
 
-        windowrule = (import ./config/window-rules.nix { }).window;
-
-        master = {
-          new_status = "master";
-        };
-
-        # https://wiki.hypr.land/Configuring/Variables/#misc
-        misc = {
-          force_default_wallpaper = 0;
-          disable_hyprland_logo = true;
-          disable_splash_rendering = true;
-        };
-
-        # debug = {
-        #   disable_logs = true;
-        # };
+        window_rule = (import ./config/window-rules.nix { }).window;
 
         inherit
           (
@@ -111,14 +132,12 @@
                 pkgs
                 terminal
                 wallpaper
+                lua
+                luaCall
                 ;
             })
           )
           bind
-          binde
-          bindl
-          bindm
-          bindr
           ;
       };
   };

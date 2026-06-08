@@ -1,34 +1,145 @@
-_: {
+{ luaCall, ... }:
+let
+  bezier =
+    name: x0: y0: x1: y1:
+    luaCall [
+      name
+      {
+        type = "bezier";
+        points = [
+          [
+            x0
+            y0
+          ]
+          [
+            x1
+            y1
+          ]
+        ];
+      }
+    ];
+in
+{
 
   # Default curves, see https://wiki.hypr.land/Configuring/Animations/#curves
-  bezier = [
-    # NAME,           X0,   Y0,   X1,   Y1
-    "easeOutQuint,   0.23, 1,    0.32, 1"
-    "easeInOutCubic, 0.65, 0.05, 0.36, 1"
-    "linear,         0,    0,    1,    1"
-    "almostLinear,   0.5,  0.5,  0.75, 1"
-    "quick,          0.15, 0,    0.1,  1"
+  curve = [
+    (bezier "easeOutQuint" 0.23 1 0.32 1)
+    (bezier "easeInOutCubic" 0.65 0.05 0.36 1)
+    (bezier "linear" 0 0 1 1)
+    (bezier "almostLinear" 0.5 0.5 0.75 1)
+    (bezier "quick" 0.15 0 0.1 1)
   ];
 
   # Default animations, see https://wiki.hypr.land/Configuring/Animations/
   animation = [
-    # NAME,          ONOFF, SPEED, CURVE,        [STYLE]
-    "global,        1,     10,    default"
-    "border,        1,     5.39,  easeOutQuint"
-    "windows,       1,     4.79,  easeOutQuint"
-    "windowsIn,     1,     4.1,   easeOutQuint, popin 87%"
-    "windowsOut,    1,     1.49,  linear,       popin 87%"
-    "fadeIn,        1,     1.73,  almostLinear"
-    "fadeOut,       1,     1.46,  almostLinear"
-    "fade,          1,     3.03,  quick"
-    "layers,        1,     3.81,  easeOutQuint"
-    "layersIn,      1,     4,     easeOutQuint, fade"
-    "layersOut,     1,     1.5,   linear,       fade"
-    "fadeLayersIn,  1,     1.79,  almostLinear"
-    "fadeLayersOut, 1,     1.39,  almostLinear"
-    "workspaces,    1,     1.94,  almostLinear, fade"
-    "workspacesIn,  1,     1.21,  almostLinear, fade"
-    "workspacesOut, 1,     1.94,  almostLinear, fade"
-    "zoomFactor,    1,     7,     quick"
+    {
+      leaf = "global";
+      enabled = true;
+      speed = 10;
+      bezier = "default";
+    }
+    {
+      leaf = "border";
+      enabled = true;
+      speed = 5.39;
+      bezier = "easeOutQuint";
+    }
+    {
+      leaf = "windows";
+      enabled = true;
+      speed = 4.79;
+      bezier = "easeOutQuint";
+    }
+    {
+      leaf = "windowsIn";
+      enabled = true;
+      speed = 4.1;
+      bezier = "easeOutQuint";
+      style = "popin 87%";
+    }
+    {
+      leaf = "windowsOut";
+      enabled = true;
+      speed = 1.49;
+      bezier = "linear";
+      style = "popin 87%";
+    }
+    {
+      leaf = "fadeIn";
+      enabled = true;
+      speed = 1.73;
+      bezier = "almostLinear";
+    }
+    {
+      leaf = "fadeOut";
+      enabled = true;
+      speed = 1.46;
+      bezier = "almostLinear";
+    }
+    {
+      leaf = "fade";
+      enabled = true;
+      speed = 3.03;
+      bezier = "quick";
+    }
+    {
+      leaf = "layers";
+      enabled = true;
+      speed = 3.81;
+      bezier = "easeOutQuint";
+    }
+    {
+      leaf = "layersIn";
+      enabled = true;
+      speed = 4;
+      bezier = "easeOutQuint";
+      style = "fade";
+    }
+    {
+      leaf = "layersOut";
+      enabled = true;
+      speed = 1.5;
+      bezier = "linear";
+      style = "fade";
+    }
+    {
+      leaf = "fadeLayersIn";
+      enabled = true;
+      speed = 1.79;
+      bezier = "almostLinear";
+    }
+    {
+      leaf = "fadeLayersOut";
+      enabled = true;
+      speed = 1.39;
+      bezier = "almostLinear";
+    }
+    {
+      leaf = "workspaces";
+      enabled = true;
+      speed = 1.94;
+      bezier = "almostLinear";
+      style = "fade";
+    }
+    {
+      leaf = "workspacesIn";
+      enabled = true;
+      speed = 1.21;
+      bezier = "almostLinear";
+      style = "fade";
+    }
+    {
+      leaf = "workspacesOut";
+      enabled = true;
+      speed = 1.94;
+      bezier = "almostLinear";
+      style = "fade";
+    }
+    {
+      leaf = "zoomFactor";
+      enabled = true;
+      speed = 7;
+      bezier = "quick";
+    }
   ];
 }
