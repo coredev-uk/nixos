@@ -30,6 +30,15 @@ let
   userProcessesWaitSeconds = toString cfg.userProcessesWaitSeconds;
   recoveryTimeoutSeconds = toString cfg.recoveryTimeoutSeconds;
   vbiosPath = "/run/libvirt/${cfg.vmName}-vfio/gpu.rom";
+  desktopIcon = pkgs.stdenvNoCC.mkDerivation {
+    pname = "${cfg.vmName}-desktop-icon";
+    version = "1";
+    src = ./assets/vfio-windows-11.png;
+    dontUnpack = true;
+    installPhase = ''
+      install -Dm0644 "$src" "$out/share/icons/hicolor/256x256/apps/${cfg.desktopItem.icon}.png"
+    '';
+  };
   iommuKernelParams = [
     "iommu=pt"
   ]
@@ -685,6 +694,7 @@ in
     );
 
     environment.systemPackages = with pkgs; [
+      desktopIcon
       looking-glass-client
       qemu_kvm
       pkexecStartVfio

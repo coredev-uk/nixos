@@ -50,7 +50,7 @@ in
       name = "windows";
       desktopName = "Windows";
       comment = "Start the Windows 11 VM with single-GPU passthrough";
-      icon = "windows";
+      icon = "vfio-windows-11";
     };
   };
 
