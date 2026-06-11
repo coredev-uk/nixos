@@ -17,6 +17,7 @@ in
 {
   imports = [
     "${self}/hosts/common/services/networkmanager.nix"
+    "${self}/hosts/common/services/vfio.nix"
     "${self}/hosts/common/desktop/1password.nix"
     "${self}/hosts/common/desktop/gaming.nix"
     "${self}/hosts/common/desktop/rgb.nix"
@@ -32,6 +33,26 @@ in
     bootwin
     pkgs.headsetcontrol
   ];
+
+  custom.vfioSingleGpu = {
+    enable = true;
+    vmName = "vfio-windows-11";
+    iommu.cpuVendor = "amd";
+    cancelRecoveryOnStarted = true;
+    stopServices = [
+      "greetd.service"
+      "display-manager.service"
+      "ddcci-nvidia-attach.service"
+      "openrgb.service"
+    ];
+    restoreServices = [ "greetd.service" ];
+    desktopItem = {
+      name = "windows";
+      desktopName = "Windows";
+      comment = "Start the Windows 11 VM with single-GPU passthrough";
+      icon = "windows";
+    };
+  };
 
   # Disable suspend of Toslink output to prevent audio popping.
   services.pipewire.wireplumber.extraConfig."99-disable-suspend" = {
