@@ -128,17 +128,11 @@ let
       ${launchVfio}
   '';
 
-  pkexecStartVfio = pkgs.writeShellScriptBin "pkexec-${desktopItemName}" ''
-    set -euo pipefail
-
-    exec /run/wrappers/bin/pkexec ${startVfio}/bin/${desktopItemName}
-  '';
-
   startDesktopItem = pkgs.makeDesktopItem {
     name = cfg.desktopItem.name;
     desktopName = cfg.desktopItem.desktopName;
     comment = cfg.desktopItem.comment;
-    exec = "${pkexecStartVfio}/bin/pkexec-${desktopItemName}";
+    exec = "${startVfio}/bin/${desktopItemName}";
     icon = cfg.desktopItem.icon;
     categories = cfg.desktopItem.categories;
     terminal = false;
@@ -697,13 +691,23 @@ in
       desktopIcon
       looking-glass-client
       qemu_kvm
-      pkexecStartVfio
       startDesktopItem
       startVfio
       swtpm
       virt-manager
       virt-viewer
     ];
+
+    security.polkit.extraConfig = ''
+      polkit.addRule(function(action, subject) {
+        if (action.id == "org.freedesktop.systemd1.manage-units" &&
+            subject.user == ${builtins.toJSON cfg.user} &&
+            action.lookup("unit") == ${builtins.toJSON "${cfg.vmName}-vfio-start.service"} &&
+            action.lookup("verb") == "start") {
+          return polkit.Result.YES;
+        }
+      });
+    '';
 
     programs.virt-manager.enable = true;
 
