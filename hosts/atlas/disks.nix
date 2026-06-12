@@ -14,7 +14,7 @@ in
     disk = {
       # Root/boot drive. Configured with:
       # - A FAT32 ESP partition for systemd-boot
-      # - A LUKS container which containers multiple btrfs subvolumes for nixos install
+      # - A LUKS container which contains multiple btrfs subvolumes for NixOS
       system = {
         device = "/dev/nvme0n1";
         type = "disk";
@@ -60,6 +60,10 @@ in
                     };
                     "@var" = {
                       mountpoint = "/var";
+                      mountOptions = defaultBtrfsOpts;
+                    };
+                    "@libvirt" = {
+                      mountpoint = "/var/lib/libvirt";
                       mountOptions = defaultBtrfsOpts;
                     };
                     "@log" = {

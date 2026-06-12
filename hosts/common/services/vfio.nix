@@ -709,6 +709,16 @@ in
       });
     '';
 
+    system.activationScripts.libvirtImagesNoCow.text = ''
+      imagesDir=/var/lib/libvirt/images
+      ${pkgs.coreutils}/bin/mkdir -p "$imagesDir"
+
+      # Btrfs NOCOW must be set before VM image files are created.
+      if [ -z "$(${pkgs.coreutils}/bin/ls -A "$imagesDir")" ]; then
+        ${pkgs.e2fsprogs}/bin/chattr +C "$imagesDir" 2>/dev/null || true
+      fi
+    '';
+
     programs.virt-manager.enable = true;
 
     users.users.${cfg.user}.extraGroups = [
