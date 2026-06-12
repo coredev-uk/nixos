@@ -19,3 +19,21 @@ was a great help at getting going.
 ## Bootstrap Guide
 
 Clone the repo, run `nix develop` then ./install-with-disk
+
+<details>
+<summary>Installing NixOS with Disko</summary>
+
+Boot the NixOS installer, clone this repository, enter the dev shell, then run:
+
+```sh
+nix develop
+./install-with-disk atlas
+```
+
+This is destructive. For `atlas`, Disko currently targets `/dev/nvme0n1` and will
+wipe it before creating the GPT, ESP, LUKS, and btrfs subvolume layout.
+
+The installer runs Disko, installs the `atlas` flake configuration, then copies
+this repository to `/mnt/home/<user>/.dotfiles`.
+
+</details>
