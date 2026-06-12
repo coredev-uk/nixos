@@ -10,6 +10,7 @@ let
 in
 {
   imports = [
+    ./atuin.nix
     ./bat.nix
     ./btop.nix
     ./fastfetch.nix
