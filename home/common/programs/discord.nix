@@ -19,14 +19,14 @@
 
     config = {
       plugins = {
-        ClearURLs.enable = true;
+        clearUrls.enable = true;
         disableCallIdle.enable = true;
 
         fixCodeblockGap.enable = true;
         fixSpotifyEmbeds.enable = true;
 
         messageLogger.enable = true;
-        MutualGroupDMs.enable = true;
+        mutualGroupDms.enable = true;
         openInApp.enable = true;
 
         shikiCodeblocks.enable = true;
