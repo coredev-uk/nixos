@@ -256,7 +256,7 @@ in
           isEssential = true;
           position = 104;
         };
-        Glance = {
+        Dynacat = {
           id = "a83d151a-eda8-4d53-8e8c-eb01a02b3e40";
           container = containers.Personal.id;
           url = "https://home.hera.ac/";
@@ -278,10 +278,10 @@ in
           url = "https://outlook.office.com/mail/";
           position = 201;
         };
-        Netflix = {
+        Plex = {
           id = "0a7c203a-c4a8-4cfd-a534-2852cc4a56c7";
           workspace = spaces.Universal.id;
-          url = "https://www.netflix.com/browse";
+          url = "https://plex.hera.ac";
           position = 202;
         };
         Amazon = {
@@ -296,10 +296,10 @@ in
           url = "https://x.com/";
           position = 204;
         };
-        Overleaf = {
+        Outline = {
           id = "f1648f48-024b-4471-af68-e3bf0b15bf44";
           workspace = spaces.Universal.id;
-          url = "https://www.overleaf.com/project";
+          url = "https://docs.hera.ac";
           position = 205;
         };
         Typst = {
@@ -313,7 +313,7 @@ in
         Careers = {
           id = "cd4f5481-d0ca-4f31-8ed5-e694302ba7f4";
           workspace = spaces.Universal.id;
-          isFolderCollapsed = false;
+          isFolderCollapsed = true;
           isGroup = true;
           editedTitle = true;
           position = 207;
