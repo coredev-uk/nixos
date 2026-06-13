@@ -54,6 +54,11 @@ in
     };
   };
 
+  # Split top-io usb controller for vfio passthrough
+  boot.kernelParams = [
+    "pcie_acs_override=downstream,multifunction"
+  ];
+
   # Disable suspend of Toslink output to prevent audio popping.
   services.pipewire.wireplumber.extraConfig."99-disable-suspend" = {
     "monitor.alsa.rules" = [
