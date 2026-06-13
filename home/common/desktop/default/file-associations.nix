@@ -1,10 +1,10 @@
 _:
 let
   archiveManager = [ "org.gnome.FileRoller.desktop" ];
-  fileBrowser = [ "org.gnome.Nautilus" ];
+  fileBrowser = [ "org.gnome.Nautilus.desktop" ];
   imageViewer = [ "org.gnome.Loupe.desktop" ];
   videoPlayer = [ "mpv.desktop" ];
-  documentViewer = [ "org.gnome.Papers-previewer.desktop" ];
+  documentViewer = [ "org.gnome.Papers.desktop" ];
 in
 {
   # XDG MIME types
