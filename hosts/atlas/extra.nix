@@ -41,11 +41,14 @@ in
     cancelRecoveryOnStarted = true;
     stopServices = [
       "greetd.service"
-      "display-manager.service"
       "ddcci-nvidia-attach.service"
       "openrgb.service"
     ];
-    restoreServices = [ "greetd.service" ];
+    restoreServices = [
+      "greetd.service"
+      "ddcci-nvidia-attach.service"
+      "openrgb.service"
+    ];
     desktopItem = {
       name = "windows";
       desktopName = "Windows";

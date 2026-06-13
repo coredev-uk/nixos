@@ -21,8 +21,8 @@
     # 3. Auto-Attach Service
     systemd.services.ddcci-nvidia-attach = {
       description = "Attach ddcci driver to all Nvidia I2C buses";
-      after = [ "display-manager.service" ];
-      requires = [ "display-manager.service" ];
+      after = [ "greetd.service" ];
+      requires = [ "greetd.service" ];
       wantedBy = [ "graphical.target" ];
       serviceConfig = {
         Type = "oneshot";
