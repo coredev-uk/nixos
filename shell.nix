@@ -12,6 +12,7 @@
       nix
       home-manager
       git
+      sbctl
     ];
     shellHook = ''
       exec zsh
