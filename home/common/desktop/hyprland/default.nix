@@ -27,7 +27,7 @@
         mod = "SUPER";
         browser = "zen-twilight";
         terminal = "${pkgs.ghostty}/bin/ghostty";
-        menu = "vicinae open"; # rofi -show drun";
+        menu = "vicinae open";
         lock = "${pkgs.hyprlock}/bin/hyprlock";
         wallpaper = pkgs.writeScriptBin "get-wallpaper" (builtins.readFile ../../scripts/wallpaper.sh);
         animations = import ./config/animations.nix { inherit luaCall; };
@@ -105,10 +105,6 @@
           {
             match.namespace = "bar";
             blur = true;
-          }
-          {
-            match.namespace = "rofi";
-            no_anim = true;
           }
           {
             match.namespace = "discord";

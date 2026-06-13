@@ -72,7 +72,7 @@
       homeConfigurations = {
         "${username}@atlas" = libx.mkHome {
           hostname = "atlas";
-          desktop = "hyprland"; # hyprland or i3
+          desktop = "hyprland";
         };
       };
 
@@ -80,7 +80,7 @@
       nixosConfigurations = {
         atlas = libx.mkHost {
           hostname = "atlas";
-          desktop = "hyprland"; # hyprland or i3
+          desktop = "hyprland";
         };
       };
 

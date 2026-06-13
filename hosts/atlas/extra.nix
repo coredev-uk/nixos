@@ -1,8 +1,6 @@
 {
   self,
-  lib,
   pkgs,
-  meta,
   ...
 }:
 let
@@ -25,8 +23,7 @@ in
     "${self}/hosts/common/desktop/ddcci-driver.nix"
     "${self}/hosts/common/desktop/dev.nix"
     "${self}/hosts/common/base/nix-ld.nix"
-  ]
-  ++ lib.optional (meta.desktop == "i3") ./display.nix;
+  ];
 
   # Add bootwin script to reboot into Windows
   environment.systemPackages = [

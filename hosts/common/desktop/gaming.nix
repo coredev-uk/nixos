@@ -33,12 +33,6 @@
     # Enable GameMode
     gamemode = {
       enable = true;
-      settings = {
-        custom = {
-          # start = "killall picom";
-          # end = "if not pgrep picom && not pgrep Hyprland; then exec picom; fi";
-        };
-      };
     };
 
     # gamescope
