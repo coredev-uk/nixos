@@ -16,7 +16,7 @@ in
       # - A FAT32 ESP partition for systemd-boot
       # - A LUKS container which contains multiple btrfs subvolumes for NixOS
       system = {
-        device = "/dev/nvme0n1";
+        device = "/dev/nvme1n1";
         type = "disk";
         content = {
           type = "gpt";
