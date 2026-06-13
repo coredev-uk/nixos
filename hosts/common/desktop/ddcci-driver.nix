@@ -32,9 +32,17 @@
             ddcciSetupScript = pkgs.writeShellScript "ddcci-setup" ''
               for i2c_path in /sys/bus/i2c/devices/i2c-*; do
                 if [ -e "$i2c_path/name" ]; then
-                  if grep -q "NVIDIA" "$i2c_path/name"; then
+                  if ${pkgs.gnugrep}/bin/grep -q "NVIDIA" "$i2c_path/name"; then
+                    bus=''${i2c_path##*/i2c-}
+                    device="$i2c_path/''${bus}-0037"
+
+                    if [ -e "$device" ]; then
+                      echo "ddcci already attached at $device."
+                      continue
+                    fi
+
                     echo "Detected Nvidia I2C bus at $i2c_path."
-                    echo ddcci 0x37 > "$i2c_path/new_device" || true
+                    echo ddcci 0x37 > "$i2c_path/new_device"
                     sleep 1
                   fi
                 fi
