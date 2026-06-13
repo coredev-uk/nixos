@@ -34,7 +34,7 @@ in
     pkgs.headsetcontrol
   ];
 
-  custom.vfioSingleGpu = {
+  services.vfioSingleGpu = {
     enable = true;
     vmName = "vfio-windows-11";
     iommu.cpuVendor = "amd";

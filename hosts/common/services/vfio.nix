@@ -20,7 +20,7 @@ let
     types
     ;
 
-  cfg = config.custom.vfioSingleGpu;
+  cfg = config.services.vfioSingleGpu;
   userUid = toString config.users.users.${cfg.user}.uid;
   desktopItemName = "start-${cfg.vmName}-vfio";
   deviceAddresses = map (device: device.pciAddress) cfg.pciDevices;
@@ -468,7 +468,7 @@ let
   '';
 in
 {
-  options.custom.vfioSingleGpu = {
+  options.services.vfioSingleGpu = {
     enable = mkEnableOption "single-GPU VFIO passthrough support for a libvirt VM";
 
     vmName = mkOption {
@@ -529,7 +529,7 @@ in
     restoreServices = mkOption {
       type = types.listOf types.str;
       default = cfg.stopServices;
-      defaultText = literalExpression "config.custom.vfioSingleGpu.stopServices";
+      defaultText = literalExpression "config.services.vfioSingleGpu.stopServices";
       description = "System services to start after the GPU is returned to the host.";
     };
 
