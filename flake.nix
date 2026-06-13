@@ -24,8 +24,6 @@
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
 
-    nix-citizen.url = "github:LovingMelody/nix-citizen";
-
     nixvim.url = "github:nix-community/nixvim";
 
     opencode.url = "github:anomalyco/opencode/v1.15.4";
