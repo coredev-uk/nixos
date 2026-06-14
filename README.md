@@ -30,7 +30,7 @@ nix develop
 ./install-with-disk atlas
 ```
 
-This is destructive. For `atlas`, Disko currently targets `/dev/nvme0n1` and will
+This is destructive. For `atlas`, Disko currently targets `/dev/nvme1n1` and will
 wipe it before creating the GPT, ESP, LUKS, and btrfs subvolume layout. Windows
 should be installed on the other NVMe first if this is a dual-boot system.
 

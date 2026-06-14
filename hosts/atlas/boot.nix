@@ -7,10 +7,14 @@
   ...
 }:
 let
+  # TPM2 unlock enrollment command for this host:
+  #   sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7+12 --wipe-slot=tpm2 /dev/sdX
+  # Keep a working LUKS passphrase/recovery key before wiping TPM2 slots.
+
   # Set this after booting once with tpm2-measure-pcr enabled and recording:
   #   systemd-analyze pcrs 15 --json=short
   # Keep null until the real value is known, otherwise initrd will refuse to boot.
-  expectedPcr15 = null;
+  expectedPcr15 = "a701700021416549c66fdb8693a771a159f78fde232e5aa3aca4d3c23f268ef9";
 in
 {
   imports = [
