@@ -279,7 +279,7 @@ in
           position = 201;
         };
         Plex = {
-          id = "0a7c203a-c4a8-4cfd-a534-2852cc4a56c7";
+          id = "0a7c203a-c4a8-4cfd-a534-2852cc4a51c7";
           workspace = spaces.Universal.id;
           url = "https://plex.hera.ac";
           position = 202;
@@ -308,7 +308,6 @@ in
           url = "https://typst.app/";
           position = 206;
         };
-
         # Careers Folder (Universal Space)
         Careers = {
           id = "cd4f5481-d0ca-4f31-8ed5-e694302ba7f4";
