@@ -15,6 +15,7 @@ in
     ./btop.nix
     ./fastfetch.nix
     ./nh.nix
+    ./opencode.nix
     ./starship.nix
     ./ssh.nix
     ./zsh.nix

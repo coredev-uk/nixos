@@ -26,6 +26,8 @@
 
     nixvim.url = "github:nix-community/nixvim";
 
+    opencode.url = "github:anomalyco/opencode/v1.15.4";
+
     treefmt-nix.url = "github:numtide/treefmt-nix";
 
     vicinae.url = "github:vicinaehq/vicinae";
