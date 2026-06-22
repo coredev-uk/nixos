@@ -6,10 +6,22 @@
 let
   bootwin = pkgs.writeScriptBin "bootwin" ''
     #!/bin/sh
-    sudo su - <<EOF
-    efibootmgr -n 0000
-    reboot
-    EOF
+    bootnum="$(sudo ${pkgs.efibootmgr}/bin/efibootmgr | ${pkgs.gawk}/bin/awk '
+      /^Boot[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]/ && /Windows Boot Manager/ {
+        bootnum = substr($1, 5, 4)
+        sub(/\*$/, "", bootnum)
+        print bootnum
+        exit
+      }
+    ')"
+
+    if [ -z "$bootnum" ]; then
+      echo "Could not find EFI boot entry named Windows Boot Manager" >&2
+      exit 1
+    fi
+
+    sudo ${pkgs.efibootmgr}/bin/efibootmgr -n "$bootnum"
+    sudo reboot
   '';
 in
 {
