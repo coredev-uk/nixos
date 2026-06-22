@@ -3,6 +3,18 @@
   meta,
   ...
 }:
+let
+  plexDesktop = pkgs.plex-desktop.override {
+    extraEnv = {
+      LIBVA_DRIVER_NAME = "nvidia";
+      NVD_BACKEND = "direct";
+      QT_OPENGL = "desktop";
+      QT_QPA_PLATFORM = "xcb";
+      QT_XCB_GL_INTEGRATION = "xcb_glx";
+      VDPAU_DRIVER = "nvidia";
+    };
+  };
+in
 {
   imports = [
     (./. + "/${meta.desktop}")
@@ -29,7 +41,7 @@
     # cider-2
     desktop-file-utils
     file-roller
-    plex-desktop
+    plexDesktop
     loupe
     mpv
     nautilus
