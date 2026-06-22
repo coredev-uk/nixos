@@ -6,7 +6,7 @@
 
   catppuccin.vicinae.enable = true;
 
-  services.vicinae = {
+  programs.vicinae = {
     enable = true;
 
     package = inputs.vicinae.packages.${meta.system}.default;
