@@ -484,6 +484,7 @@ in
           # Preferences
           Preferences = mkLockedAttrs {
             "browser.tabs.warnOnClose" = false;
+            "gfx.color_management.hdr" = true;
             # and so on...
           };
 

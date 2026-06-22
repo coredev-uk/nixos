@@ -85,6 +85,12 @@
             enabled = true;
           };
 
+          render = {
+            cm_enabled = true;
+            cm_auto_hdr = 1;
+            use_fp16 = 2;
+          };
+
           master = {
             new_status = "master";
           };
@@ -141,4 +147,7 @@
   home.sessionVariables.LIBVA_DRIVER_NAME = "nvidia";
   home.sessionVariables.__GLX_VENDOR_LIBRARY_NAME = "nvidia";
   home.sessionVariables.NVD_BACKEND = "direct";
+  home.sessionVariables.ELECTRON_OZONE_PLATFORM_HINT = "wayland";
+  home.sessionVariables.CHROMIUM_FLAGS = "--ozone-platform=wayland --enable-features=WaylandColorManagementV1,WaylandHDR";
+  home.sessionVariables.GDK_DEBUG = "hdr,color-mgmt,high-depth";
 }
