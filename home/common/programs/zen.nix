@@ -452,49 +452,37 @@ in
         "en-GB"
       ];
 
-      policies =
-        let
-          mkLockedAttrs = builtins.mapAttrs (
-            _: value: {
-              Value = value;
-              Status = "locked";
-            }
-          );
-        in
-        {
-          # Standard Policies
-          AutofillAddressEnabled = true;
-          AutofillCreditCardEnabled = false;
-          DisableAppUpdate = !pkgs.stdenv.isDarwin;
-          DisableFeedbackCommands = true;
-          DisableFirefoxStudies = true;
-          DisablePocket = true;
-          DisableTelemetry = true;
-          DontCheckDefaultBrowser = true;
-          NoDefaultBookmarks = true;
-          OfferToSaveLogins = false;
-          TranslateEnabled = false;
-          EnableTrackingProtection = {
-            Value = true;
-            Locked = true;
-            Cryptomining = true;
-            Fingerprinting = true;
-          };
-
-          # Preferences
-          Preferences = mkLockedAttrs {
-            "browser.tabs.warnOnClose" = false;
-            "gfx.color_management.hdr" = true;
-            # and so on...
-          };
-
-          # Extensions
-          ExtensionSettings = extensions;
+      policies = {
+        # Standard Policies
+        AutofillAddressEnabled = true;
+        AutofillCreditCardEnabled = false;
+        DisableAppUpdate = !pkgs.stdenv.isDarwin;
+        DisableFeedbackCommands = true;
+        DisableFirefoxStudies = true;
+        DisablePocket = true;
+        DisableTelemetry = true;
+        DontCheckDefaultBrowser = true;
+        NoDefaultBookmarks = true;
+        OfferToSaveLogins = false;
+        TranslateEnabled = false;
+        EnableTrackingProtection = {
+          Value = true;
+          Locked = true;
+          Cryptomining = true;
+          Fingerprinting = true;
         };
+        # Extensions
+        ExtensionSettings = extensions;
+      };
 
       profiles.default = {
         name = "Default";
         isDefault = true;
+
+        settings = {
+          "gfx.color_management.hdr" = true;
+          "gfx.color_management.hdr.force_enabled" = true;
+        };
 
         containersForce = true;
         spacesForce = true;
