@@ -26,7 +26,12 @@ in
     "vt.global_cursor_default=0"
   ];
 
-  hardware.graphics.enable = true;
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      nvidia-vaapi-driver
+    ];
+  };
 
   # Enable location services
   location.provider = "geoclue2";

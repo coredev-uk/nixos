@@ -6,7 +6,7 @@ _: {
       position = "2560x0";
       scale = 1;
       bitdepth = 10;
-      cm = "hdredid";
+      cm = "hdr";
       sdr_max_luminance = 250;
     }
     {
@@ -15,7 +15,7 @@ _: {
       position = "0x0";
       scale = 1;
       bitdepth = 10;
-      cm = "hdredid";
+      cm = "hdr";
       sdr_max_luminance = 250;
     }
   ];
