@@ -88,6 +88,7 @@
           render = {
             cm_enabled = true;
             cm_auto_hdr = 1;
+            non_shader_cm_interop = 2;
             use_fp16 = 2;
           };
 
