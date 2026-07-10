@@ -24,6 +24,7 @@ let
         outputs
         ;
       unstable = inputs.unstable.legacyPackages.${system};
+      stable = inputs.nixpkgs.legacyPackages.${system};
       meta = {
         inherit
           hostname
