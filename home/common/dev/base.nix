@@ -1,18 +1,10 @@
-{
-  lib,
-  pkgs,
-  meta,
-  ...
-}:
+{ pkgs, ... }:
 {
   catppuccin.k9s.enable = true;
   programs = {
 
     # Kubernetes CLI
     k9s.enable = true;
-
-    # Node
-    bun.enable = true;
 
     # env
     mise = {
@@ -59,38 +51,21 @@
         p: with p; [
           virtualenv
           pyserial
-          distutils
         ]
       ))
-      # pipx
 
       # Shell tooling
       shellcheck
       shfmt
-      # binutils
 
       # Kubernetes
       kubectl
       kubernetes-helm
-      kubeconform
       fluxcd
       talosctl
-      sops
       flate
 
       # env
       devenv
-    ]
-    ++ lib.optionals meta.isDesktop [
-      # Tauri
-      webkitgtk_4_1
-      pkg-config
-      openssl
-
-      # Electron
-      dpkg
-      fakeroot
-      rpm
-      libglibutil
     ];
 }
