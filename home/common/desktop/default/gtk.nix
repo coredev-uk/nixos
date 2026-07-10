@@ -1,15 +1,17 @@
 {
   pkgs,
   self,
+  stable,
   config,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
+  theme = import "${self}/lib/theme" { inherit pkgs stable; };
 in
 {
   home.pointerCursor = {
     inherit (theme.cursorTheme) package size name;
+    enable = true;
     gtk.enable = true;
     x11.enable = true;
   };
@@ -40,11 +42,9 @@ in
     gtk4.extraConfig = {
       gtk-application-prefer-dark-theme = true;
     };
-
-    iconTheme = {
-      inherit (theme.iconTheme) name package;
-    };
   };
+
+  catppuccin.gtk.icon.enable = true;
 
   # Set color scheme for portals (modern standard)
   dconf.settings = {

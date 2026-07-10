@@ -37,7 +37,6 @@ in
 
   home.packages = with pkgs; [
     brave
-    catppuccin-gtk
     # cider-2
     desktop-file-utils
     file-roller

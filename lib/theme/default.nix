@@ -1,5 +1,6 @@
 {
   pkgs,
+  stable ? pkgs,
   ...
 }:
 let
@@ -24,7 +25,7 @@ rec {
 
   gtkTheme = {
     name = "catppuccin-mocha-blue-standard";
-    package = pkgs.catppuccin-gtk.override {
+    package = stable.catppuccin-gtk.override {
       inherit (catppuccin) size;
       variant = catppuccin.flavor;
       accents = [ catppuccin.accent ];
@@ -37,12 +38,6 @@ rec {
       variant = catppuccin.flavor;
       inherit (catppuccin) accent;
     };
-  };
-
-  iconTheme = rec {
-    name = "Papirus-Dark";
-    package = pkgs.papirus-icon-theme;
-    iconPath = "${package}/share/icons/${name}";
   };
 
   cursorTheme = {

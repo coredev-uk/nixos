@@ -25,6 +25,6 @@ in
       };
 
   xdg.configFile."qt5ct/qt5ct.conf".source = (pkgs.formats.ini { }).generate "kvantum.kvconfig" {
-    Appearance.icon_theme = "${theme.iconTheme.name}";
+    Appearance.icon_theme = "Papirus-${if theme.catppuccin.flavor == "latte" then "Light" else "Dark"}";
   };
 }
