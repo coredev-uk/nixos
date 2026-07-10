@@ -28,6 +28,8 @@ in
   ];
 
   catppuccin = {
+    enable = true;
+    autoEnable = true;
     inherit (theme.catppuccin) flavor;
     inherit (theme.catppuccin) accent;
   };
