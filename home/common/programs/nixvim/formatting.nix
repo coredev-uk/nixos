@@ -16,7 +16,7 @@
           "eslint_d"
         ];
         nix = [ "nixfmt" ];
-        yaml = [ "yamlfmt" ];
+        yaml = [ "oxfmt" ];
         css = [ "prettierd" ];
         html = [ "prettierd" ];
         json = [ "prettierd" ];

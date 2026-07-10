@@ -69,6 +69,9 @@
           # Helm
           helm_ls.enable = true;
 
+          # Mixed
+          oxfmt.enable = true;
+
           # YAML
           yamlls = {
             enable = true;
