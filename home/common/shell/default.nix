@@ -13,6 +13,7 @@ in
     ./atuin.nix
     ./bat.nix
     ./btop.nix
+    ./claude-code.nix
     ./fastfetch.nix
     ./nh.nix
     ./opencode.nix
