@@ -28,11 +28,9 @@ in
 
     # Standard Programs
     ../programs/discord.nix
-    ../programs/element.nix
     ../programs/gaming.nix
     ../programs/ghostty.nix
     ../programs/zen.nix
-    # ./programs/rclone.nix
   ];
 
   home.packages = with pkgs; [

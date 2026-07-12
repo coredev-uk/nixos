@@ -1,11 +1,9 @@
 { pkgs, ... }:
 {
   basePackages = with pkgs; [
-    bat
     binutils
     cabextract
     curl
-    eza
     file
     git
     jq
@@ -14,7 +12,6 @@
     nfs-utils
     ntfs3g
     pciutils
-    polkit_gnome
     ripgrep
     rsync
     sbctl

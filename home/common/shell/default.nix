@@ -16,7 +16,6 @@ in
     ./claude-code.nix
     ./fastfetch.nix
     ./nh.nix
-    ./opencode.nix
     ./starship.nix
     ./ssh.nix
     ./zsh.nix
@@ -39,9 +38,4 @@ in
     home-manager.enable = true;
   };
 
-  home.packages = with pkgs; [
-    age
-    # termscp
-    typst
-  ];
 }

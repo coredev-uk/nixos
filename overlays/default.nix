@@ -4,10 +4,6 @@
   additions = final: _prev: import ../pkgs { pkgs = final; };
 
   modifications = final: prev: {
-    # example = prev.example.overrideAttrs (oldAttrs: rec {
-    # ...
-    # });
-
     cider-2 = prev.cider-2.overrideAttrs (_old: {
       version = "2.0.3";
       src = builtins.fetchurl {
@@ -41,14 +37,7 @@
     unstable = import inputs.unstable {
       inherit (final) system;
       config.allowUnfree = true;
-      overlays = [
-        (_final: _prev: {
-          # example = prev.example.overrideAttrs (oldAttrs: rec {
-          # ...
-          # });
-
-        })
-      ];
+      overlays = [ ];
     };
   };
 }

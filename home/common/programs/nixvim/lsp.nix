@@ -53,9 +53,6 @@
           # Nix
           nil_ls.enable = true;
 
-          # PHP
-          phpactor.enable = true;
-
           # Python
           pyright.enable = true;
 

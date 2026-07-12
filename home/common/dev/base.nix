@@ -63,7 +63,6 @@
       kubernetes-helm
       fluxcd
       talosctl
-      flate
 
       # env
       devenv
