@@ -30,41 +30,39 @@
     jq.enable = true;
   };
 
-  home.packages =
-    with pkgs;
-    [
-      # C++ tooling
-      clang
-      gnumake
+  home.packages = with pkgs; [
+    # C++ tooling
+    clang
+    gnumake
 
-      # Nix tooling
-      deadnix
-      nil
-      nix-init
-      nixfmt
-      nurl
-      statix
-      treefmt
+    # Nix tooling
+    deadnix
+    nil
+    nix-init
+    nixfmt
+    nurl
+    statix
+    treefmt
 
-      # Python tooling
-      (pkgs.python3.withPackages (
-        p: with p; [
-          virtualenv
-          pyserial
-        ]
-      ))
+    # Python tooling
+    (pkgs.python3.withPackages (
+      p: with p; [
+        virtualenv
+        pyserial
+      ]
+    ))
 
-      # Shell tooling
-      shellcheck
-      shfmt
+    # Shell tooling
+    shellcheck
+    shfmt
 
-      # Kubernetes
-      kubectl
-      kubernetes-helm
-      fluxcd
-      talosctl
+    # Kubernetes
+    kubectl
+    kubernetes-helm
+    fluxcd
+    talosctl
 
-      # env
-      devenv
-    ];
+    # env
+    devenv
+  ];
 }

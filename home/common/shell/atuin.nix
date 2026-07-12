@@ -1,9 +1,5 @@
-{ pkgs, ... }: {
+_: {
   catppuccin.atuin.enable = true;
-
-  home.packages = with pkgs; [
-    atuin
-  ];
 
   programs.atuin = {
     enable = true;
