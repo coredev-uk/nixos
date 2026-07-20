@@ -1,5 +1,16 @@
 { pkgs, lib, ... }:
 {
+  systemd.user.services.sway-audio-idle-inhibit = {
+    Unit = {
+      Description = "Inhibit idle while audio is playing";
+      PartOf = [ "graphical-session.target" ];
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+    Service = {
+      ExecStart = "${lib.getExe pkgs.sway-audio-idle-inhibit}";
+      Restart = "on-failure";
+    };
+  };
 
   services.hypridle = {
     enable = true;
