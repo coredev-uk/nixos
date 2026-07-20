@@ -14,6 +14,9 @@
     lanzaboote.url = "github:nix-community/lanzaboote/v1.0.0";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
+    nix-citizen.url = "github:LovingMelody/nix-citizen";
+    nix-citizen.inputs.nixpkgs.follows = "unstable";
+
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
