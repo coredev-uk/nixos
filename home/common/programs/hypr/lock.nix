@@ -12,6 +12,9 @@ let
   inherit (theme) hexToRgb colours;
 in
 {
+  # disable auto enable
+  catppuccin.hyprlock.enable = false;
+
   programs.hyprlock = {
     enable = true;
     settings = {
