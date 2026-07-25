@@ -3,7 +3,7 @@
 
   inputs = {
     catppuccin.url = "github:catppuccin/nix";
-    catppuccin.inputs.nixpkgs.follows = "nixpkgs";
+    catppuccin.inputs.nixpkgs.follows = "unstable";
 
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
@@ -28,10 +28,13 @@
     nixcord.inputs.nixpkgs.follows = "unstable";
 
     nixvim.url = "github:nix-community/nixvim";
+    nixvim.inputs.nixpkgs.follows = "unstable";
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
+    treefmt-nix.inputs.nixpkgs.follows = "unstable";
 
     vicinae.url = "github:vicinaehq/vicinae";
+    vicinae.inputs.nixpkgs.follows = "unstable";
 
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 
