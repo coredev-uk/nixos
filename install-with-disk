@@ -36,7 +36,15 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   sudo true
 
-  sudo nix --experimental-features "nix-command flakes" run github:nix-community/disko/latest -- --mode destroy,format,mount "${DIR}/hosts/${TARGET_HOST}/disks.nix" --yes-wipe-all-disks
+  # Build the disko script from the flake's own locked disko input, rather than
+  # fetching disko/latest, so install-time formatting matches the disko module
+  # version used by the rest of this config.
+  DISKO_SCRIPT="$(mktemp -d)/disko-script"
+  nix --experimental-features "nix-command flakes" build \
+    "${DIR}#nixosConfigurations.${TARGET_HOST}.config.system.build.diskoScript" \
+    -o "${DISKO_SCRIPT}"
+
+  sudo "${DISKO_SCRIPT}" --mode destroy,format,mount --yes-wipe-all-disks
 
   if grep -q "lanzaboote" "${DIR}/hosts/${TARGET_HOST}/boot.nix"; then
     if [ ! -d /mnt/var/lib/sbctl ]; then
