@@ -10,11 +10,32 @@ jobs:
 
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v22
-
+        with:
+          extra-conf: |
+            extra-substituters = https://catppuccin.cachix.org https://nix-citizen.cachix.org https://nix-community.cachix.org https://vicinae.cachix.org
+            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU= nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc=
 
       - name: nix flake check
         run: nix flake check
-  
+
+      - name: Build atlas NixOS configuration
+        run: nix build .#nixosConfigurations.atlas.config.system.build.toplevel --no-link
+
+  darwin-build:
+    runs-on: macos-14
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v22
+        with:
+          extra-conf: |
+            extra-substituters = https://catppuccin.cachix.org https://nix-community.cachix.org
+            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: Build poseidon darwin configuration
+        run: nix build .#darwinConfigurations.poseidon.system --no-link
+
   flake-checker:
     runs-on: ubuntu-latest
     steps:
