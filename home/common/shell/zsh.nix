@@ -71,7 +71,7 @@
       shellAliases = {
         la = "ls -la";
         ".." = "cd ..";
-        ls = "eza -gl --git --group-directories-first --color=automatic";
+        ls = "eza -gl --git --group-directories-first --color=auto";
         tree = "eza --tree";
         cat = "bat";
 

@@ -35,7 +35,6 @@ in
 
   home.packages = with pkgs; [
     brave
-    # cider-2
     desktop-file-utils
     file-roller
     plexDesktop
