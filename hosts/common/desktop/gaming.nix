@@ -10,7 +10,10 @@
 
   programs = {
     # Star Citizen, via the RSI Launcher (src: https://github.com/LovingMelody/nix-citizen)
-    rsi-launcher.enable = true;
+    rsi-launcher = {
+      enable = true;
+      location = "$HOME/games/star-citizen";
+    };
 
     # Enable Steam
     steam = {
