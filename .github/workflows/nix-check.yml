@@ -15,11 +15,20 @@ jobs:
             extra-substituters = https://catppuccin.cachix.org https://nix-citizen.cachix.org https://nix-community.cachix.org https://vicinae.cachix.org
             extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU= nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs= vicinae.cachix.org-1:1kDrfienkGHPYbkpNj1mWTr7Fm1+zcenzgTizIcI3oc=
 
-      - name: nix flake check
-        run: nix flake check
-
-      - name: Build atlas NixOS configuration
-        run: nix build .#nixosConfigurations.atlas.config.system.build.toplevel --no-link
+      # Plain `nix flake check` also evaluates darwinConfigurations, which
+      # forces building catppuccin's whiskers-rendered starship theme (an
+      # IFD) for aarch64-darwin — impossible on this x86_64-linux runner.
+      # poseidon is validated natively by the darwin-build job below, so
+      # check every other output directly instead of the darwin one.
+      - name: Check flake outputs (excluding darwin)
+        run: |
+          nix build --no-link \
+            .#nixosConfigurations.atlas.config.system.build.toplevel \
+            .#homeConfigurations."paul@atlas".activationPackage \
+            .#packages.x86_64-linux.beammp-launcher \
+            .#devShells.x86_64-linux.default \
+            .#formatter.x86_64-linux
+          nix eval .#overlays --apply "builtins.mapAttrs (n: v: builtins.functionArgs v)"
 
   darwin-build:
     runs-on: macos-14
