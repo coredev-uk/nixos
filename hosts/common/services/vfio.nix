@@ -23,6 +23,12 @@ let
   cfg = config.services.vfioSingleGpu;
   userUid = toString config.users.users.${cfg.user}.uid;
   desktopItemName = "start-${cfg.vmName}-vfio";
+  nativeBootEnabled = cfg.desktopItem.nativeBootEfiEntry != null;
+  nativeBootUnitName = "${cfg.vmName}-native-boot";
+  allowedStartUnits = [
+    "${cfg.vmName}-vfio-start.service"
+  ]
+  ++ optional nativeBootEnabled "${nativeBootUnitName}.service";
   deviceAddresses = map (device: device.pciAddress) cfg.pciDevices;
   deviceAddressesShell = escapeShellArgs deviceAddresses;
   stopServicesShell = escapeShellArgs cfg.stopServices;
@@ -128,11 +134,78 @@ let
       ${launchVfio}
   '';
 
+  nativeBootScript =
+    if nativeBootEnabled then
+      pkgs.writeShellScript "${cfg.vmName}-native-boot" ''
+        set -euo pipefail
+
+        bootnum="$(${pkgs.efibootmgr}/bin/efibootmgr | ${pkgs.gawk}/bin/awk -v pattern=${escapeShellArg cfg.desktopItem.nativeBootEfiEntry} '
+          /^Boot[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]/ && index($0, pattern) {
+            bootnum = substr($1, 5, 4)
+            sub(/\*$/, "", bootnum)
+            print bootnum
+            exit
+          }
+        ')"
+
+        if [ -z "$bootnum" ]; then
+          echo "Could not find EFI boot entry matching ${escapeShellArg cfg.desktopItem.nativeBootEfiEntry}" >&2
+          exit 1
+        fi
+
+        ${pkgs.efibootmgr}/bin/efibootmgr -n "$bootnum"
+        ${pkgs.systemd}/bin/reboot
+      ''
+    else
+      null;
+
+  # Started the same way the VM is: via systemd-run against a unit name
+  # authorized in security.polkit.extraConfig below, so no password prompt
+  # is needed (a pkexec/polkit-agent GUI prompt proved unreliable here).
+  startNativeBoot =
+    if nativeBootEnabled then
+      pkgs.writeShellScriptBin nativeBootUnitName ''
+        set -euo pipefail
+        "${pkgs.systemd}/bin/systemd-run" --system --collect --unit=${escapeShellArg nativeBootUnitName} \
+          ${nativeBootScript}
+      ''
+    else
+      null;
+
+  chooserScript =
+    if nativeBootEnabled then
+      pkgs.writeShellScript "${cfg.vmName}-vfio-chooser" ''
+        set -euo pipefail
+
+        choice="$(${pkgs.zenity}/bin/zenity --list \
+          --title=${escapeShellArg cfg.desktopItem.desktopName} \
+          --text=${escapeShellArg "How would you like to start ${cfg.desktopItem.desktopName}?"} \
+          --column=Option --hide-header \
+          --width=420 --height=220 \
+          "Launch Virtual Machine" \
+          ${escapeShellArg cfg.desktopItem.bootLabel})" || exit 0
+
+        case "$choice" in
+          "Launch Virtual Machine")
+            exec ${startVfio}/bin/${desktopItemName}
+            ;;
+          ${escapeShellArg cfg.desktopItem.bootLabel})
+            ${pkgs.zenity}/bin/zenity --question \
+              --title="Reboot required" \
+              --text=${escapeShellArg "This will reboot the computer into ${cfg.desktopItem.desktopName} now. Continue?"} \
+              --ok-label="Reboot" --cancel-label="Cancel" || exit 0
+            exec ${startNativeBoot}/bin/${nativeBootUnitName}
+            ;;
+        esac
+      ''
+    else
+      null;
+
   startDesktopItem = pkgs.makeDesktopItem {
     name = cfg.desktopItem.name;
     desktopName = cfg.desktopItem.desktopName;
     comment = cfg.desktopItem.comment;
-    exec = "${startVfio}/bin/${desktopItemName}";
+    exec = if nativeBootEnabled then "${chooserScript}" else "${startVfio}/bin/${desktopItemName}";
     icon = cfg.desktopItem.icon;
     categories = cfg.desktopItem.categories;
     terminal = false;
@@ -661,6 +734,19 @@ in
         default = [ "System" ];
         description = "Desktop menu categories for the VM launcher.";
       };
+
+      nativeBootEfiEntry = mkOption {
+        type = types.nullOr types.str;
+        default = null;
+        example = "Windows Boot Manager";
+        description = "EFI boot entry label to BootNext into and reboot, instead of starting the VM. When set, the launcher shows a chooser dialog offering the VM or this native boot. Authorized via the same polkit rule as the VM start action, so no password prompt is needed.";
+      };
+
+      bootLabel = mkOption {
+        type = types.str;
+        default = "Boot into Windows";
+        description = "Label for the native-boot option in the chooser dialog. Only used when nativeBootEfiEntry is set.";
+      };
     };
   };
 
@@ -696,14 +782,17 @@ in
       swtpm
       virt-manager
       virt-viewer
-    ];
+    ]
+    ++ optional nativeBootEnabled startNativeBoot;
 
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
+        var allowedUnits = ${builtins.toJSON allowedStartUnits};
+
         if (action.id == "org.freedesktop.systemd1.manage-units" &&
             subject.user == ${builtins.toJSON cfg.user} &&
-            action.lookup("unit") == ${builtins.toJSON "${cfg.vmName}-vfio-start.service"} &&
-            action.lookup("verb") == "start") {
+            action.lookup("verb") == "start" &&
+            allowedUnits.indexOf(action.lookup("unit")) !== -1) {
           return polkit.Result.YES;
         }
       });

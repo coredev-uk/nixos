@@ -22,6 +22,14 @@ _: {
       center = true;
     }
     {
+      match.class = "^(zenity)$";
+      float = true;
+    }
+    {
+      match.class = "^(zenity)$";
+      center = true;
+    }
+    {
       match.title = "^(.*notificationtoasts*.)$";
       center = true;
     }
