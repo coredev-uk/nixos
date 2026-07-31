@@ -24,6 +24,8 @@
     nix-darwin.url = "github:nix-darwin/nix-darwin";
     nix-darwin.inputs.nixpkgs.follows = "unstable";
 
+    nix-homebrew.url = "github:zhaofengli/nix-homebrew";
+
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
 

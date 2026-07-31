@@ -36,9 +36,8 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   sudo true
 
-  # Build the disko script from the flake's own locked disko input, rather than
-  # fetching disko/latest, so install-time formatting matches the disko module
-  # version used by the rest of this config.
+  # Build via the flake's locked disko input, not disko/latest, so this
+  # matches the pinned disko module version used elsewhere in the config.
   DISKO_SCRIPT="$(mktemp -d)/disko-script"
   nix --experimental-features "nix-command flakes" build \
     "${DIR}#nixosConfigurations.${TARGET_HOST}.config.system.build.diskoScript" \

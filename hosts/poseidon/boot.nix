@@ -19,9 +19,4 @@
 
     packages = [ pkgs.home-manager ];
   };
-
-  nix.settings = {
-    trusted-users = [ meta.username ];
-  };
-
 }

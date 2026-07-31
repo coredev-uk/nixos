@@ -13,6 +13,8 @@
   ++ lib.optionals meta.isDarwin [
     ./common/programs/zen.nix
     ./common/programs/ghostty.nix
+    ./common/programs/discord.nix
+    ./common/programs/darwin-apps.nix
   ];
   home = {
     inherit (meta) username;
