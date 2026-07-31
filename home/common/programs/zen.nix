@@ -451,14 +451,11 @@ in
 
       package = if pkgs.stdenv.isDarwin then null else app;
 
-      # home-manager's shared Firefox module factory unconditionally derives
-      # `release` from `package.version`, which crashes when package is null
-      # (as it is on Darwin, above, since we don't manage the app via Nix
-      # there). Short-circuit it with an explicit value on Darwin only.
+      # Avoids a crash: the module derives `release` from `package.version`,
+      # which is null on Darwin.
       release = lib.mkIf pkgs.stdenv.isDarwin "unknown";
 
-      # 'env' is Linux-only and 'languagePacks' requires a non-null package,
-      # neither of which hold on Darwin (see 'package' above).
+      # 'env' is Linux-only; 'languagePacks' needs a non-null package.
       env = lib.mkIf (!pkgs.stdenv.isDarwin) {
         LIBVA_DRIVER_NAME = "nvidia";
         MOZ_DISABLE_RDD_SANDBOX = "1";
