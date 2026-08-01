@@ -449,13 +449,7 @@ in
     {
       enable = true;
 
-      package = if pkgs.stdenv.isDarwin then null else app;
-
-      # Avoids a crash: the module derives `release` from `package.version`,
-      # which is null on Darwin.
-      release = lib.mkIf pkgs.stdenv.isDarwin "unknown";
-
-      # 'env' is Linux-only; 'languagePacks' needs a non-null package.
+      # 'env' is Linux-only (module asserts this).
       env = lib.mkIf (!pkgs.stdenv.isDarwin) {
         LIBVA_DRIVER_NAME = "nvidia";
         MOZ_DISABLE_RDD_SANDBOX = "1";
@@ -470,7 +464,7 @@ in
         # Standard Policies
         AutofillAddressEnabled = true;
         AutofillCreditCardEnabled = false;
-        DisableAppUpdate = !pkgs.stdenv.isDarwin;
+        DisableAppUpdate = true;
         DisableFeedbackCommands = true;
         DisableFirefoxStudies = true;
         DisablePocket = true;
