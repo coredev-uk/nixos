@@ -488,6 +488,7 @@ in
         isDefault = true;
 
         settings = {
+          "browser.ctrlTab.sortByRecentlyUsed" = true;
           "gfx.color_management.hdr" = true;
           "gfx.webrender.compositor.force-enabled" = true;
           "gfx.wayland.hdr" = true;
