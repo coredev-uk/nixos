@@ -449,13 +449,6 @@ in
     {
       enable = true;
 
-      # 'env' is Linux-only (module asserts this).
-      env = lib.mkIf (!pkgs.stdenv.isDarwin) {
-        LIBVA_DRIVER_NAME = "nvidia";
-        MOZ_DISABLE_RDD_SANDBOX = "1";
-        NVD_BACKEND = "direct";
-      };
-
       languagePacks = lib.mkIf (!pkgs.stdenv.isDarwin) [
         "en-GB"
       ];
@@ -489,13 +482,6 @@ in
 
         settings = {
           "browser.ctrlTab.sortByRecentlyUsed" = true;
-          "gfx.color_management.hdr" = true;
-          "gfx.webrender.compositor.force-enabled" = true;
-          "gfx.wayland.hdr" = true;
-          "media.ffmpeg.vaapi.enabled" = true;
-          "media.hardware-video-decoding.force-enabled" = true;
-          "media.rdd-ffmpeg.enabled" = true;
-          "widget.dmabuf.force-enabled" = true;
         };
 
         containersForce = true;
