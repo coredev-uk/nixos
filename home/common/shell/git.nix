@@ -42,7 +42,7 @@
         };
 
         core = {
-          editor = "hx";
+          editor = "nvim";
           whitespace = "fix,-indent-with-non-tab,trailing-space,cr-at-eol";
         };
 
