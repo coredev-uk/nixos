@@ -12,9 +12,9 @@
       enableZshIntegration = true;
       globalConfig = {
         env.PYTHON_CONFIGURE_OPTS = "--without-ensurepip";
-        env.MISE_DISABLE_TOOLS = "python";
+        env.MISE_DISABLE_TOOLS = "python,1password-cli";
         settings = {
-          all_compile = false;
+          all_compile = true;
           experimental = true;
         };
       };
@@ -61,8 +61,5 @@
     kubernetes-helm
     fluxcd
     talosctl
-
-    # env
-    devenv
   ];
 }
