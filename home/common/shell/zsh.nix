@@ -85,7 +85,7 @@
         vim = "nvim";
         k = "kubectl";
       }
-      // lib.optionalAttrs (!pkgs.stdenv.isDarwin) {
+      // lib.optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) {
         ip = "ip --color";
         ipb = "ip --color --brief";
         nix-rebuild = "nh os switch ${meta.flakePath}; nh home switch ${meta.flakePath}; sudo /run/current-system/bin/switch-to-configuration boot";

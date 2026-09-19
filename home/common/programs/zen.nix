@@ -449,7 +449,7 @@ in
     {
       enable = true;
 
-      languagePacks = lib.mkIf (!pkgs.stdenv.isDarwin) [
+      languagePacks = lib.mkIf (!pkgs.stdenv.hostPlatform.isDarwin) [
         "en-GB"
       ];
 
