@@ -5,5 +5,4 @@
 }:
 {
   beammp-launcher = pkgs.callPackage ./beammp-launcher.nix { };
-  proton-drive-cli = pkgs.callPackage ./proton-drive-cli.nix { };
 }

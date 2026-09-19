@@ -41,7 +41,6 @@ in
     loupe
     mpv
     nautilus
-    proton-drive-cli
     proton-vpn-cli
     papers
   ];
