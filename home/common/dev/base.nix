@@ -16,6 +16,7 @@
         settings = {
           all_compile = true;
           experimental = true;
+          node.compile = false;
         };
       };
     };
