@@ -39,6 +39,7 @@ in
           "sponsorBlocker@ajay.app" = "sponsorblock";
           # Cookies
           "jid1-KKzOGWgsW3Ao4Q@jetpack" = "i-dont-care-about-cookies";
+          "idcac-pub@guus.ninja" = "istilldontcareaboutcookies";
           # Proton
           "78272b6fa58f4a1abaac99321d503a20@proton.me" = "proton-pass";
           "vpn@proton.ch" = "proton-vpn";
@@ -50,6 +51,10 @@ in
           "uBlock0@raymondhill.net" = "ublock-origin";
           # 1Password
           "{d634138d-c276-4fc8-924b-40a0ea21d284}" = "1password-x-password-manager";
+          # CSFloat Market Cheker
+          "{194d0dc6-7ada-41c6-88b8-95d7636fe43c}" = "csgofloat";
+          # Firefox Multi-Accounts Containers
+          "@testpilot-containers" = "multi-account-containers";
         };
 
       # Containers
