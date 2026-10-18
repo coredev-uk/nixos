@@ -47,7 +47,6 @@ in
   };
 
   home.packages = with pkgs; [
-    # beammp-launcher
     heroic-unwrapped
     umu-launcher
     vulkan-tools
