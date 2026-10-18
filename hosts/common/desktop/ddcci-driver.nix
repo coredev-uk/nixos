@@ -8,7 +8,20 @@
 {
 
   config = lib.mkIf config.hardware.nvidia.enabled {
-    boot.extraModulePackages = with config.boot.kernelPackages; [ ddcci-driver ];
+    # ddcci-driver fails to build against kernel >= 7.2 (strncpy removed).
+    # Fixed upstream in nixpkgs-unstable but not yet backported to 26.05.
+    # TODO: Drop once https://github.com/NixOS/nixpkgs/pull/556080 lands in 26.05.
+    boot.extraModulePackages = [
+      (config.boot.kernelPackages.ddcci-driver.overrideAttrs (oldAttrs: {
+        patches = (oldAttrs.patches or [ ]) ++ [
+          (pkgs.fetchpatch {
+            name = "Use-sysfs_emit-and-field-width-specifier.patch";
+            url = "https://gitlab.com/liquidnya/ddcci-driver-linux/-/commit/9510aa4aebf32678884f55ae251e54012a354ed1.patch";
+            hash = "sha256-s12ers7nPFaHOB+8/S8t3dtdoR6slukkfNPdghgftNs=";
+          })
+        ];
+      }))
+    ];
     boot.kernelModules = [
       "i2c-dev"
       "ddcci_backlight"
