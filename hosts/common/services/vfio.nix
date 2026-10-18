@@ -773,17 +773,19 @@ in
       }
     );
 
-    environment.systemPackages = with pkgs; [
-      desktopIcon
-      looking-glass-client
-      qemu_kvm
-      startDesktopItem
-      startVfio
-      swtpm
-      virt-manager
-      virt-viewer
-    ]
-    ++ optional nativeBootEnabled startNativeBoot;
+    environment.systemPackages =
+      with pkgs;
+      [
+        desktopIcon
+        looking-glass-client
+        qemu_kvm
+        startDesktopItem
+        startVfio
+        swtpm
+        virt-manager
+        virt-viewer
+      ]
+      ++ optional nativeBootEnabled startNativeBoot;
 
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
