@@ -24,17 +24,47 @@ countries() {
 		}'
 }
 
+notify() {
+	notify-send --app-name=ProtonVPN --icon=network-vpn "$@"
+}
+
+# protonvpn prints "Connected to <SERVER> in <City, Country>. " and "Your new IP address is <IP>."
+connect() {
+	local output server location ip
+	output=$(protonvpn connect "$@" 2>&1) || true
+	server=$(sed -n 's/^Connected to \([^ ]*\) in .*$/\1/p' <<<"$output")
+	location=$(sed -n 's/^Connected to [^ ]* in \(.*\)\. *$/\1/p' <<<"$output")
+	ip=$(sed -n 's/^Your new IP address is \(.*\)\.$/\1/p' <<<"$output")
+
+	if [[ -n "$server" ]]; then
+		notify "VPN connected" "$(printf '%s (%s)\nIP: %s' "$location" "$server" "${ip:-unknown}")"
+	else
+		notify --urgency=critical "VPN connection failed" "$(grep -v '^[[:space:]]*$' <<<"$output" | tail -n1)"
+		return 1
+	fi
+}
+
+disconnect() {
+	local output
+	if output=$(protonvpn disconnect 2>&1); then
+		notify "VPN disconnected"
+	else
+		notify --urgency=critical "VPN disconnect failed" "$(grep -v '^[[:space:]]*$' <<<"$output" | tail -n1)"
+		return 1
+	fi
+}
+
 case "${1:-}" in
 --status) status ;;
 --countries) countries ;;
 --connect)
 	if [[ -n "${2:-}" ]]; then
-		protonvpn connect --country "$2"
+		connect --country "$2"
 	else
-		protonvpn connect
+		connect
 	fi
 	;;
---disconnect) protonvpn disconnect ;;
+--disconnect) disconnect ;;
 *)
 	echo "usage: quickshell-vpn --status|--countries|--connect [COUNTRY]|--disconnect" >&2
 	exit 1

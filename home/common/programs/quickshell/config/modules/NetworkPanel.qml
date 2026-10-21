@@ -1,5 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
+import QtQuick.Controls
 import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Networking
@@ -122,6 +123,7 @@ BarPopup {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 250
                 clip: true
+                ScrollBar.vertical: ListScrollBar {}
                 spacing: 2
                 model: ScriptModel {
                     values: (root.wifiDevice?.networks.values ?? []).filter(n => n.name !== "").sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength))
@@ -129,7 +131,7 @@ BarPopup {
                 delegate: ListRow {
                     required property WifiNetwork modelData
 
-                    width: ListView.view.width
+                    width: ListView.view.width - (ListView.view.ScrollBar.vertical.visible ? 10 : 0)
                     icon: modelData.security === WifiSecurityType.Open ? Icons.wifi : Icons.lock
                     label: modelData.name
                     sublabel: modelData.stateChanging ? "Connecting…" : `${Math.round(modelData.signalStrength * 100)}%`
@@ -166,12 +168,13 @@ BarPopup {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 250
                 clip: true
+                ScrollBar.vertical: ListScrollBar {}
                 spacing: 2
                 model: Vpn.countries
                 delegate: ListRow {
                     required property var modelData
 
-                    width: ListView.view.width
+                    width: ListView.view.width - (ListView.view.ScrollBar.vertical.visible ? 10 : 0)
                     emoji: true
                     icon: modelData.flag
                     label: modelData.name
@@ -215,6 +218,7 @@ BarPopup {
                 Layout.fillWidth: true
                 Layout.preferredHeight: 220
                 clip: true
+                ScrollBar.vertical: ListScrollBar {}
                 spacing: 2
                 model: ScriptModel {
                     values: (root.adapter?.devices.values ?? []).slice().sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || (a.name || a.address).localeCompare(b.name || b.address))
@@ -222,7 +226,7 @@ BarPopup {
                 delegate: ListRow {
                     required property BluetoothDevice modelData
 
-                    width: ListView.view.width
+                    width: ListView.view.width - (ListView.view.ScrollBar.vertical.visible ? 10 : 0)
                     icon: modelData.connected ? Icons.bluetoothConnected : Icons.bluetooth
                     label: modelData.name || modelData.address
                     sublabel: modelData.pairing ? "Pairing…" : modelData.connected ? "Connected" : modelData.paired ? "Paired" : "Available"

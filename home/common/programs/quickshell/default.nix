@@ -10,7 +10,9 @@ let
       coreutils
       gawk
       gnugrep
+      gnused
       iproute2
+      libnotify
       networkmanager
     ];
     text = builtins.readFile ./scripts/vpn.sh;
