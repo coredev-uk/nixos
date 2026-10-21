@@ -2,7 +2,7 @@
 
 {
   imports = [
-    ../../programs/eww
+    ../../programs/quickshell
     ../../programs/swaync.nix
     ../../programs/vicinae.nix
   ];

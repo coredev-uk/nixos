@@ -40,7 +40,6 @@
             "hyprland.start"
             (lua ''
               function()
-                hl.exec_cmd("eww open-many bar bar-second")
                 hl.exec_cmd(${builtins.toJSON ''hyprctl hyprpaper wallpaper ",$(${wallpaper}/bin/get-wallpaper), cover"''})
                 hl.exec_cmd("1password --silent")
               end
