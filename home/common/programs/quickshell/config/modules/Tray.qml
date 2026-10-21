@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
+import qs.common
 
 Row {
     spacing: 10
@@ -36,8 +37,8 @@ Row {
                 id: menu
                 menu: item.modelData.menu
                 anchor.item: item
-                anchor.edges: Edges.Top
-                anchor.gravity: Edges.Top
+                anchor.edges: Theme.popupEdges
+                anchor.gravity: Theme.popupEdges
             }
         }
     }

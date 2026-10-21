@@ -24,6 +24,13 @@ in
     systemd.enable = true;
   };
 
+  # The config is a store symlink and fonts are only read at startup, so a running
+  # instance never sees either change; restart it on switch instead.
+  systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
+    "${./config}"
+    "${theme.fonts.iconFont.package}"
+  ];
+
   home.packages = [
     # The bar's glyphs; installed here so it doesn't depend on the system font set.
     theme.fonts.iconFont.package

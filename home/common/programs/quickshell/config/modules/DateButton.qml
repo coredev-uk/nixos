@@ -5,7 +5,6 @@ import qs.widgets
 BarText {
     id: root
 
-    required property PanelWindow bar
     required property SystemClock clock
 
     text: Qt.formatDateTime(clock.date, "ddd dd MMM")
@@ -18,6 +17,5 @@ BarText {
     CalendarPanel {
         id: calendar
         anchorItem: root
-        bar: root.bar
     }
 }

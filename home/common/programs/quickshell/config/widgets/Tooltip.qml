@@ -1,24 +1,16 @@
 import QtQuick
-import Quickshell
 import qs.common
 
-// Hover tooltip rendered as a popup above `target`, since bar windows are too short to host one.
-PopupWindow {
+// Hover tooltip rendered as a popup, since bar windows are too short to host one.
+BarPopup {
     id: root
 
-    required property Item target
     property string text: ""
     property bool active: false
 
-    anchor.item: target
-    anchor.edges: Edges.Top
-    anchor.gravity: Edges.Top
-    visible: false
-    color: "transparent"
+    gap: 6
     implicitWidth: label.implicitWidth + 16
     implicitHeight: label.implicitHeight + 10 + gap
-
-    readonly property int gap: 6
 
     onActiveChanged: {
         if (active) {
@@ -37,7 +29,8 @@ PopupWindow {
 
     Rectangle {
         anchors.fill: parent
-        anchors.bottomMargin: root.gap
+        anchors.topMargin: root.topInset
+        anchors.bottomMargin: root.bottomInset
         radius: 6
         color: Theme.mantle
         border.color: Theme.surface0

@@ -1,13 +1,10 @@
 import QtQuick
-import Quickshell
 import qs.common
 import qs.services
 import qs.widgets
 
 Icon {
     id: root
-
-    required property PanelWindow bar
 
     color: Theme.green
     text: {
@@ -30,7 +27,7 @@ Icon {
     }
 
     Tooltip {
-        target: root
+        anchorItem: root
         active: area.containsMouse && !panel.visible
         text: NetworkStatus.type === "disconnected" ? "Disconnected" : `${NetworkStatus.name} (${NetworkStatus.ip})`
     }
@@ -38,6 +35,5 @@ Icon {
     NetworkPanel {
         id: panel
         anchorItem: root
-        bar: root.bar
     }
 }

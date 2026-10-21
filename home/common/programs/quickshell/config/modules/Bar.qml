@@ -14,7 +14,8 @@ PanelWindow {
     anchors {
         left: true
         right: true
-        bottom: true
+        top: Theme.barAtTop
+        bottom: !Theme.barAtTop
     }
     implicitHeight: Theme.barHeight
     color: Theme.crust
@@ -46,15 +47,12 @@ PanelWindow {
         Sep {}
         SystemStats {}
         Sep {}
-        NetworkButton {
-            bar: bar
-        }
+        NetworkButton {}
         Sep {}
         Brightness {}
         Volume {}
         Sep {}
         DateButton {
-            bar: bar
             clock: clock
         }
         BarText {

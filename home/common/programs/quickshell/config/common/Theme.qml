@@ -33,4 +33,7 @@ Singleton {
     readonly property int fontSize: 14
 
     readonly property int barHeight: 24
+    // Screen edge the bar sits on; popups and menus open away from it.
+    readonly property bool barAtTop: true
+    readonly property int popupEdges: barAtTop ? Edges.Bottom : Edges.Top
 }

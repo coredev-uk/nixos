@@ -1,25 +1,19 @@
 import QtQuick
 import QtQuick.Controls
 import QtQuick.Layouts
-import Quickshell
-import Quickshell.Hyprland
 import qs.common
 import qs.widgets
 
-PopupWindow {
+BarPopup {
     id: root
-
-    required property Item anchorItem
-    required property PanelWindow bar
 
     property int month: new Date().getMonth()
     property int year: new Date().getFullYear()
 
-    function toggle() {
+    onOpening: {
         const now = new Date();
         month = now.getMonth();
         year = now.getFullYear();
-        visible = !visible;
     }
 
     function shiftMonth(delta: int) {
@@ -28,19 +22,9 @@ PopupWindow {
         year = date.getFullYear();
     }
 
-    anchor.item: anchorItem
-    anchor.edges: Edges.Top
-    anchor.gravity: Edges.Top
-    visible: false
-    color: "transparent"
     implicitWidth: 350
-    implicitHeight: frame.implicitHeight + 8
-
-    HyprlandFocusGrab {
-        windows: [root, root.bar]
-        active: root.visible
-        onCleared: root.visible = false
-    }
+    implicitHeight: frame.implicitHeight + gap
+    dismissible: true
 
     component NavButton: Rectangle {
         id: button
@@ -71,9 +55,9 @@ PopupWindow {
 
     Rectangle {
         id: frame
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
+        anchors.fill: parent
+        anchors.topMargin: root.topInset
+        anchors.bottomMargin: root.bottomInset
         implicitHeight: content.implicitHeight + 32
         radius: 12
         color: Theme.mantle

@@ -37,7 +37,7 @@ Item {
     }
 
     Tooltip {
-        target: root
+        anchorItem: root
         active: area.containsMouse
         text: `${root.count} notification${root.count === 1 ? "" : "s"}`
     }

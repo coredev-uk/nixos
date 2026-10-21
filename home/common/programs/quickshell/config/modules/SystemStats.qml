@@ -17,7 +17,7 @@ Row {
         }
 
         Tooltip {
-            target: stat
+            anchorItem: stat
             text: stat.tooltip
             active: hover.hovered
         }

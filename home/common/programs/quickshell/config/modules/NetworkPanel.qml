@@ -2,17 +2,13 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Bluetooth
-import Quickshell.Hyprland
 import Quickshell.Networking
 import qs.common
 import qs.services
 import qs.widgets
 
-PopupWindow {
+BarPopup {
     id: root
-
-    required property Item anchorItem
-    required property PanelWindow bar
 
     enum View {
         Main,
@@ -25,38 +21,18 @@ PopupWindow {
     readonly property var wifiDevice: NetworkStatus.wifiDevice
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
 
-    function toggle() {
-        view = NetworkPanel.View.Main;
-        visible = !visible;
-    }
-
     function updateScanner() {
         if (wifiDevice)
             wifiDevice.scannerEnabled = visible && view === NetworkPanel.View.Wifi;
     }
 
+    onOpening: view = NetworkPanel.View.Main
     onVisibleChanged: updateScanner()
     onViewChanged: updateScanner()
-    // Hyprland drops a resized xdg_popup until it is repositioned.
-    onImplicitHeightChanged: {
-        if (visible)
-            Qt.callLater(root.anchor.updateAnchor);
-    }
 
-    anchor.item: anchorItem
-    anchor.edges: Edges.Top
-    anchor.gravity: Edges.Top
-    visible: false
-    color: "transparent"
     implicitWidth: 320
-    implicitHeight: frame.implicitHeight + 8
-
-    // Close when clicking anywhere except the panel or its bar.
-    HyprlandFocusGrab {
-        windows: [root, root.bar]
-        active: root.visible
-        onCleared: root.visible = false
-    }
+    implicitHeight: frame.implicitHeight + gap
+    dismissible: true
 
     Timer {
         id: btScanTimeout
@@ -69,9 +45,9 @@ PopupWindow {
 
     Rectangle {
         id: frame
-        anchors.left: parent.left
-        anchors.right: parent.right
-        anchors.top: parent.top
+        anchors.fill: parent
+        anchors.topMargin: root.topInset
+        anchors.bottomMargin: root.bottomInset
         implicitHeight: content.implicitHeight + 24
         radius: 12
         color: Theme.mantle
