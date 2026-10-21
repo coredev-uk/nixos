@@ -70,12 +70,13 @@ BarPopup {
             spacing: 4
 
             PanelRow {
+                // Hidden rather than greyed out when there is no usable WiFi hardware.
+                visible: NetworkStatus.hasWifi
                 icon: Networking.wifiEnabled ? Icons.wifi : Icons.wifiOff
                 iconColor: Theme.green
                 label: "WiFi"
-                sublabel: NetworkStatus.wifiNetwork?.name ?? (!NetworkStatus.hasWifi ? "No WiFi hardware" : Networking.wifiEnabled ? "Not connected" : "Off")
-                dimmed: !NetworkStatus.hasWifi
-                canOpen: NetworkStatus.hasWifi && Networking.wifiEnabled
+                sublabel: NetworkStatus.wifiNetwork?.name ?? (Networking.wifiEnabled ? "Not connected" : "Off")
+                canOpen: Networking.wifiEnabled
                 onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
                 onOpened: root.view = NetworkPanel.View.Wifi
             }
@@ -93,11 +94,11 @@ BarPopup {
             }
 
             PanelRow {
+                visible: root.adapter !== null
                 icon: root.adapter?.enabled ? Icons.bluetooth : Icons.bluetoothOff
                 iconColor: Theme.blue
                 label: "Bluetooth"
-                sublabel: root.adapter === null ? "No adapter" : root.adapter.enabled ? "On" : "Off"
-                dimmed: root.adapter === null
+                sublabel: root.adapter?.enabled ? "On" : "Off"
                 canOpen: root.adapter?.enabled ?? false
                 onToggled: {
                     if (root.adapter)

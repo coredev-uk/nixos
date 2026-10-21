@@ -10,7 +10,6 @@ Rectangle {
     property color iconColor: Theme.green
     property string label
     property string sublabel
-    property bool dimmed: false
     property bool canOpen: true
 
     signal toggled
@@ -19,8 +18,7 @@ Rectangle {
     Layout.fillWidth: true
     implicitHeight: row.implicitHeight + 20
     radius: 8
-    color: hover.hovered && !dimmed ? Theme.surface0 : "transparent"
-    opacity: dimmed ? 0.4 : 1
+    color: hover.hovered ? Theme.surface0 : "transparent"
 
     HoverHandler {
         id: hover
