@@ -13,11 +13,12 @@ in
     ./atuin.nix
     ./bat.nix
     ./btop.nix
-    ./claude-code.nix
+    ./omp.nix
     ./fastfetch.nix
     ./nh.nix
     ./starship.nix
     ./ssh.nix
+    ./zellij.nix
     ./zsh.nix
     ../programs/nixvim
   ]
