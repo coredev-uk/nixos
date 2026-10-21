@@ -50,9 +50,6 @@ PanelWindow {
         Sep {}
         NetworkButton {}
         Sep {}
-        Brightness {}
-        Volume {}
-        Sep {}
         DateButton {
             clock: clock
         }

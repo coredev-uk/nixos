@@ -93,6 +93,15 @@ BarPopup {
         ColumnLayout {
             spacing: 4
 
+            VolumeControl {
+                Layout.fillWidth: true
+            }
+
+            BrightnessControl {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 4
+            }
+
             PanelRow {
                 // Hidden rather than greyed out when there is no usable WiFi hardware.
                 visible: NetworkStatus.hasWifi
