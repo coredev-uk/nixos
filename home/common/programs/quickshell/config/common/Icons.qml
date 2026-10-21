@@ -10,6 +10,15 @@ Singleton {
     readonly property string cpu: String.fromCodePoint(0xF0EE0) // cpu_64_bit
     readonly property string memory: String.fromCodePoint(0xF035B) // memory
     readonly property string disk: String.fromCodePoint(0xF02CA) // harddisk
+    readonly property string gpu: String.fromCodePoint(0xF08AE) // expansion_card
+
+    readonly property string power: String.fromCodePoint(0xF0425) // power
+    readonly property string logout: String.fromCodePoint(0xF0343) // logout
+    readonly property string restart: String.fromCodePoint(0xF0709) // restart
+    readonly property string sleep: String.fromCodePoint(0xF04B2) // sleep
+    readonly property string coffee: String.fromCodePoint(0xF0176) // coffee
+    readonly property string coffeeOff: String.fromCodePoint(0xF06CA) // coffee_outline
+    readonly property string nightLight: String.fromCodePoint(0xF0594) // weather_night
 
     readonly property string battery: String.fromCodePoint(0xF0079) // battery
     readonly property string battery70: String.fromCodePoint(0xF0080) // battery_70

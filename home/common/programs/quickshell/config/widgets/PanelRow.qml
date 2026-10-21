@@ -56,8 +56,8 @@ Rectangle {
         MouseArea {
             Layout.fillWidth: true
             implicitHeight: content.implicitHeight
-            enabled: root.canOpen
-            onClicked: root.opened()
+            // Rows with nothing to open toggle on a click anywhere.
+            onClicked: root.canOpen ? root.opened() : root.toggled()
 
             RowLayout {
                 id: content

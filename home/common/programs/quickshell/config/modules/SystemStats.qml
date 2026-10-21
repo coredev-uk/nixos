@@ -45,6 +45,14 @@ Row {
     }
 
     Stat {
+        visible: Gpu.available
+        value: Gpu.usage
+        color: Theme.teal
+        icon: Icons.gpu
+        tooltip: `GPU ${Math.round(Gpu.usage)}% · ${Math.round(Gpu.temperature)}°C`
+    }
+
+    Stat {
         readonly property UPowerDevice battery: UPower.displayDevice
         readonly property bool charging: battery?.state === UPowerDeviceState.Charging
 

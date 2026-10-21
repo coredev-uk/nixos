@@ -107,6 +107,16 @@ BarPopup {
             }
 
             PanelRow {
+                icon: Icons.nightLight
+                iconColor: NightLight.active ? Theme.peach : Theme.overlay0
+                label: "Night light"
+                sublabel: NightLight.active ? "On (follows sunset)" : "Off"
+                canOpen: false
+                Component.onCompleted: NightLight.refresh()
+                onToggled: NightLight.toggle()
+            }
+
+            PanelRow {
                 // Hidden rather than greyed out when there is no usable WiFi hardware.
                 visible: NetworkStatus.hasWifi
                 icon: Networking.wifiEnabled ? Icons.wifi : Icons.wifiOff

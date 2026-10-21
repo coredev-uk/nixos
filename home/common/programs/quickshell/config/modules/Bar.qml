@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import Quickshell
 import Quickshell.Wayland
 import qs.common
+import qs.services
 import qs.widgets
 
 PanelWindow {
@@ -27,11 +28,29 @@ PanelWindow {
         precision: SystemClock.Minutes
     }
 
-    Workspaces {
-        screen: bar.screen
+    // Keeps hypridle from dimming/locking while Caffeine is on.
+    IdleInhibitor {
+        window: bar
+        enabled: Caffeine.enabled
+    }
+
+    RowLayout {
         anchors.left: parent.left
         anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter
+        spacing: 10
+
+        Workspaces {
+            screen: bar.screen
+        }
+        Sep {
+            visible: windowTitle.text !== ""
+        }
+        WindowTitle {
+            id: windowTitle
+            screen: bar.screen
+            Layout.maximumWidth: 400
+        }
     }
 
     Music {
@@ -48,6 +67,7 @@ PanelWindow {
         Sep {}
         SystemStats {}
         Sep {}
+        CaffeineButton {}
         NetworkButton {}
         Sep {}
         DateButton {
@@ -58,5 +78,7 @@ PanelWindow {
         }
         Sep {}
         Notifications {}
+        Sep {}
+        PowerButton {}
     }
 }
