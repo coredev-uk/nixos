@@ -9,12 +9,15 @@ import qs.widgets
 
 // Now-playing card: album art fills the background behind a scrim, with track text and controls on top.
 // Text colours follow the artwork: light art gets a light scrim and dark text, dark art the reverse,
-// and the accent is the most saturated artwork colour that stays legible.
+// and the accent is the most colourful artwork colour that stays legible.
+// Clicking anywhere but the controls focuses the player's window.
 ClippingRectangle {
     id: root
 
     readonly property MprisPlayer player: Media.player
     readonly property bool hasArt: art.status === Image.Ready && quantizer.colors.length > 0
+
+    signal playerFocused
 
     readonly property color artAverage: {
         const colors = quantizer.colors;
@@ -114,6 +117,16 @@ ClippingRectangle {
         anchors.fill: parent
         visible: root.hasArt
         color: root.scrim
+    }
+
+    // Below the overlay so the control buttons keep their own clicks.
+    MouseArea {
+        anchors.fill: parent
+        cursorShape: Qt.PointingHandCursor
+        onClicked: {
+            Media.focusPlayer();
+            root.playerFocused();
+        }
     }
 
     component MediaButton: Rectangle {

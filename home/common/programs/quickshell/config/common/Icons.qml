@@ -36,6 +36,8 @@ Singleton {
 
     readonly property string chevronLeft: String.fromCodePoint(0xF0141) // chevron_left
     readonly property string chevronRight: String.fromCodePoint(0xF0142) // chevron_right
+    readonly property string chevronUp: String.fromCodePoint(0xF0143) // chevron_up
+    readonly property string chevronDown: String.fromCodePoint(0xF0140) // chevron_down
 
     readonly property string bell: String.fromCodePoint(0xF009A) // bell
     readonly property string bellBadge: String.fromCodePoint(0xF116B) // bell_badge

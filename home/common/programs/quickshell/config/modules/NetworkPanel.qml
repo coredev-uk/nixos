@@ -24,6 +24,8 @@ BarPopup {
     // Secured network waiting for a password, and the last connection error.
     property WifiNetwork passwordNetwork: null
     property string wifiError: ""
+    // Per-app volume list under the volume slider; kept while the panel is reopened.
+    property bool mixerExpanded: false
 
     function updateScanner() {
         if (wifiDevice)
@@ -95,6 +97,8 @@ BarPopup {
 
             VolumeControl {
                 Layout.fillWidth: true
+                expanded: root.mixerExpanded
+                onExpandToggled: root.mixerExpanded = !root.mixerExpanded
             }
 
             BrightnessControl {
@@ -144,6 +148,7 @@ BarPopup {
                 Layout.fillWidth: true
                 Layout.topMargin: 4
                 visible: Media.active
+                onPlayerFocused: root.visible = false
             }
         }
     }
