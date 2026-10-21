@@ -53,8 +53,8 @@ rec {
       size = "11";
     };
     iconFont = {
-      name = "Font Awesome";
-      package = pkgs.font-awesome;
+      name = "Symbols Nerd Font";
+      package = pkgs.nerd-fonts.symbols-only;
     };
     monospace = {
       name = "Fira Code";
