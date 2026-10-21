@@ -21,15 +21,39 @@ BarPopup {
     property int view: NetworkPanel.View.Main
     readonly property var wifiDevice: NetworkStatus.wifiDevice
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
+    // Secured network waiting for a password, and the last connection error.
+    property WifiNetwork passwordNetwork: null
+    property string wifiError: ""
 
     function updateScanner() {
         if (wifiDevice)
             wifiDevice.scannerEnabled = visible && view === NetworkPanel.View.Wifi;
     }
 
+    function connectWifi(network: WifiNetwork) {
+        if (network.connected)
+            return;
+        wifiError = "";
+        if (!network.known && network.security !== WifiSecurityType.Open)
+            passwordNetwork = network;
+        else
+            network.connect();
+    }
+
+    function wifiFailed(network: WifiNetwork, reason: int) {
+        wifiError = `Couldn't connect to ${network.name}: ${ConnectionFailReason.toString(reason)}`;
+        // Missing or rejected secrets: ask for the password again.
+        if (network.security !== WifiSecurityType.Open && (reason === ConnectionFailReason.NoSecrets || reason === ConnectionFailReason.WifiClientFailed))
+            passwordNetwork = network;
+    }
+
     onOpening: view = NetworkPanel.View.Main
     onVisibleChanged: updateScanner()
-    onViewChanged: updateScanner()
+    onViewChanged: {
+        updateScanner();
+        passwordNetwork = null;
+        wifiError = "";
+    }
 
     implicitWidth: 320
     implicitHeight: frame.implicitHeight + gap
@@ -106,6 +130,12 @@ BarPopup {
                 }
                 onOpened: root.view = NetworkPanel.View.Bluetooth
             }
+
+            MediaCard {
+                Layout.fillWidth: true
+                Layout.topMargin: 4
+                visible: Media.active
+            }
         }
     }
 
@@ -130,18 +160,47 @@ BarPopup {
                     values: (root.wifiDevice?.networks.values ?? []).filter(n => n.name !== "").sort((a, b) => (b.connected - a.connected) || (b.signalStrength - a.signalStrength))
                 }
                 delegate: ListRow {
+                    id: wifiRow
+
                     required property WifiNetwork modelData
 
                     width: ListView.view.width - (ListView.view.ScrollBar.vertical.visible ? 10 : 0)
                     icon: modelData.security === WifiSecurityType.Open ? Icons.wifi : Icons.lock
                     label: modelData.name
                     sublabel: modelData.stateChanging ? "Connecting…" : `${Math.round(modelData.signalStrength * 100)}%`
-                    active: modelData.connected
-                    onClicked: {
-                        if (!modelData.connected)
-                            modelData.connect();
+                    active: modelData.connected || root.passwordNetwork === modelData
+                    onClicked: root.connectWifi(modelData)
+
+                    Connections {
+                        target: wifiRow.modelData
+                        function onConnectionFailed(reason) {
+                            root.wifiFailed(wifiRow.modelData, reason);
+                        }
                     }
                 }
+            }
+
+            BarText {
+                visible: root.wifiError !== ""
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                text: root.wifiError
+                color: Theme.red
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
+
+            PasswordField {
+                visible: root.passwordNetwork !== null
+                Layout.fillWidth: true
+                title: `Password for ${root.passwordNetwork?.name ?? ""}`
+                onSubmitted: password => {
+                    root.wifiError = "";
+                    root.passwordNetwork.connectWithPsk(password);
+                    root.passwordNetwork = null;
+                }
+                onCancelled: root.passwordNetwork = null
             }
         }
     }

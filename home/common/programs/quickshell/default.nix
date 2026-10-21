@@ -8,10 +8,12 @@ let
     name = "quickshell-vpn";
     runtimeInputs = with pkgs; [
       coreutils
+      curl
       gawk
       gnugrep
       gnused
       iproute2
+      jq
       libnotify
       networkmanager
     ];

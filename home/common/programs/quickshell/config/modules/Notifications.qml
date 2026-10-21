@@ -8,7 +8,8 @@ Item {
     id: root
 
     readonly property int count: NotificationCount.count
-    readonly property color tint: count > 0 ? Theme.peach : Theme.subtext0
+    readonly property bool dnd: NotificationCount.dnd
+    readonly property color tint: dnd ? Theme.overlay0 : count > 0 ? Theme.peach : Theme.subtext0
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
@@ -18,7 +19,7 @@ Item {
         spacing: 4
 
         Icon {
-            text: root.count > 0 ? Icons.bellBadge : Icons.bell
+            text: root.dnd ? Icons.bellOff : root.count > 0 ? Icons.bellBadge : Icons.bell
             color: root.tint
         }
 
@@ -33,12 +34,14 @@ Item {
         id: area
         anchors.fill: parent
         hoverEnabled: true
-        onClicked: Quickshell.execDetached(["swaync-client", "-t", "-sw"])
+        acceptedButtons: Qt.LeftButton | Qt.RightButton
+        // Left: open the notification center. Right: toggle Do Not Disturb.
+        onClicked: mouse => Quickshell.execDetached(mouse.button === Qt.RightButton ? ["swaync-client", "-d", "-sw"] : ["swaync-client", "-t", "-sw"])
     }
 
     Tooltip {
         anchorItem: root
         active: area.containsMouse
-        text: `${root.count} notification${root.count === 1 ? "" : "s"}`
+        text: `${root.count} notification${root.count === 1 ? "" : "s"}${root.dnd ? " · Do Not Disturb" : ""}`
     }
 }

@@ -50,4 +50,13 @@ PopupWindow {
         if (visible)
             Qt.callLater(root.anchor.updateAnchor);
     }
+
+    // Shortcut needs an Item to find its window.
+    Item {
+        Shortcut {
+            enabled: root.dismissible && root.visible
+            sequence: "Escape"
+            onActivated: root.visible = false
+        }
+    }
 }

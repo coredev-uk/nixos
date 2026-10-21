@@ -4,11 +4,12 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Notification count pushed by swaync.
+// Notification count and Do Not Disturb state pushed by swaync.
 Singleton {
     id: root
 
     property int count: 0
+    property bool dnd: false
 
     Process {
         id: subscription
@@ -17,7 +18,9 @@ Singleton {
         stdout: SplitParser {
             onRead: line => {
                 try {
-                    root.count = JSON.parse(line).count ?? 0;
+                    const state = JSON.parse(line);
+                    root.count = state.count ?? 0;
+                    root.dnd = state.dnd ?? false;
                 } catch (e) {}
             }
         }

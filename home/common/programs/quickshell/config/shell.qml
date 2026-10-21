@@ -1,6 +1,3 @@
-//@ pragma UseQApplication
-// (tray context menus are platform menus, which need a QApplication)
-
 import Quickshell
 import qs.modules
 

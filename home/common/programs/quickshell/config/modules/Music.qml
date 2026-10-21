@@ -1,30 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
-import Quickshell.Services.Mpris
 import Quickshell.Widgets
 import qs.common
+import qs.services
 import qs.widgets
 
+// Current track while playing; controls live in the network panel's media card.
 RowLayout {
     id: root
 
-    // Native music clients take priority, then browser players on a music site.
-    readonly property var nativeClients: ["cider", "spotify"]
-    readonly property var urlPatterns: ["music.apple.com", "open.spotify.com"]
-
-    function clientName(player: MprisPlayer): string {
-        return player.dbusName.replace("org.mpris.MediaPlayer2.", "").split(".")[0].toLowerCase();
-    }
-
-    readonly property MprisPlayer player: {
-        const players = Mpris.players.values;
-        for (const name of nativeClients) {
-            const native = players.find(p => clientName(p) === name && p.playbackState !== MprisPlaybackState.Stopped);
-            if (native)
-                return native;
-        }
-        return players.find(p => urlPatterns.some(pattern => String(p.metadata["xesam:url"] ?? "").includes(pattern))) ?? null;
-    }
+    readonly property var player: Media.player
 
     visible: player?.isPlaying ?? false
     spacing: 6
@@ -48,7 +33,7 @@ RowLayout {
 
     BarText {
         Layout.maximumWidth: 600
-        text: `${root.player?.trackTitle ?? ""} - ${root.player?.trackArtist ?? ""}`
+        text: [root.player?.trackTitle, root.player?.trackArtist].filter(part => part).join(" - ")
         elide: Text.ElideRight
     }
 }

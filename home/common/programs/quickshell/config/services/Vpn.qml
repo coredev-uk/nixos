@@ -9,6 +9,7 @@ Singleton {
     id: root
 
     property bool connected: false
+    property bool statusKnown: false
     property string ip: ""
     property string server: ""
     property var countries: []
@@ -54,7 +55,12 @@ Singleton {
             id: statusOut
             onStreamFinished: {
                 const [connected, ip, server] = statusOut.text.replace(/\n$/, "").split("\t");
-                root.connected = connected === "true";
+                const isConnected = connected === "true";
+                // Notify on every transition after startup, whoever changed the connection.
+                if (root.statusKnown && isConnected !== root.connected)
+                    Quickshell.execDetached(["quickshell-vpn", "--notify-state"]);
+                root.connected = isConnected;
+                root.statusKnown = true;
                 root.ip = ip ?? "";
                 root.server = server ?? "";
             }

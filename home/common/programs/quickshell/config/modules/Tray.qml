@@ -1,8 +1,6 @@
 import QtQuick
-import Quickshell
 import Quickshell.Services.SystemTray
 import Quickshell.Widgets
-import qs.common
 
 Row {
     spacing: 10
@@ -24,7 +22,7 @@ Row {
                 else if (mouse.button === Qt.MiddleButton)
                     modelData.secondaryActivate();
                 else if (modelData.hasMenu)
-                    menu.open();
+                    menu.toggle();
             }
 
             IconImage {
@@ -33,12 +31,10 @@ Row {
                 implicitSize: 15
             }
 
-            QsMenuAnchor {
+            TrayMenu {
                 id: menu
+                anchorItem: item
                 menu: item.modelData.menu
-                anchor.item: item
-                anchor.edges: Theme.popupEdges
-                anchor.gravity: Theme.popupEdges
             }
         }
     }

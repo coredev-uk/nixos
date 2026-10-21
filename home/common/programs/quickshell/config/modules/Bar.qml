@@ -28,6 +28,7 @@ PanelWindow {
     }
 
     Workspaces {
+        screen: bar.screen
         anchors.left: parent.left
         anchors.leftMargin: 10
         anchors.verticalCenter: parent.verticalCenter

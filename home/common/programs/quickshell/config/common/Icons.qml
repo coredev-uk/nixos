@@ -39,10 +39,23 @@ Singleton {
 
     readonly property string bell: String.fromCodePoint(0xF009A) // bell
     readonly property string bellBadge: String.fromCodePoint(0xF116B) // bell_badge
+    readonly property string bellOff: String.fromCodePoint(0xF009B) // bell_off
 
     readonly property string brightness: String.fromCodePoint(0xF00DF) // brightness_6
     readonly property string volumeHigh: String.fromCodePoint(0xF057E) // volume_high
     readonly property string volumeMedium: String.fromCodePoint(0xF0580) // volume_medium
     readonly property string volumeLow: String.fromCodePoint(0xF057F) // volume_low
     readonly property string volumeOff: String.fromCodePoint(0xF0581) // volume_off
+
+    readonly property string previous: String.fromCodePoint(0xF04AE) // skip_previous
+    readonly property string next: String.fromCodePoint(0xF04AD) // skip_next
+    readonly property string play: String.fromCodePoint(0xF040A) // play
+    readonly property string pause: String.fromCodePoint(0xF03E4) // pause
+
+    readonly property string check: String.fromCodePoint(0xF012C) // check
+    readonly property string close: String.fromCodePoint(0xF0156) // close
+    readonly property string checkboxOn: String.fromCodePoint(0xF0132) // checkbox_marked
+    readonly property string checkboxOff: String.fromCodePoint(0xF0131) // checkbox_blank_outline
+    readonly property string radioOn: String.fromCodePoint(0xF043E) // radiobox_marked
+    readonly property string radioOff: String.fromCodePoint(0xF043D) // radiobox_blank
 }

@@ -1,4 +1,4 @@
-# quickshell-vpn --status|--countries|--connect [COUNTRY]|--disconnect
+# quickshell-vpn --status|--countries|--connect [COUNTRY]|--disconnect|--notify-state
 # Output is tab separated so the shell never has to parse hand-built JSON.
 
 status() {
@@ -28,30 +28,42 @@ notify() {
 	notify-send --app-name=ProtonVPN --icon=network-vpn "$@"
 }
 
-# protonvpn prints "Connected to <SERVER> in <City, Country>. " and "Your new IP address is <IP>."
-connect() {
-	local output server location ip
-	output=$(protonvpn connect "$@" 2>&1) || true
-	server=$(sed -n 's/^Connected to \([^ ]*\) in .*$/\1/p' <<<"$output")
-	location=$(sed -n 's/^Connected to [^ ]* in \(.*\)\. *$/\1/p' <<<"$output")
-	ip=$(sed -n 's/^Your new IP address is \(.*\)\.$/\1/p' <<<"$output")
+last_line() {
+	grep -v '^[[:space:]]*$' <<<"$1" | tail -n1
+}
 
-	if [[ -n "$server" ]]; then
-		notify "VPN connected" "$(printf '%s (%s)\nIP: %s' "$location" "$server" "${ip:-unknown}")"
-	else
-		notify --urgency=critical "VPN connection failed" "$(grep -v '^[[:space:]]*$' <<<"$output" | tail -n1)"
+# Failures only: the bar calls --notify-state whenever the tunnel comes up or goes down,
+# which also covers connections made outside the bar.
+connect() {
+	local output
+	if ! output=$(protonvpn connect "$@" 2>&1) || ! grep -q '^Connected to ' <<<"$output"; then
+		notify --urgency=critical "VPN connection failed" "$(last_line "$output")"
 		return 1
 	fi
 }
 
 disconnect() {
 	local output
-	if output=$(protonvpn disconnect 2>&1); then
-		notify "VPN disconnected"
-	else
-		notify --urgency=critical "VPN disconnect failed" "$(grep -v '^[[:space:]]*$' <<<"$output" | tail -n1)"
+	if ! output=$(protonvpn disconnect 2>&1); then
+		notify --urgency=critical "VPN disconnect failed" "$(last_line "$output")"
 		return 1
 	fi
+}
+
+# Proton's location API reports the public IP as seen through the tunnel.
+notify_state() {
+	if ! ip link show proton0 &>/dev/null; then
+		notify "VPN disconnected"
+		return
+	fi
+
+	local server location ip
+	server=$(nmcli -t -f NAME connection show --active | grep -m1 '^ProtonVPN' || true)
+	server=${server#ProtonVPN }
+	# "Server: <SERVER> in <City, Country>"
+	location=$(protonvpn status 2>/dev/null | sed -n 's/^Server: [^ ]* in \(.*\)$/\1/p' || true)
+	ip=$(curl -fsS --max-time 5 --retry 2 https://vpn-api.proton.me/vpn/v1/location | jq -r '.IP // empty' || true)
+	notify "VPN connected" "$(printf '%s (%s)\nIP: %s' "${location:-Unknown location}" "${server:-unknown server}" "${ip:-unknown}")"
 }
 
 case "${1:-}" in
@@ -65,8 +77,9 @@ case "${1:-}" in
 	fi
 	;;
 --disconnect) disconnect ;;
+--notify-state) notify_state ;;
 *)
-	echo "usage: quickshell-vpn --status|--countries|--connect [COUNTRY]|--disconnect" >&2
+	echo "usage: quickshell-vpn --status|--countries|--connect [COUNTRY]|--disconnect|--notify-state" >&2
 	exit 1
 	;;
 esac
