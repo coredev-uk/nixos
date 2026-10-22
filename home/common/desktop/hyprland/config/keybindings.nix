@@ -5,7 +5,6 @@
   mod,
   pkgs,
   terminal,
-  wallpaper,
   lua,
   luaCall,
   ...
@@ -47,9 +46,8 @@ in
     (bind "${mod} + B" (exec browser))
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
-    (bind "${mod} + SHIFT + P" (
-      exec ''hyprctl hyprpaper wallpaper " , $(${wallpaper}/bin/get-wallpaper), cover"''
-    ))
+    # Fetch and apply a new Bing wallpaper (home/common/programs/hypr/paper.nix)
+    (bind "${mod} + SHIFT + P" (exec "systemctl --user start bing-wallpaper.service"))
     (bind "CTRL + SHIFT + Space" (exec "1password --quick-access"))
 
     # WM Controls

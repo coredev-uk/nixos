@@ -32,7 +32,6 @@
         terminal = "${pkgs.ghostty}/bin/ghostty";
         menu = "vicinae open";
         lock = "${pkgs.hyprlock}/bin/hyprlock";
-        wallpaper = pkgs.writeScriptBin "get-wallpaper" (builtins.readFile ../../scripts/wallpaper.sh);
         animations = import ./config/animations.nix { inherit luaCall; };
       in
       {
@@ -43,7 +42,6 @@
             "hyprland.start"
             (lua ''
               function()
-                hl.exec_cmd(${builtins.toJSON ''hyprctl hyprpaper wallpaper ",$(${wallpaper}/bin/get-wallpaper), cover"''})
                 hl.exec_cmd("1password --silent")
               end
             '')
@@ -135,7 +133,6 @@
                 mod
                 pkgs
                 terminal
-                wallpaper
                 lua
                 luaCall
                 ;
