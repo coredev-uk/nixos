@@ -144,6 +144,12 @@ _: {
       immediate = true;
     }
 
+    # Keep Discord fully opaque when unfocused (general:inactive_opacity), e.g. while screensharing
+    {
+      match.class = "^(discord)$";
+      opacity = "1.0 override 1.0 override";
+    }
+
     # xwaylandvideobridge
     {
       match.class = "^(xwaylandvideobridge)$";
