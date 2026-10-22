@@ -12,5 +12,7 @@
     };
   };
 
-  environment.systemPackages = if meta.isDesktop then [ pkgs.blueman ] else [ ];
+  # Module (not just the package): also registers blueman's D-Bus mechanism and polkit
+  # actions, which the applet/manager need for privileged actions.
+  services.blueman.enable = meta.isDesktop;
 }

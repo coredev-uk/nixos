@@ -16,6 +16,7 @@ in
     ./omp.nix
     ./fastfetch.nix
     ./nh.nix
+    ./nix-index.nix
     ./ssh.nix
     ./zellij.nix
     ./zsh.nix

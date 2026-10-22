@@ -35,6 +35,12 @@ in
     "${theme.fonts.iconFont.package}"
   ];
 
+  # Electron tray items (Discord, 1Password) expose IconPixmap but no IconName, so every
+  # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
+  systemd.user.services.quickshell.Service.Environment = [
+    "QT_LOGGING_RULES=quickshell.dbus.properties.warning=false"
+  ];
+
   home.packages = [
     # The bar's glyphs; installed here so it doesn't depend on the system font set.
     theme.fonts.iconFont.package

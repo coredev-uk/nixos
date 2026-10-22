@@ -41,6 +41,10 @@
   services = {
     # chrony.enable = true;
     journald.extraConfig = lib.mkDefault "SystemMaxUse=250M";
+
+    # Firmware updates from LVFS (NVMe, peripherals). UEFI capsule updates won't run under
+    # lanzaboote's Secure Boot keys unless fwupd's EFI binary is signed with them.
+    fwupd.enable = true;
   };
 
   security = {

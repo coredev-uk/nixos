@@ -28,6 +28,9 @@
 
     nix-homebrew.url = "github:zhaofengli/nix-homebrew";
 
+    nix-index-database.url = "github:nix-community/nix-index-database";
+    nix-index-database.inputs.nixpkgs.follows = "unstable";
+
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
     # Only used by nixcord's own tests/formatter/CI shell. `nixpkgs-packages` is

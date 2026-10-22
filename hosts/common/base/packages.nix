@@ -15,7 +15,6 @@
     ripgrep
     rsync
     sbctl
-    tpm2-tss
     tree
     unzip
     usbutils

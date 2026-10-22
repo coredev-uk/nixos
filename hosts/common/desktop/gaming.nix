@@ -49,9 +49,6 @@
     gamescope.enable = true;
   };
 
-  # For Epic Games Store in Lutris
-  hardware.graphics.enable32Bit = true;
-
   # Required for Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)
   systemd.settings.Manager = {
     DefaultLimitNOFILE = 524288;
