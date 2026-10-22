@@ -1,12 +1,7 @@
-{ pkgs, ... }:
-{
-  # Enable OpenRGB
+_: {
+  # Enable OpenRGB (the module adds its udev rules and loads i2c-dev)
   services.hardware.openrgb.enable = true;
 
-  # Enable I2C
-  services.udev.packages = [
-    pkgs.openrgb
-  ];
-  boot.kernelModules = [ "i2c-dev" ];
+  # /dev/i2c-* access for the i2c group
   hardware.i2c.enable = true;
 }

@@ -2,7 +2,6 @@
   self,
   inputs,
   outputs,
-  stateVersion,
   username,
   ...
 }:
@@ -12,7 +11,6 @@ let
       self
       inputs
       outputs
-      stateVersion
       username
       ;
   };

@@ -1,4 +1,4 @@
-{ pkgs, ... }: {
+_: {
 
   services.avahi = {
     enable = true;
@@ -6,11 +6,6 @@
     openFirewall = true;
   };
 
-  services.printing = {
-    enable = true;
-    drivers = with pkgs; [
-      cups-filters
-      cups-browsed
-    ];
-  };
+  # cups-filters is always in the CUPS bindir; cups-browsed runs because avahi is on.
+  services.printing.enable = true;
 }

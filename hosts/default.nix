@@ -40,7 +40,6 @@ in
       # Add overlays your own flake exports (from overlays and pkgs dir):
       outputs.overlays.additions
       outputs.overlays.modifications
-      outputs.overlays.unstable-packages
 
       # You can also add overlays exported from other flakes:
       # inputs.agenix.overlays.default
@@ -57,15 +56,10 @@ in
   };
 
   nix = lib.mkIf config.nix.enable {
-    # This will add each flake input as a registry
-    # To make nix3 commands consistent with your flake
-    registry = lib.mkForce (lib.mapAttrs (_: value: { flake = value; }) inputs);
-
-    # This will additionally add your inputs to the system's legacy channels
-    # Making legacy nix commands consistent as well, awesome!
-    nixPath = lib.mkForce (
-      lib.mapAttrsToList (key: value: "${key}=${value.to.path}") config.nix.registry
-    );
+    # Register every other flake input so nix3 commands (`nix run home-manager`, …)
+    # use the locked revisions. `nixpkgs` itself, and NIX_PATH's `nixpkgs=flake:nixpkgs`,
+    # come from the nixpkgs.flake.setFlakeRegistry/setNixPath defaults.
+    registry = lib.mapAttrs (_: flake: { inherit flake; }) (removeAttrs inputs [ "nixpkgs" ]);
 
     optimise.automatic = true;
     settings = {
@@ -74,14 +68,6 @@ in
         "nix-command"
         "flakes"
       ];
-      trusted-users = [
-        "root"
-        "@wheel"
-      ];
-
-      # Build performance
-      max-jobs = "auto";
-      cores = 0;
 
       # Binary caches
       inherit substituters;
@@ -93,13 +79,8 @@ in
   environment.etc."nix/nix.custom.conf" = lib.mkIf (!config.nix.enable) {
     text = ''
       warn-dirty = false
-      trusted-users = root ${meta.username}
       extra-substituters = ${lib.concatStringsSep " " substituters}
       extra-trusted-public-keys = ${lib.concatStringsSep " " trustedPublicKeys}
     '';
-  };
-
-  system = {
-    stateVersion = lib.mkDefault meta.stateVersion;
   };
 }

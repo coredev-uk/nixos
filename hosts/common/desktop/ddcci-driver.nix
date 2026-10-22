@@ -9,10 +9,7 @@
 
   config = lib.mkIf config.hardware.nvidia.enabled {
     boot.extraModulePackages = with config.boot.kernelPackages; [ ddcci-driver ];
-    boot.kernelModules = [
-      "i2c-dev"
-      "ddcci_backlight"
-    ];
+    boot.kernelModules = [ "ddcci_backlight" ];
 
     boot.extraModprobeConfig = ''
       options nvidia NVreg_RegistryDwords="RMUseSwI2c=0x01; RMI2cSpeed=100"

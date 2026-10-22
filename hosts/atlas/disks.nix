@@ -16,7 +16,9 @@ in
       # - A FAT32 ESP partition for systemd-boot
       # - A LUKS container which contains multiple btrfs subvolumes for NixOS
       system = {
-        device = "/dev/nvme1n1";
+        # Stable by-id path: nvme0n1/nvme1n1 enumeration order is not fixed, and
+        # the other NVMe (Force MP600) holds Windows.
+        device = "/dev/disk/by-id/nvme-WD_BLACK_SN770_2TB_22242N801392";
         type = "disk";
         content = {
           type = "gpt";

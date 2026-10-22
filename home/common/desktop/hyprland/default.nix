@@ -15,10 +15,13 @@
   wayland.windowManager.hyprland = {
     enable = true;
     configType = "lua";
-    xwayland.enable = true;
 
-    # Fix weird environment variable bs
-    systemd.variables = [ "--all" ];
+    # Hyprland, XWayland and the portal come from the NixOS module (hosts/common/desktop/hyprland.nix).
+    package = null;
+    portalPackage = null;
+
+    # uwsm owns the systemd session and environment export; HM's hyprland-session.target conflicts.
+    systemd.enable = false;
 
     settings =
       let

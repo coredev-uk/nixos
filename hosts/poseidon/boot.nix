@@ -6,7 +6,8 @@
 }:
 {
   system.primaryUser = meta.username;
-  system.stateVersion = lib.mkForce 6;
+  # nix-darwin release of the first install; never bump it with upgrades.
+  system.stateVersion = 6;
 
   users.users.${meta.username} = {
     name = meta.username;

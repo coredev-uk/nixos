@@ -22,8 +22,7 @@ in
     theme = theme.gtkTheme;
 
     font = {
-      inherit (theme.fonts.default) package;
-      name = "${theme.fonts.default.name}, ${theme.fonts.default.size}";
+      inherit (theme.fonts.default) package name size;
     };
 
     gtk2 = {

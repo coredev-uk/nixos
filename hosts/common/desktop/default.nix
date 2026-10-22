@@ -12,16 +12,16 @@ in
   imports = [
     ../hardware/yubikey.nix
     ../services/pipewire.nix
-    ./qt.nix
   ]
   ++ lib.optional meta.isDesktop ./${meta.desktop}.nix;
 
   # Enable Plymouth and suppress some logs by default.
   boot.plymouth.enable = true;
+  # Emitted as the `loglevel=` kernel param (and kernel.printk sysctl) by NixOS.
+  boot.consoleLogLevel = 3;
   boot.kernelParams = [
     # The 'splash' arg is included by the plymouth option
     "quiet"
-    "loglevel=3"
     "rd.udev.log_priority=3"
     "vt.global_cursor_default=0"
   ];

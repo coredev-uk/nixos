@@ -3,9 +3,6 @@ with lib;
 rec {
   # color-related functions
 
-  # convert rrggbb hex to #rrggbb
-  x = c: "#${c}";
-
   # convert #rrggbb -> r, g, b
   hexToRgb =
     c:

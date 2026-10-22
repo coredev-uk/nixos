@@ -1,5 +1,4 @@
 {
-  pkgs,
   meta,
   ...
 }:
@@ -9,7 +8,13 @@
     paul@coredev.uk ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINQpQFDxvGq+x6sHldr81kFtftS6KFEzbOtoRKKTXFR7
   '';
 
-  home.packages = with pkgs; [ gh ];
+  programs.gh = {
+    enable = true;
+    settings = {
+      git_protocol = "ssh";
+      aliases.co = "pr checkout";
+    };
+  };
 
   programs.git =
     let
@@ -17,18 +22,26 @@
         if meta.isDarwin then
           "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
         else
-          "${pkgs._1password-gui}/share/1password/op-ssh-sign";
+          # From the system programs._1password-gui (hosts/common/desktop/1password.nix)
+          "/run/current-system/sw/bin/op-ssh-sign";
     in
     {
       enable = true;
 
-      includes = [
-        {
-          condition = "hasconfig:remote.*.url:git@github.com:*/**";
-          contents.user.email = "core@coredev.uk";
-          contents.user.name = "Core";
-        }
-      ];
+      # hasconfig matches remote.*.url as written in .git/config (before
+      # url.*.insteadOf rewriting), so cover every GitHub URL form.
+      includes =
+        map
+          (url: {
+            condition = "hasconfig:remote.*.url:${url}";
+            contents.user.email = "core@coredev.uk";
+            contents.user.name = "Core";
+          })
+          [
+            "git@github.com:*/**"
+            "ssh://git@github.com/**"
+            "https://github.com/**"
+          ];
 
       settings = {
         user = {
@@ -37,7 +50,7 @@
           signingKey = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINQpQFDxvGq+x6sHldr81kFtftS6KFEzbOtoRKKTXFR7";
         };
 
-        aliases = {
+        alias = {
           lg = "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit";
         };
 

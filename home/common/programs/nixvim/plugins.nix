@@ -1,4 +1,3 @@
-{ pkgs, ... }:
 {
   programs.nixvim = {
     plugins = {
@@ -58,12 +57,6 @@
                   key = "c";
                   desc = "Config";
                   action.__raw = "function() Snacks.picker.files({ cwd = vim.fn.stdpath('config') }) end";
-                }
-                {
-                  icon = "󰒲 ";
-                  key = "u";
-                  desc = "Check Updates";
-                  action = ":Lazy check";
                 }
                 {
                   icon = " ";
@@ -163,10 +156,5 @@
         };
       };
     };
-
-    # Extra plugins not managed by nixvim modules
-    extraPlugins = with pkgs.vimPlugins; [
-      yuck-vim
-    ];
   };
 }

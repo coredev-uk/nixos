@@ -18,8 +18,6 @@ in
     app
   ];
 
-  catppuccin.firefox.enable = true;
-
   programs.zen-browser =
     let
       # Browser Extensions
@@ -491,7 +489,7 @@ in
 
         containersForce = true;
         spacesForce = true;
-        pinsForce = true;
+        pinsForce = false;
         inherit containers spaces pins;
       };
     };

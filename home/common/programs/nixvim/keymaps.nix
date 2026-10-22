@@ -265,7 +265,7 @@
         action.__raw = ''
           function()
             if vim.wo.diff then return "]c" end
-            vim.schedule(function() require("gitsigns").next_hunk() end)
+            vim.schedule(function() require("gitsigns").nav_hunk("next") end)
             return "<Ignore>"
           end
         '';
@@ -279,7 +279,7 @@
         action.__raw = ''
           function()
             if vim.wo.diff then return "[c" end
-            vim.schedule(function() require("gitsigns").prev_hunk() end)
+            vim.schedule(function() require("gitsigns").nav_hunk("prev") end)
             return "<Ignore>"
           end
         '';
@@ -318,8 +318,9 @@
         key = "<leader>hu";
         mode = "n";
         options.silent = true;
-        action.__raw = "function() require('gitsigns').undo_stage_hunk() end";
-        options.desc = "Undo stage hunk";
+        # stage_hunk() on a staged hunk unstages it (undo_stage_hunk is deprecated)
+        action.__raw = "function() require('gitsigns').stage_hunk() end";
+        options.desc = "Unstage hunk";
       }
       {
         key = "<leader>hS";

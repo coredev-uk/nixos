@@ -1,7 +1,7 @@
 { pkgs, ... }:
 {
   # oh-my-pi coding agent (https://omp.sh)
-  home.packages = [ pkgs.unstable.omp ];
+  home.packages = [ pkgs.omp ];
 
   home.file.".omp/agent/config.yml" = {
     force = true;

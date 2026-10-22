@@ -16,8 +16,10 @@
 
     nix-citizen.url = "github:LovingMelody/nix-citizen";
     nix-citizen.inputs.nixpkgs.follows = "unstable";
+    nix-citizen.inputs.treefmt-nix.follows = "treefmt-nix";
 
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
+    nixos-hardware.inputs.nixpkgs.follows = "nixpkgs";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
@@ -28,6 +30,12 @@
 
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
+    # Only used by nixcord's own tests/formatter/CI shell. `nixpkgs-packages` is
+    # left pinned on purpose: its packages assert an exact Node.js version.
+    nixcord.inputs.home-manager.follows = "home-manager";
+    nixcord.inputs.nix-darwin.follows = "nix-darwin";
+    nixcord.inputs.treefmt-nix.follows = "treefmt-nix";
+    nixcord.inputs.nixpkgs-ci.follows = "unstable";
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "unstable";
@@ -59,7 +67,6 @@
     let
       inherit (self) outputs;
       username = "paul";
-      stateVersion = "26.05";
 
       libx = import ./lib {
         inherit
@@ -67,16 +74,17 @@
           inputs
           outputs
           username
-          stateVersion
           ;
       };
     in
     {
       # Home Manager configurations
+      # stateVersion = HM release of the first activation; never bump it on upgrades.
       homeConfigurations = {
         "${username}@atlas" = libx.mkHome {
           hostname = "atlas";
           desktop = "hyprland";
+          stateVersion = "26.05";
         };
       };
 
@@ -92,6 +100,7 @@
       darwinConfigurations = {
         poseidon = libx.mkDarwin {
           hostname = "poseidon";
+          homeStateVersion = "26.05";
         };
       };
 
@@ -108,7 +117,7 @@
       overlays = import ./overlays { inherit inputs; };
 
       # Devshell for bootstrapping
-      # Accessible via 'nix develop' or 'nix-shell' (legacy)
+      # Accessible via 'nix develop'
       devShells = libx.forAllSystems (
         system:
         let

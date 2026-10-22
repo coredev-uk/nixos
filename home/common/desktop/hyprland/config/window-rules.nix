@@ -18,7 +18,7 @@ _: {
 
     # Miscellaneous
     {
-      match.class = "^(polkit-gnome-authentication-agent-1)$";
+      match.class = "^(hyprpolkitagent)$";
       center = true;
     }
     {

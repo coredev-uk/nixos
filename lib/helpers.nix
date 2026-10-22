@@ -2,7 +2,6 @@
   self,
   inputs,
   outputs,
-  stateVersion,
   username,
   ...
 }:
@@ -29,7 +28,6 @@ let
         inherit
           hostname
           desktop
-          stateVersion
           flakePath
           system
           ;
@@ -41,15 +39,17 @@ let
       };
     };
 
+  # home.stateVersion is pinned per home configuration (in flake.nix) and must
+  # never be bumped on upgrades; see the Home Manager manual.
   mkHomeManager =
-    { flakeInputs, flakeStateVersion }:
+    { flakeInputs, stateVersion }:
     {
       imports = [
         flakeInputs.catppuccin.homeModules.catppuccin
         flakeInputs.nixvim.homeModules.nixvim
         ../home # This path is relative to where this function is defined and used
       ];
-      home.stateVersion = flakeStateVersion;
+      home.stateVersion = stateVersion;
     };
 in
 {
@@ -63,6 +63,7 @@ in
       pkgs ? inputs.unstable,
       system ? "x86_64-linux",
       flakePath ? "/home/${user}/.dotfiles",
+      stateVersion,
     }:
     inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = pkgs.legacyPackages.${system};
@@ -79,7 +80,7 @@ in
       modules = [
         (mkHomeManager {
           flakeInputs = inputs;
-          flakeStateVersion = stateVersion;
+          inherit stateVersion;
         })
       ];
     };
@@ -120,15 +121,13 @@ in
       system ? "aarch64-darwin",
       desktop ? null,
       type ? "darwin",
-      pkgs ? inputs.unstable,
       flakePath ? "/Users/${user}/.dotfiles",
+      homeStateVersion,
     }:
+    # No `system`/`pkgs` args: a passed `pkgs` is mkForce'd over the nixpkgs module,
+    # discarding nixpkgs.overlays/config. hosts/<host>/hardware.nix sets
+    # nixpkgs.hostPlatform, and nix-darwin's nixpkgs input follows `unstable`.
     inputs.nix-darwin.lib.darwinSystem {
-      inherit system;
-      pkgs = import pkgs {
-        inherit system;
-        config.allowUnfree = true;
-      };
       specialArgs = mkSpecialArgs {
         inherit
           hostname
@@ -149,7 +148,7 @@ in
             useUserPackages = true;
             users."${user}" = mkHomeManager {
               flakeInputs = inputs;
-              flakeStateVersion = stateVersion;
+              stateVersion = homeStateVersion;
             };
             backupFileExtension = "backup";
             extraSpecialArgs = mkSpecialArgs {
@@ -168,10 +167,7 @@ in
     };
 
   forAllSystems = inputs.nixpkgs.lib.genAttrs [
-    "aarch64-linux"
-    "i686-linux"
     "x86_64-linux"
     "aarch64-darwin"
-    "x86_64-darwin"
   ];
 }

@@ -24,9 +24,10 @@ let
   userUid = toString config.users.users.${cfg.user}.uid;
   desktopItemName = "start-${cfg.vmName}-vfio";
   nativeBootEnabled = cfg.desktopItem.nativeBootEfiEntry != null;
+  vfioStartUnitName = "${cfg.vmName}-vfio-start";
   nativeBootUnitName = "${cfg.vmName}-native-boot";
   allowedStartUnits = [
-    "${cfg.vmName}-vfio-start.service"
+    "${vfioStartUnitName}.service"
   ]
   ++ optional nativeBootEnabled "${nativeBootUnitName}.service";
   deviceAddresses = map (device: device.pciAddress) cfg.pciDevices;
@@ -45,10 +46,10 @@ let
       install -Dm0644 "$src" "$out/share/icons/hicolor/256x256/apps/${cfg.desktopItem.icon}.png"
     '';
   };
+  # AMD-Vi is enabled by default; amd_iommu= takes no "on" value.
   iommuKernelParams = [
     "iommu=pt"
   ]
-  ++ optionals (cfg.iommu.cpuVendor == "amd") [ "amd_iommu=on" ]
   ++ optionals (cfg.iommu.cpuVendor == "intel") [ "intel_iommu=on" ];
 
   restoreDriverCases = concatMapStringsSep "\n" (
@@ -101,21 +102,6 @@ let
       ${pkgs.systemd}/bin/systemctl stop "''${STOP_SERVICES[@]}" 2>/dev/null || true
     fi
 
-    ${optionalString cfg.killUserSession ''
-      ${pkgs.systemd}/bin/loginctl terminate-user ${escapeShellArg cfg.user} || true
-      ${pkgs.systemd}/bin/systemctl stop --no-block ${escapeShellArg "user@${userUid}.service"} 2>/dev/null || true
-      ${pkgs.systemd}/bin/loginctl kill-user ${escapeShellArg cfg.user} --signal=KILL || true
-      ${pkgs.systemd}/bin/systemctl kill ${escapeShellArg "user@${userUid}.service"} --kill-whom=all --signal=KILL 2>/dev/null || true
-
-      for _ in $(${pkgs.coreutils}/bin/seq 1 ${userProcessesWaitSeconds}); do
-        if ! ${pkgs.procps}/bin/pgrep -u ${escapeShellArg cfg.user} >/dev/null; then
-          break
-        fi
-
-        ${pkgs.coreutils}/bin/sleep 1
-      done
-    ''}
-
     ${pkgs.coreutils}/bin/sleep ${toString cfg.preStartDelaySeconds}
     ${pkgs.libvirt}/bin/virsh -c ${escapeShellArg cfg.libvirtUri} start ${escapeShellArg cfg.vmName}
   '';
@@ -123,15 +109,13 @@ let
   startVfio = pkgs.writeShellScriptBin desktopItemName ''
     set -euo pipefail
 
-    SYSTEMD_RUN="${pkgs.systemd}/bin/systemd-run"
     VIRSH="${pkgs.libvirt}/bin/virsh"
 
     if [ "$($VIRSH -c ${escapeShellArg cfg.libvirtUri} domstate ${escapeShellArg cfg.vmName} 2>/dev/null || true)" = "running" ]; then
       exit 0
     fi
 
-    "$SYSTEMD_RUN" --system --collect --unit=${escapeShellArg "${cfg.vmName}-vfio-start"} \
-      ${launchVfio}
+    ${pkgs.systemd}/bin/systemctl start ${escapeShellArg "${vfioStartUnitName}.service"}
   '';
 
   nativeBootScript =
@@ -159,15 +143,14 @@ let
     else
       null;
 
-  # Started the same way the VM is: via systemd-run against a unit name
+  # Started the same way the VM is: `systemctl start` on a static unit
   # authorized in security.polkit.extraConfig below, so no password prompt
   # is needed (a pkexec/polkit-agent GUI prompt proved unreliable here).
   startNativeBoot =
     if nativeBootEnabled then
       pkgs.writeShellScriptBin nativeBootUnitName ''
         set -euo pipefail
-        "${pkgs.systemd}/bin/systemd-run" --system --collect --unit=${escapeShellArg nativeBootUnitName} \
-          ${nativeBootScript}
+        ${pkgs.systemd}/bin/systemctl start ${escapeShellArg "${nativeBootUnitName}.service"}
       ''
     else
       null;
@@ -621,7 +604,7 @@ in
     preStartDelaySeconds = mkOption {
       type = types.ints.unsigned;
       default = 2;
-      description = "Delay after stopping host graphics and before starting the VM.";
+      description = "Delay after stopping the configured stopServices and before starting the VM.";
     };
 
     recoveryTimeoutSeconds = mkOption {
@@ -778,14 +761,40 @@ in
       [
         desktopIcon
         looking-glass-client
-        qemu_kvm
         startDesktopItem
         startVfio
         swtpm
-        virt-manager
         virt-viewer
       ]
       ++ optional nativeBootEnabled startNativeBoot;
+
+    # Static units, so the command run as root is fixed here. The polkit rule
+    # below must never match a transient unit: StartTransientUnit is checked
+    # against the same manage-units action/unit/verb details, with the caller
+    # supplying ExecStart. Settings mirror the former
+    # `systemd-run --system --collect` invocation (Type=simple, collected).
+    systemd.services = {
+      ${vfioStartUnitName} = {
+        description = "Start ${cfg.vmName} with single-GPU passthrough";
+        restartIfChanged = false;
+        unitConfig.CollectMode = "inactive-or-failed";
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = launchVfio;
+        };
+      };
+    }
+    // lib.optionalAttrs nativeBootEnabled {
+      ${nativeBootUnitName} = {
+        description = "Reboot into EFI entry ${cfg.desktopItem.nativeBootEfiEntry}";
+        restartIfChanged = false;
+        unitConfig.CollectMode = "inactive-or-failed";
+        serviceConfig = {
+          Type = "simple";
+          ExecStart = nativeBootScript;
+        };
+      };
+    };
 
     security.polkit.extraConfig = ''
       polkit.addRule(function(action, subject) {
@@ -793,6 +802,7 @@ in
 
         if (action.id == "org.freedesktop.systemd1.manage-units" &&
             subject.user == ${builtins.toJSON cfg.user} &&
+            subject.local && subject.active &&
             action.lookup("verb") == "start" &&
             allowedUnits.indexOf(action.lookup("unit")) !== -1) {
           return polkit.Result.YES;
@@ -800,15 +810,11 @@ in
       });
     '';
 
-    system.activationScripts.libvirtImagesNoCow.text = ''
-      imagesDir=/var/lib/libvirt/images
-      ${pkgs.coreutils}/bin/mkdir -p "$imagesDir"
-
-      # Btrfs NOCOW must be set before VM image files are created.
-      if [ -z "$(${pkgs.coreutils}/bin/ls -A "$imagesDir")" ]; then
-        ${pkgs.e2fsprogs}/bin/chattr +C "$imagesDir" 2>/dev/null || true
-      fi
-    '';
+    # Btrfs NOCOW: new image files inherit +C from the directory.
+    systemd.tmpfiles.rules = [
+      "d /var/lib/libvirt/images 0755 root root -"
+      "h /var/lib/libvirt/images - - - - +C"
+    ];
 
     programs.virt-manager.enable = true;
 

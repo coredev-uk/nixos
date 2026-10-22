@@ -50,11 +50,11 @@ in
     (bind "${mod} + SHIFT + P" (
       exec ''hyprctl hyprpaper wallpaper " , $(${wallpaper}/bin/get-wallpaper), cover"''
     ))
-    (bind "CTRL + SHIFT + Space" (exec "${pkgs._1password-gui}/bin/1password --quick-access"))
+    (bind "CTRL + SHIFT + Space" (exec "1password --quick-access"))
 
     # WM Controls
     (bind "${mod} + R" (exec "hyprctl reload"))
-    (bind "${mod} + SHIFT + Q" (exec "${pkgs.uwsm}/bin/uwsm stop"))
+    (bind "${mod} + SHIFT + Q" (exec "uwsm stop"))
 
     # Window Management
     (bind "${mod} + Q" "hl.dsp.window.close()")

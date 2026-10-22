@@ -5,7 +5,6 @@
     ./lsp.nix
     ./formatting.nix
     ./completion.nix
-    ./navigation.nix
     ./git.nix
     ./keymaps.nix
     ./plugins.nix

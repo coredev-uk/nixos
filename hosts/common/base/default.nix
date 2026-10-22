@@ -25,6 +25,17 @@
 
   programs = {
     zsh.enable = true;
+
+    # Weekly `nh clean all`: system and every user's profiles (incl. standalone
+    # home-manager), then store GC.
+    nh = {
+      enable = true;
+      flake = meta.flakePath;
+      clean = {
+        enable = true;
+        extraArgs = "--keep 5 --keep-since 7d";
+      };
+    };
   };
 
   services = {

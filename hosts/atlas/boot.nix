@@ -24,17 +24,22 @@ in
     ../common/users/${meta.username}
   ];
 
+  # First-install release of this host. Never bump it with NixOS upgrades:
+  # it gates stateful migrations, see `man configuration.nix` (system.stateVersion).
+  system.stateVersion = "26.05";
+
   environment.systemPackages = with pkgs; [
     efibootmgr
   ];
 
   boot = {
-    # Secure boot configuration
-    bootspec.enable = true;
+    # Secure boot configuration (lanzaboote enables boot.bootspec itself)
     loader.systemd-boot.enable = lib.mkForce false;
     lanzaboote = {
       enable = true;
       pkiBundle = "/var/lib/sbctl";
+      # Bound the generations installed on the 1 GiB ESP (default: unlimited).
+      configurationLimit = 10;
     };
 
     initrd = {
@@ -84,7 +89,7 @@ in
 
     extraModprobeConfig = ''
       # PAT Support
-      options nvidia NVreg_UsePageAttributeTable=1 NVreg_PreserveVideoMemoryAllocations=1
+      options nvidia NVreg_UsePageAttributeTable=1
     '';
 
     # Use the Xanmod Kernel for gaming-related optimisations.

@@ -47,7 +47,7 @@ in
   };
 
   home.packages = with pkgs; [
-    heroic-unwrapped
+    heroic
     umu-launcher
     vulkan-tools
     wineWow64Packages.staging

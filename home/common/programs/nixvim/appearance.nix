@@ -1,10 +1,10 @@
+{ config, ... }:
 {
   programs.nixvim = {
-    # Catppuccin Mocha theme
     colorschemes.catppuccin = {
       enable = true;
       settings = {
-        flavour = "mocha";
+        flavour = config.catppuccin.flavor;
         integrations = {
           blink_cmp = true;
           gitsigns = true;

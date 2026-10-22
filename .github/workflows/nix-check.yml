@@ -25,7 +25,6 @@ jobs:
           nix build --no-link \
             .#nixosConfigurations.atlas.config.system.build.toplevel \
             .#homeConfigurations."paul@atlas".activationPackage \
-            .#packages.x86_64-linux.beammp-launcher \
             .#devShells.x86_64-linux.default \
             .#formatter.x86_64-linux
           nix eval .#overlays --apply "builtins.mapAttrs (n: v: builtins.functionArgs v)"
