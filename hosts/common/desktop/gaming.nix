@@ -3,6 +3,9 @@
   inputs,
   ...
 }:
+let
+  nix-citizen = inputs.nix-citizen.packages.${pkgs.stdenv.hostPlatform.system};
+in
 {
   imports = [
     inputs.nix-citizen.nixosModules.default
@@ -13,6 +16,14 @@
     rsi-launcher = {
       enable = true;
       location = "$HOME/games/star-citizen";
+      # The default overlay rebuilds wine-astral, dxvk and a mingw cross GCC against our
+      # nixpkgs (hours, uncached). nix-citizen's own packages, built against its pinned
+      # nixpkgs, are prebuilt in nix-citizen.cachix.org. Set explicitly: the module's
+      # no-overlay fallback indexes `self.packages` by the platform set, not its system
+      # string, and fails to evaluate.
+      includeOverlay = false;
+      package = nix-citizen.rsi-launcher;
+      wine = nix-citizen.wine-astral;
     };
 
     # Enable Steam

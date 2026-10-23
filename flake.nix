@@ -15,7 +15,9 @@
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
     nix-citizen.url = "github:LovingMelody/nix-citizen";
-    nix-citizen.inputs.nixpkgs.follows = "unstable";
+    # No nixpkgs follows on purpose: wine-astral, dxvk and the mingw cross toolchain are
+    # only in nix-citizen.cachix.org when built against nix-citizen's own nixpkgs pin.
+    # Following ours rebuilt them from source on every CI run and switch.
     nix-citizen.inputs.treefmt-nix.follows = "treefmt-nix";
 
     nixos-hardware.url = "github:nixos/nixos-hardware/master";
