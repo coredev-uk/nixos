@@ -19,6 +19,18 @@ let
     ];
     text = builtins.readFile ./scripts/vpn.sh;
   };
+
+  # Peripheral batteries for the panel (services/Batteries.qml). headsetcontrol is not a
+  # runtime input: it comes from the host's PATH where installed (hosts/atlas/extra.nix),
+  # together with its udev rules.
+  quickshellBatteries = pkgs.writeShellApplication {
+    name = "quickshell-batteries";
+    runtimeInputs = with pkgs; [
+      jq
+      systemd # busctl, for the OpenRazer daemon
+    ];
+    text = builtins.readFile ./scripts/batteries.sh;
+  };
 in
 {
   programs.quickshell = {
@@ -46,5 +58,6 @@ in
     theme.fonts.iconFont.package
     pkgs.iproute2
     quickshellVpn
+    quickshellBatteries
   ];
 }

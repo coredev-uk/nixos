@@ -154,6 +154,12 @@ BarPopup {
                 onOpened: root.view = NetworkPanel.View.Bluetooth
             }
 
+            DeviceBatteries {
+                Layout.fillWidth: true
+                Layout.topMargin: 4
+                shown: root.visible
+            }
+
             MediaCard {
                 Layout.fillWidth: true
                 Layout.topMargin: 4

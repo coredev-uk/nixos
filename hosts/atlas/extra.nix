@@ -1,8 +1,23 @@
 {
   self,
-  pkgs,
+  lib,
+  unstable,
   ...
 }:
+let
+  # Audeze Maxwell 2 (3329:4b29) support starts in 4.0.0; 4.2.0 replaces the Maxwell
+  # protocol (Sapd/HeadsetControl#591, tested on the Maxwell 2) and drops the init packet
+  # that skewed the audio balance after battery reads (#577). nixpkgs is at 4.1.0.
+  headsetcontrol = unstable.headsetcontrol.overrideAttrs (_: rec {
+    version = "4.2.0";
+    src = unstable.fetchFromGitHub {
+      owner = "Sapd";
+      repo = "HeadsetControl";
+      rev = version;
+      hash = "sha256-QwgH6w2CFRbH22Dc+MOdbtNZENbjf70XLhQ7D4DnhQc=";
+    };
+  });
+in
 {
   imports = [
     "${self}/hosts/common/services/networkmanager.nix"
@@ -17,9 +32,15 @@
     "${self}/hosts/common/base/nix-ld.nix"
   ];
 
-  environment.systemPackages = [
-    pkgs.headsetcontrol
-  ];
+  warnings = lib.optional (lib.versionAtLeast unstable.headsetcontrol.version "4.2.0") ''
+    hosts/atlas/extra.nix: nixpkgs' headsetcontrol (${unstable.headsetcontrol.version}) has
+    caught up with the 4.2.0 override; use unstable.headsetcontrol directly.
+  '';
+
+  # Battery readout for the quickshell panel (quickshell-batteries); the udev rules give
+  # the logged-in user access to the headset's hidraw node.
+  environment.systemPackages = [ headsetcontrol ];
+  services.udev.packages = [ headsetcontrol ];
 
   services.vfioSingleGpu = {
     enable = true;

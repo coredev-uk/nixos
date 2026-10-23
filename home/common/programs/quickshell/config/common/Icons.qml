@@ -26,6 +26,10 @@ Singleton {
     readonly property string battery20: String.fromCodePoint(0xF007B) // battery_20
     readonly property string batteryCharging: String.fromCodePoint(0xF0084) // battery_charging
 
+    readonly property string headphones: String.fromCodePoint(0xF02CB) // headphones
+    readonly property string mouse: String.fromCodePoint(0xF037D) // mouse
+    readonly property string keyboard: String.fromCodePoint(0xF030C) // keyboard
+
     readonly property string wifi: String.fromCodePoint(0xF05A9) // wifi
     readonly property string wifiOff: String.fromCodePoint(0xF05AA) // wifi_off
     readonly property string wifiStrength0: String.fromCodePoint(0xF092F) // wifi_strength_outline
