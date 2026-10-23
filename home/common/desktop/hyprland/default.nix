@@ -2,8 +2,12 @@
   lib,
   pkgs,
   meta,
+  self,
   ...
 }:
+let
+  theme = import "${self}/lib/theme" { inherit pkgs; };
+in
 {
   imports = [
     ../default/wayland.nix
@@ -33,6 +37,10 @@
         menu = "vicinae open";
         lock = "${pkgs.hyprlock}/bin/hyprlock";
         animations = import ./config/animations.nix { inherit luaCall; };
+
+        # `colors` is the catppuccin palette module the catppuccin HM module loads at the
+        # top of hyprland.lua (flavour follows lib/theme); values are 'rgb(...)' strings.
+        color = name: lua "colors.${name}";
       in
       {
         monitor = (import ./config/monitors.nix { })."${meta.hostname}";
@@ -54,8 +62,59 @@
             gaps_out = 0; # 5
             border_size = 2; # 0
 
+            col = {
+              active_border = {
+                colors = [
+                  (color "accent")
+                  (color "lavender")
+                ];
+                angle = 45;
+              };
+              inactive_border = color "surface0";
+            };
+
             allow_tearing = true;
             layout = "dwindle";
+          };
+
+          # Tabbed groups (SUPER+W). The groupbar has no background of its own: without
+          # gradients only the titles and a thin indicator are drawn, so the strip above the
+          # window showed the wallpaper. Filled tabs, no upper gap, flush with the window.
+          group = {
+            col = {
+              border_active = color "accent";
+              border_inactive = color "surface0";
+              border_locked_active = color "peach";
+              border_locked_inactive = color "surface1";
+            };
+
+            groupbar = {
+              gradients = true;
+              height = 20;
+              indicator_height = 0;
+              keep_upper_gap = false;
+              gaps_in = 0;
+              gaps_out = 0;
+              rounding = 4; # match decoration.rounding
+              gradient_rounding = 4;
+              round_only_edges = true;
+              gradient_round_only_edges = true;
+
+              font_family = theme.fonts.default.name;
+              font_size = 11;
+              font_weight_active = "semibold";
+              text_color = color "base";
+              text_color_inactive = color "text";
+              text_color_locked_active = color "base";
+              text_color_locked_inactive = color "text";
+
+              col = {
+                active = color "accent";
+                inactive = color "surface0";
+                locked_active = color "peach";
+                locked_inactive = color "surface1";
+              };
+            };
           };
 
           input = {
@@ -85,17 +144,6 @@
             enabled = true;
           };
 
-          render = {
-            cm_enabled = true;
-            cm_auto_hdr = 1;
-            non_shader_cm_interop = 2;
-            use_fp16 = 2;
-          };
-
-          master = {
-            new_status = "master";
-          };
-
           # https://wiki.hypr.land/Configuring/Variables/#misc
           misc = {
             force_default_wallpaper = 0;
@@ -112,10 +160,6 @@
           {
             match.namespace = "bar";
             blur = true;
-          }
-          {
-            match.namespace = "discord";
-            no_anim = true;
           }
         ];
 

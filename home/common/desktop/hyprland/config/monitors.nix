@@ -8,6 +8,9 @@ _: {
       bitdepth = 10;
       cm = "hdr";
       sdr_max_luminance = 250;
+      # Always-on VRR (gaming monitor): unlike misc:vrr 2/3 this also covers tiled games.
+      # On NVIDIA it makes cursor:no_hardware_cursors=auto use software cursors everywhere.
+      vrr = 1;
     }
     {
       output = "DP-2";

@@ -149,30 +149,5 @@ _: {
       match.class = "^(discord)$";
       opacity = "1.0 override 1.0 override";
     }
-
-    # xwaylandvideobridge
-    {
-      match.class = "^(xwaylandvideobridge)$";
-      opacity = "0.0 override";
-    }
-    {
-      match.class = "^(xwaylandvideobridge)$";
-      no_anim = true;
-    }
-    {
-      match.class = "^(xwaylandvideobridge)$";
-      no_focus = true;
-    }
-    {
-      match.class = "^(xwaylandvideobridge)$";
-      max_size = [
-        1
-        1
-      ];
-    }
-    {
-      match.class = "^(xwaylandvideobridge)$";
-      no_blur = true;
-    }
   ];
 }
