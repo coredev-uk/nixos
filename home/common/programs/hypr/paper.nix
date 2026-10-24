@@ -72,7 +72,13 @@ in
   systemd.user.services.bing-wallpaper = {
     Unit = {
       Description = "Fetch and apply the Bing wallpaper";
-      After = [ "hyprpaper.service" ];
+      # Explicit After=graphical-session.target stops the target's implicit After= on this
+      # unit (WantedBy), which formed a cycle with hyprpaper (After=graphical-session.target)
+      # and stalled session startup for up to 30s whenever systemd dropped hyprpaper's job.
+      After = [
+        "graphical-session.target"
+        "hyprpaper.service"
+      ];
       PartOf = [ "graphical-session.target" ];
     };
     Service = {
