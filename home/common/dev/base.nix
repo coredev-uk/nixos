@@ -6,19 +6,9 @@
     # Kubernetes CLI
     k9s.enable = true;
 
-    # env
-    mise = {
+    direnv = {
       enable = true;
-      enableZshIntegration = true;
-      globalConfig = {
-        env.PYTHON_CONFIGURE_OPTS = "--without-ensurepip";
-        env.MISE_DISABLE_TOOLS = "python,1password-cli";
-        settings = {
-          all_compile = true;
-          experimental = true;
-          node.compile = false;
-        };
-      };
+      nix-direnv.enable = true;
     };
 
     # Git
