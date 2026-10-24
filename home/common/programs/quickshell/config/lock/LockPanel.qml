@@ -5,8 +5,8 @@ import Quickshell.Widgets
 import qs.common
 import qs.widgets
 
-// The active face: a card that pops up with the user and password field, then widens to show its
-// side panels (SystemWing on the left, InfoWing on the right). On unlock the side panels close and
+// The active face: a card that pops up with the user and password field, then widens on both sides
+// to show its side panels (TimeWing left, StatusWing right). On unlock the side panels close and
 // the card folds away.
 Item {
     id: root
@@ -123,8 +123,6 @@ Item {
     Rectangle {
         id: card
 
-        readonly property real fullWidth: root.coreWidth + 2 * root.wingWidth
-
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.round(parent.height * 0.52 - height / 2) + (root.context.active ? 0 : Math.round(60 * root.s))
         width: root.coreWidth + (root.context.hasUserSession ? root.wingsReveal * 2 * root.wingWidth : 0)
@@ -164,12 +162,13 @@ Item {
         Item {
             id: content
 
+            // Centred, so the card widens evenly on both sides of the core.
             anchors.horizontalCenter: parent.horizontalCenter
-            width: card.fullWidth
+            width: root.coreWidth + 2 * root.wingWidth
             height: parent.height
 
+            // The side panels show the user session (notifications, media); none before login.
             Loader {
-                // The side panels show the user session (notifications, media); none before login.
                 active: root.context.hasUserSession
                 x: root.pad
                 width: root.wingWidth - 2 * root.pad
@@ -181,7 +180,7 @@ Item {
                     x: (1 - root.wingsReveal) * 30 * root.s
                 }
 
-                sourceComponent: SystemWing {
+                sourceComponent: TimeWing {
                     s: root.s
                 }
             }
@@ -311,7 +310,7 @@ Item {
                 // Its play/pause button stays unclickable while the panel is hidden.
                 enabled: root.wingsReveal > 0.99
 
-                sourceComponent: InfoWing {
+                sourceComponent: StatusWing {
                     s: root.s
                 }
             }
