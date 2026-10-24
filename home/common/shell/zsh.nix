@@ -56,28 +56,27 @@
 
       plugins = [ ];
 
+      # oh-my-zsh already provides: `..` (auto_cd), `gp` (git plugin) and a `grep` alias with
+      # --color=auto plus VCS dir excludes. nixvim provides `vim`; programs.eza provides
+      # ll/lla/lt and the shared eza flags.
       shellAliases = {
-        la = "ls -la";
-        ".." = "cd ..";
-        ls = "eza -gl --git --group-directories-first --color=auto";
+        ls = "eza -l";
+        la = "ls -a";
         tree = "eza --tree";
         cat = "bat";
 
-        gac = "git add -A  && git commit -a";
-        gp = "git push";
+        gac = "git add -A && git commit";
         gst = "git status -sb";
 
         speedtest = "curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -";
 
-        grep = "grep --color=auto";
-        vim = "nvim";
         k = "kubectl";
       }
       // lib.optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) {
         ip = "ip --color";
         ipb = "ip --color --brief";
-        nix-rebuild = "nh os switch ${meta.flakePath}; nh home switch ${meta.flakePath}; sudo /run/current-system/bin/switch-to-configuration boot";
-        fix-time = "sudo chronyc -a makestep";
+        # chrony is disabled; time sync is systemd-timesyncd, which resyncs on restart.
+        fix-time = "sudo systemctl restart systemd-timesyncd";
       }
       // (
         if meta.isDesktop then

@@ -35,7 +35,14 @@ in
   };
 
   programs = {
-    eza.enable = true;
+    eza = {
+      enable = true;
+      git = true;
+      extraOptions = [
+        "--group"
+        "--group-directories-first"
+      ];
+    };
     home-manager.enable = true;
   };
 
