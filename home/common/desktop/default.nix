@@ -7,7 +7,6 @@ let
   plexDesktop = pkgs.plex-desktop.override {
     extraEnv = {
       LIBVA_DRIVER_NAME = "nvidia";
-      NVD_BACKEND = "direct";
       QT_OPENGL = "desktop";
       QT_QPA_PLATFORM = "xcb";
       QT_XCB_GL_INTEGRATION = "xcb_glx";

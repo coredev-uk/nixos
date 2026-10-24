@@ -11,7 +11,7 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "unstable";
 
-    lanzaboote.url = "github:nix-community/lanzaboote/v1.0.0";
+    lanzaboote.url = "github:nix-community/lanzaboote/v1.2.0";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
     nix-citizen.url = "github:LovingMelody/nix-citizen";
@@ -47,9 +47,6 @@
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "unstable";
-
-    vicinae.url = "github:vicinaehq/vicinae";
-    vicinae.inputs.nixpkgs.follows = "unstable";
 
     unstable.url = "github:NixOS/nixpkgs/nixos-unstable";
 

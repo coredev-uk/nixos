@@ -33,7 +33,7 @@ in
   ];
 
   boot = {
-    # Secure boot configuration (lanzaboote enables boot.bootspec itself)
+    # Secure boot configuration
     loader.systemd-boot.enable = lib.mkForce false;
     lanzaboote = {
       enable = true;

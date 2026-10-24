@@ -1,6 +1,7 @@
 {
   pkgs,
   inputs,
+  unstable,
   ...
 }:
 let
@@ -40,8 +41,9 @@ in
       };
 
       # Proton-GE
-      extraCompatPackages = with pkgs; [
-        proton-ge-bin
+      # From unstable: GE-Proton releases far more often than 26.05 picks them up.
+      extraCompatPackages = [
+        unstable.proton-ge-bin
       ];
 
       package = pkgs.steam.override {

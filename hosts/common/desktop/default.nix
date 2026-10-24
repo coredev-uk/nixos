@@ -26,12 +26,8 @@ in
     "vt.global_cursor_default=0"
   ];
 
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [
-      nvidia-vaapi-driver
-    ];
-  };
+  # VA-API on NVIDIA (nvidia-vaapi-driver) comes from hardware.nvidia.videoAcceleration.
+  hardware.graphics.enable = true;
 
   # Enable location services
   location.provider = "geoclue2";

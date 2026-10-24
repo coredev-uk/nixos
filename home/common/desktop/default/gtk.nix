@@ -1,12 +1,11 @@
 {
   pkgs,
   self,
-  stable,
   config,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs stable; };
+  theme = import "${self}/lib/theme" { inherit pkgs; };
 in
 {
   home.pointerCursor = {
@@ -33,12 +32,6 @@ in
     };
 
     gtk3.extraConfig = {
-      gtk-button-images = 1;
-      gtk-application-prefer-dark-theme = true;
-    };
-
-    gtk4.theme = null;
-    gtk4.extraConfig = {
       gtk-application-prefer-dark-theme = true;
     };
   };

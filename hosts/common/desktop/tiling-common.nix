@@ -21,11 +21,6 @@
   };
 
   services = {
-    dbus = {
-      enable = true;
-      implementation = "broker";
-    };
-
     gnome = {
       gnome-keyring.enable = true;
       # Enabled by default with gnome-keyring; it would claim SSH_AUTH_SOCK, but the SSH agent
@@ -37,6 +32,8 @@
     greetd = {
       enable = true;
       restart = false;
+      # Keeps systemd boot/status messages off tuigreet's TTY.
+      useTextGreeter = true;
     };
 
     gvfs.enable = true;
@@ -60,8 +57,9 @@
         ];
       };
 
-      # Hyprland-specific portal configuration
-      Hyprland = {
+      # Hyprland-specific portal configuration. xdg-desktop-portal lowercases
+      # XDG_CURRENT_DESKTOP when looking for <desktop>-portals.conf, so the key must be too.
+      hyprland = {
         default = [
           "hyprland"
           "gtk"

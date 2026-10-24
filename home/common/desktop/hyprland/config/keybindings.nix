@@ -100,10 +100,10 @@ in
   ++ [
     # Screenshot
     (bindWith "${mod} + Print"
-      (exec "${pkgs.hyprshot}/bin/hyprshot -m region --raw | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard-rs}/bin/wl-copy")
+      (exec "${pkgs.grimblast}/bin/grimblast save area - | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard}/bin/wl-copy")
       { release = true; }
     )
-    (bindWith "Print" (exec "${pkgs.hyprshot}/bin/hyprshot -m region --clipboard-only") {
+    (bindWith "Print" (exec "${pkgs.grimblast}/bin/grimblast copy area") {
       release = true;
     })
 

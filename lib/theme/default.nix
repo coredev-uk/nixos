@@ -1,6 +1,5 @@
 {
   pkgs,
-  stable ? pkgs,
   ...
 }:
 let
@@ -12,18 +11,14 @@ rec {
   catppuccin = {
     flavor = "mocha";
     accent = "blue";
-    size = "standard";
   };
 
   colours = import ./colours.nix catppuccin.flavor;
 
+  # catppuccin/gtk is archived upstream; adw-gtk3 matches the libadwaita apps instead.
   gtkTheme = {
-    name = "catppuccin-${catppuccin.flavor}-${catppuccin.accent}-${catppuccin.size}";
-    package = stable.catppuccin-gtk.override {
-      inherit (catppuccin) size;
-      variant = catppuccin.flavor;
-      accents = [ catppuccin.accent ];
-    };
+    name = if catppuccin.flavor == "latte" then "adw-gtk3" else "adw-gtk3-dark";
+    package = pkgs.adw-gtk3;
   };
 
   cursorTheme = {

@@ -1,23 +1,13 @@
-{ inputs, meta, ... }:
-{
-  imports = [
-    inputs.vicinae.homeManagerModules.default
-  ];
-
+_: {
   catppuccin.vicinae.enable = true;
 
+  # Home Manager's module with nixpkgs' vicinae. Layer shell is a vicinae setting
+  # (launcher_window.layer_shell.enabled), on by default.
   programs.vicinae = {
     enable = true;
-
-    package = inputs.vicinae.packages.${meta.system}.default;
-
-    systemd = {
-      enable = true;
-      autoStart = true;
-      environment = {
-        USE_LAYER_SHELL = 1;
-      };
-    };
-
+    # Declarative settings (the catppuccin theme) go to home-manager.json via
+    # VICINAE_OVERRIDES, so settings.json stays writable by the app.
+    mutableSettings = true;
+    systemd.enable = true;
   };
 }
