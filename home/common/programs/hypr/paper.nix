@@ -64,6 +64,13 @@ let
       # hyprpaper's config points here, so the next login starts on this image.
       ln -sfn "$img" ${lib.escapeShellArg current}
 
+      # The login screen shows it too; the greeter can't read this cache, so it gets a copy
+      # (hosts/common/desktop/greeter.nix creates the directory).
+      greeter=/var/lib/greeter-wallpaper
+      if [ -w "$greeter" ]; then
+        cp -f "$img" "$greeter/wallpaper.jpg.part" && mv -f "$greeter/wallpaper.jpg.part" "$greeter/wallpaper.jpg"
+      fi
+
       for _ in $(seq 1 30); do
         hyprctl hyprpaper wallpaper ",$img, cover" && exit 0
         sleep 1

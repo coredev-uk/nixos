@@ -32,8 +32,6 @@
     greetd = {
       enable = true;
       restart = false;
-      # Keeps systemd boot/status messages off tuigreet's TTY.
-      useTextGreeter = true;
     };
 
     gvfs.enable = true;

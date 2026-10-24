@@ -1,16 +1,9 @@
+{ unstable, ... }:
 {
-  config,
-  pkgs,
-  lib,
-  self,
-  unstable,
-  ...
-}:
-let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-in
-{
-  imports = [ ./tiling-common.nix ];
+  imports = [
+    ./tiling-common.nix
+    ./greeter.nix
+  ];
 
   # Single Hyprland source for the whole session: the compositor, its cap_sys_nice wrapper,
   # session files and portal all come from here (Home Manager sets `package = null`).
@@ -26,12 +19,4 @@ in
   # The quickshell lock screen authenticates against this (home/common/programs/quickshell).
   # Password only: no U2F prompt in the way of unlocking.
   security.pam.services.quickshell-lock = { };
-
-  # Same launch line as the package's hyprland-uwsm.desktop: uwsm runs hyprland.desktop
-  # (start-hyprland -> /run/wrappers/bin/Hyprland) and exports the session environment,
-  # including ~/.config/uwsm/env, into the systemd user manager.
-  services.greetd.settings.default_session.command = ''
-    ${lib.makeBinPath [ pkgs.tuigreet ]}/tuigreet -r --asterisks --time \
-      --cmd 'env GTK_THEME=${theme.gtkTheme.name} ${lib.getExe config.programs.uwsm.package} start -e -D Hyprland hyprland.desktop'
-  '';
 }
