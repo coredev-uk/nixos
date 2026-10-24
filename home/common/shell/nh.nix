@@ -12,7 +12,7 @@
     clean = {
       enable = meta.isDarwin;
       dates = "weekly";
-      extraArgs = "--keep 3";
+      extraArgs = "--keep 3 --keep-since 3d";
     };
   };
 }

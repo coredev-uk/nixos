@@ -4,7 +4,8 @@
     blink-cmp = {
       enable = true;
       settings = {
-        keymap.preset = "default";
+        # Tab accepts the selected item (or jumps to the next field inside a snippet).
+        keymap.preset = "super-tab";
         sources = {
           default = [
             "lsp"

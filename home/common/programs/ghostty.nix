@@ -15,6 +15,20 @@ in
 
   catppuccin.ghostty.enable = true;
 
+  # Each Ghostty surface runs in a transient systemd scope; this prefix drop-in applies to
+  # all of them. Interactive zsh (e.g. zellij panes, whose pty zellij keeps open) ignores
+  # SIGTERM, so stopping the scope at shutdown/logout hung until the 90s timeout. SIGHUP
+  # makes the shells exit; the shorter timeout bounds anything else that ignores both.
+  xdg.configFile."systemd/user/app-ghostty-surface-transient-.scope.d/stop.conf" =
+    lib.mkIf (!meta.isDarwin)
+      {
+        text = ''
+          [Scope]
+          SendSIGHUP=yes
+          TimeoutStopSec=10s
+        '';
+      };
+
   programs.ghostty = {
     enable = true;
 

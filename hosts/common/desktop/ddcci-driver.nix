@@ -21,6 +21,9 @@
       after = [ "greetd.service" ];
       requires = [ "greetd.service" ];
       wantedBy = [ "graphical.target" ];
+      # Without this, graphical.target gets an implicit After= on this ~13s oneshot (5s
+      # sleep, then one slow DDC/CI probe per bus). Ordering is already After=greetd.
+      unitConfig.DefaultDependencies = false;
       serviceConfig = {
         Type = "oneshot";
         ExecStartPre = "${pkgs.coreutils}/bin/sleep 5";

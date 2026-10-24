@@ -35,6 +35,8 @@ in
   boot = {
     # Secure boot configuration
     loader.systemd-boot.enable = lib.mkForce false;
+    # The systemd-boot menu shows for 1s instead of the default 5s.
+    loader.timeout = 1;
     lanzaboote = {
       enable = true;
       pkiBundle = "/var/lib/sbctl";
