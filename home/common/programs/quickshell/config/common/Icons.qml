@@ -51,6 +51,7 @@ Singleton {
     readonly property string chevronRight: String.fromCodePoint(0xF0142) // chevron_right
     readonly property string chevronUp: String.fromCodePoint(0xF0143) // chevron_up
     readonly property string chevronDown: String.fromCodePoint(0xF0140) // chevron_down
+    readonly property string arrowRight: String.fromCodePoint(0xF0054) // arrow_right
 
     readonly property string bell: String.fromCodePoint(0xF009A) // bell
     readonly property string bellBadge: String.fromCodePoint(0xF116B) // bell_badge
@@ -65,6 +66,7 @@ Singleton {
     readonly property string previous: String.fromCodePoint(0xF04AE) // skip_previous
     readonly property string next: String.fromCodePoint(0xF04AD) // skip_next
     readonly property string play: String.fromCodePoint(0xF040A) // play
+    readonly property string music: String.fromCodePoint(0xF075A) // music
     readonly property string pause: String.fromCodePoint(0xF03E4) // pause
 
     readonly property string check: String.fromCodePoint(0xF012C) // check

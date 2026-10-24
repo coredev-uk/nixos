@@ -1,4 +1,10 @@
-{ pkgs, self, ... }:
+{
+  config,
+  lib,
+  pkgs,
+  self,
+  ...
+}:
 
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
@@ -31,6 +37,32 @@ let
     ];
     text = builtins.readFile ./scripts/batteries.sh;
   };
+
+  # Session lock (config/lockscreen.qml): its own one-shot instance, run by hypridle's lock_cmd
+  # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down.
+  quickshellLock = pkgs.writeShellApplication {
+    name = "quickshell-lock";
+    runtimeInputs = [
+      config.programs.quickshell.package
+      pkgs.libnotify
+    ];
+    text = ''
+      # Without its PAM service the lock could never be dismissed; it comes from the NixOS
+      # config (hosts/common/desktop/hyprland.nix), so refuse to lock on a system without it.
+      if [ ! -e /etc/pam.d/quickshell-lock ]; then
+        notify-send --urgency=critical "Screen not locked" \
+          "/etc/pam.d/quickshell-lock is missing; rebuild NixOS first."
+        exit 1
+      fi
+
+      # The wallpaper hyprpaper shows (home/common/programs/hypr/paper.nix).
+      export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/bing-wallpapers/current.jpg"}
+      if [ -e "$HOME/.face" ]; then
+        export QS_LOCK_AVATAR="$HOME/.face"
+      fi
+      exec quickshell --no-duplicate --path ${./config}/lockscreen.qml
+    '';
+  };
 in
 {
   programs.quickshell = {
@@ -59,5 +91,6 @@ in
     pkgs.iproute2
     quickshellVpn
     quickshellBatteries
+    quickshellLock
   ];
 }

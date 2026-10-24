@@ -28,6 +28,8 @@ Singleton {
     readonly property color lavender: "#b4befe"
 
     readonly property string fontFamily: "Inter"
+    // Inter's optical size for large text (the lock screen clock).
+    readonly property string displayFontFamily: "Inter Display"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property string emojiFont: "Noto Color Emoji"
     readonly property int fontSize: 14

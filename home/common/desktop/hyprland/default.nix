@@ -35,7 +35,8 @@ in
         browser = "zen-twilight";
         terminal = "${pkgs.ghostty}/bin/ghostty";
         menu = "vicinae open";
-        lock = "${pkgs.hyprlock}/bin/hyprlock";
+        # Through logind, so hypridle's lock_cmd starts the one lock screen.
+        lock = "loginctl lock-session";
         animations = import ./config/animations.nix { inherit luaCall; };
 
         # `colors` is the catppuccin palette module the catppuccin HM module loads at the
@@ -149,6 +150,9 @@ in
             force_default_wallpaper = 0;
             disable_hyprland_logo = true;
             disable_splash_rendering = true;
+            # If the lock screen crashes, `quickshell-lock` from a TTY (with WAYLAND_DISPLAY and
+            # HYPRLAND_INSTANCE_SIGNATURE set) can take the session over again.
+            allow_session_lock_restore = true;
           };
 
           # debug = {

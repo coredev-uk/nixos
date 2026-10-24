@@ -19,7 +19,7 @@ BarPopup {
             icon: Icons.lock,
             color: Theme.blue,
             confirm: false,
-            // hypridle's lock_cmd starts hyprlock on lock-session.
+            // hypridle's lock_cmd starts quickshell-lock (lockscreen.qml) on lock-session.
             run: () => Quickshell.execDetached(["loginctl", "lock-session"])
         },
         {

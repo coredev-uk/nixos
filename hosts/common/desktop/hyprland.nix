@@ -23,6 +23,10 @@ in
     xwayland.enable = true;
   };
 
+  # The quickshell lock screen authenticates against this (home/common/programs/quickshell).
+  # Password only: no U2F prompt in the way of unlocking.
+  security.pam.services.quickshell-lock = { };
+
   # Same launch line as the package's hyprland-uwsm.desktop: uwsm runs hyprland.desktop
   # (start-hyprland -> /run/wrappers/bin/Hyprland) and exports the session environment,
   # including ~/.config/uwsm/env, into the systemd user manager.
