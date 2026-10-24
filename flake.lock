@@ -219,11 +219,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792883390,
-        "narHash": "sha256-QhKgvv7EgM3fhP3TXTbYt98FlnE/jdCxEbhn64Tdsok=",
+        "lastModified": 1792885332,
+        "narHash": "sha256-zlveOPKkeLu/TJdSG46DJt4teOthY3JpWogIfrQW3rE=",
         "owner": "coredev-uk",
         "repo": "macos-wallpapers",
-        "rev": "3c355688c86af2a9db4a0d6e4696b7640163baa8",
+        "rev": "0cdc4f1b9c04c0e9eb1e219c7e46e5cc669c7361",
         "type": "github"
       },
       "original": {

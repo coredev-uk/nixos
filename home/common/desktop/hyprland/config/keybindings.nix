@@ -46,8 +46,8 @@ in
     (bind "${mod} + B" (exec browser))
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
-    # Switch to another macOS wallpaper (home/common/programs/hypr/paper.nix)
-    (bind "${mod} + SHIFT + P" (exec "systemctl --user start macos-wallpaper-next.service"))
+    # Wallpaper picker (home/common/programs/quickshell/config/modules/WallpaperPicker.qml)
+    (bind "${mod} + SHIFT + P" (exec "quickshell ipc -c bar call wallpapers toggle"))
     (bind "CTRL + SHIFT + Space" (exec "1password --quick-access"))
 
     # WM Controls

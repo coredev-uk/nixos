@@ -7,7 +7,8 @@
 }:
 let
   # Apple's names, from `macos-wallpaper list`: the dynamic landscapes, which follow the sun at
-  # the location below. One is picked at random and kept; Super+Shift+P moves to another.
+  # the location below. The wallpaper picker (Super+Shift+P, quickshell's WallpaperPicker)
+  # offers these; the one chosen stays until it's changed there.
   pictures = [
     "The Lake"
     "The Desert"
@@ -36,8 +37,9 @@ let
     picture
   ]) pictures;
 
-  # set-wallpaper [current|next]: the image for now, or another picture's. Applies it only
-  # when it changed, so the timer's runs are free most of the time.
+  # set-wallpaper [current | set NAME]: the image for now of the picture in use, or of NAME
+  # after switching to it. Applies it only when it changed, so the timer's runs are free most
+  # of the time.
   setWallpaper = pkgs.writeShellApplication {
     name = "set-wallpaper";
     runtimeInputs = [
@@ -51,7 +53,8 @@ let
       exec 9>"''${XDG_RUNTIME_DIR:-/tmp}/set-wallpaper.lock"
       flock 9
 
-      img=$(macos-wallpaper "''${1:-current}" ${lib.escapeShellArgs macosWallpaperArgs})
+      if [ "$#" -eq 0 ]; then set -- current; fi
+      img=$(macos-wallpaper "$@" ${lib.escapeShellArgs macosWallpaperArgs})
       [ "$(readlink ${lib.escapeShellArg current} || true)" = "$img" ] && exit 0
 
       # hyprpaper's config points here, so the next login starts on this image.
@@ -74,23 +77,16 @@ let
     '';
   };
 
-  wallpaperService = description: command: {
-    Unit = {
-      Description = description;
-      # Explicit After=graphical-session.target stops the target's implicit After= on this
-      # unit (WantedBy), which formed a cycle with hyprpaper (After=graphical-session.target)
-      # and stalled session startup for up to 30s whenever systemd dropped hyprpaper's job.
-      After = [
-        "graphical-session.target"
-        "hyprpaper.service"
-      ];
-      PartOf = [ "graphical-session.target" ];
-    };
-    Service = {
-      Type = "oneshot";
-      ExecStart = "${lib.getExe setWallpaper} ${command}";
-    };
+  # The picker's cards: every picture's low-res image for now, as JSON. The first call makes the
+  # low-res copies (downloading each picture once); after that it's instant.
+  wallpaperPreviews = pkgs.writeShellApplication {
+    name = "wallpaper-previews";
+    runtimeInputs = [ macosWallpaper ];
+    text = ''
+      exec macos-wallpaper previews ${lib.escapeShellArgs macosWallpaperArgs}
+    '';
   };
+
 in
 {
   services.hyprpaper = {
@@ -110,15 +106,52 @@ in
     };
   };
 
-  systemd.user.services.macos-wallpaper =
-    wallpaperService "Show the macOS wallpaper for the sun's position" "current"
-    // {
-      Install.WantedBy = [ "graphical-session.target" ];
-    };
+  # Called by name from quickshell's WallpaperPicker.
+  home.packages = [
+    setWallpaper
+    wallpaperPreviews
+  ];
 
-  # Started by Super+Shift+P (desktop/hyprland/config/keybindings.nix). Downloads the new picture
-  # (65-140 MB) and renders the image for now, a few seconds; the old picture is removed.
-  systemd.user.services.macos-wallpaper-next = wallpaperService "Switch to another macOS wallpaper" "next";
+  systemd.user.services.macos-wallpaper = {
+    Unit = {
+      Description = "Show the macOS wallpaper for the sun's position";
+      # Explicit After=graphical-session.target stops the target's implicit After= on this
+      # unit (WantedBy), which formed a cycle with hyprpaper (After=graphical-session.target)
+      # and stalled session startup for up to 30s whenever systemd dropped hyprpaper's job.
+      After = [
+        "graphical-session.target"
+        "hyprpaper.service"
+      ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${lib.getExe setWallpaper} current";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
+  # Makes the picker's low-res copies of any picture that doesn't have them yet (a new name in
+  # the list), so opening it doesn't wait; a no-op otherwise.
+  systemd.user.services.wallpaper-previews = {
+    Unit = {
+      Description = "Make low-res previews of the macOS wallpapers";
+      After = [
+        "graphical-session.target"
+        "macos-wallpaper.service"
+      ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = lib.getExe wallpaperPreviews;
+      StandardOutput = "null";
+      Nice = 19;
+      CPUSchedulingPolicy = "idle";
+      IOSchedulingClass = "idle";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
 
   # Dynamic pictures change with the sun; the images it can land between are an hour or more
   # apart, so ten minutes is close enough.
