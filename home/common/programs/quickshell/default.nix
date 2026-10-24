@@ -56,7 +56,7 @@ let
       fi
 
       # The wallpaper hyprpaper shows (home/common/programs/hypr/paper.nix).
-      export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/bing-wallpapers/current.jpg"}
+      export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.jpg"}
       if [ -e "$HOME/.face" ]; then
         export QS_LOCK_AVATAR="$HOME/.face"
       fi

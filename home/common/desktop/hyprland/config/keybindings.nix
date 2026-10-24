@@ -46,8 +46,8 @@ in
     (bind "${mod} + B" (exec browser))
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
-    # Fetch and apply a new Bing wallpaper (home/common/programs/hypr/paper.nix)
-    (bind "${mod} + SHIFT + P" (exec "systemctl --user start bing-wallpaper.service"))
+    # Grab and apply a new Aerial wallpaper (home/common/programs/hypr/paper.nix)
+    (bind "${mod} + SHIFT + P" (exec "systemctl --user start aerial-wallpaper.service"))
     (bind "CTRL + SHIFT + Space" (exec "1password --quick-access"))
 
     # WM Controls
