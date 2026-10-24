@@ -119,6 +119,27 @@ in
   # Started by Super+Shift+P (desktop/hyprland/config/keybindings.nix).
   systemd.user.services.macos-wallpaper-next = wallpaperService "Switch to another macOS wallpaper" "next";
 
+  # A picture's first use downloads and renders it (~20 s); doing that for the whole list at
+  # login, after the wallpaper is up and at idle priority, keeps Super+Shift+P instant.
+  systemd.user.services.macos-wallpaper-prefetch = {
+    Unit = {
+      Description = "Download and render the macOS wallpapers ahead of time";
+      After = [
+        "graphical-session.target"
+        "macos-wallpaper.service"
+      ];
+      PartOf = [ "graphical-session.target" ];
+    };
+    Service = {
+      Type = "oneshot";
+      ExecStart = "${lib.getExe macosWallpaper} prefetch ${lib.escapeShellArgs macosWallpaperArgs}";
+      Nice = 19;
+      CPUSchedulingPolicy = "idle";
+      IOSchedulingClass = "idle";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   # Dynamic pictures change with the sun; the images it can land between are an hour or more
   # apart, so ten minutes is close enough.
   systemd.user.timers.macos-wallpaper = {
