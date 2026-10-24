@@ -46,8 +46,8 @@ in
     (bind "${mod} + B" (exec browser))
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
-    # Grab and apply a new Aerial wallpaper (home/common/programs/hypr/paper.nix)
-    (bind "${mod} + SHIFT + P" (exec "systemctl --user start aerial-wallpaper.service"))
+    # Switch to another macOS wallpaper (home/common/programs/hypr/paper.nix)
+    (bind "${mod} + SHIFT + P" (exec "systemctl --user start macos-wallpaper-next.service"))
     (bind "CTRL + SHIFT + Space" (exec "1password --quick-access"))
 
     # WM Controls

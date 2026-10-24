@@ -14,6 +14,9 @@
     lanzaboote.url = "github:nix-community/lanzaboote/v1.2.0";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
+    macos-wallpapers.url = "github:coredev-uk/macos-wallpapers";
+    macos-wallpapers.inputs.nixpkgs.follows = "unstable";
+
     nix-citizen.url = "github:LovingMelody/nix-citizen";
     # No nixpkgs follows on purpose: wine-astral, dxvk and the mingw cross toolchain are
     # only in nix-citizen.cachix.org when built against nix-citizen's own nixpkgs pin.

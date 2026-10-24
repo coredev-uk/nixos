@@ -212,6 +212,26 @@
         "type": "github"
       }
     },
+    "macos-wallpapers": {
+      "inputs": {
+        "nixpkgs": [
+          "unstable"
+        ]
+      },
+      "locked": {
+        "lastModified": 1792874305,
+        "narHash": "sha256-osMaxhjwjhoNrFX4Kw9ZcVOAXVrQ3I71qkKYDxgZkB0=",
+        "owner": "coredev-uk",
+        "repo": "macos-wallpapers",
+        "rev": "c2df503c3d56adaadbac24ae20094a6d6f6f55ae",
+        "type": "github"
+      },
+      "original": {
+        "owner": "coredev-uk",
+        "repo": "macos-wallpapers",
+        "type": "github"
+      }
+    },
     "nix-citizen": {
       "inputs": {
         "flake-compat": "flake-compat_2",
@@ -484,6 +504,7 @@
         "disko": "disko",
         "home-manager": "home-manager",
         "lanzaboote": "lanzaboote",
+        "macos-wallpapers": "macos-wallpapers",
         "nix-citizen": "nix-citizen",
         "nix-darwin": "nix-darwin",
         "nix-homebrew": "nix-homebrew",
