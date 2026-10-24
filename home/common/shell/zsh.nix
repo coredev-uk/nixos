@@ -35,8 +35,10 @@
         zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
         zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
         zstyle ':completion:*' menu no
-        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'ls --color $realpath'
-        zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'ls --color $realpath'
+        # fzf-tab: take fzf's (catppuccin) colours from FZF_DEFAULT_OPTS, preview directories
+        zstyle ':fzf-tab:*' use-fzf-default-opts yes
+        zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
+        zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'
 
         export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/ # Patch for webkit2gtk ssl error (https://github.com/tauri-apps/wry/issues/605#issuecomment-1215756032)
       '';
@@ -54,7 +56,13 @@
         ];
       };
 
-      plugins = [ ];
+      # Sourced after oh-my-zsh's compinit and before zsh-syntax-highlighting.
+      plugins = [
+        {
+          name = "fzf-tab";
+          src = "${pkgs.zsh-fzf-tab}/share/fzf-tab";
+        }
+      ];
 
       # oh-my-zsh already provides: `..` (auto_cd), `gp` (git plugin) and a `grep` alias with
       # --color=auto plus VCS dir excludes. nixvim provides `vim`; programs.eza provides

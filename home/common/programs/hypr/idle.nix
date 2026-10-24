@@ -5,14 +5,16 @@ let
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
 in
 {
-  systemd.user.services.sway-audio-idle-inhibit = {
+  # Holds a Wayland idle inhibitor (respected by hypridle) while PipeWire is playing audio.
+  systemd.user.services.wayland-pipewire-idle-inhibit = {
     Unit = {
       Description = "Inhibit idle while audio is playing";
       PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
     };
     Install.WantedBy = [ "graphical-session.target" ];
     Service = {
-      ExecStart = "${lib.getExe pkgs.sway-audio-idle-inhibit}";
+      ExecStart = "${lib.getExe pkgs.wayland-pipewire-idle-inhibit}";
       Restart = "on-failure";
     };
   };

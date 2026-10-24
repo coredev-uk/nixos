@@ -1,7 +1,16 @@
 {
   inputs,
+  pkgs,
+  self,
   ...
 }:
+let
+  inherit (import "${self}/lib/theme" { inherit pkgs; }) catppuccin;
+  # catppuccin/discord's published build tracks Discord's class-name changes, so load it
+  # online (as catppuccin/nix does for Vesktop). nixcord only writes local theme files
+  # for Vesktop/Equibop, so a theme link is the way to reach Discord + Vencord.
+  themeUrl = "https://catppuccin.github.io/discord/dist/catppuccin-${catppuccin.flavor}-${catppuccin.accent}.theme.css";
+in
 {
   imports = [
     inputs.nixcord.homeModules.nixcord
@@ -18,6 +27,7 @@
     };
 
     config = {
+      themeLinks = [ themeUrl ];
       plugins = {
         clearUrls.enable = true;
         disableCallIdle.enable = true;

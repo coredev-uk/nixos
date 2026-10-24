@@ -29,9 +29,6 @@ in
   # VA-API on NVIDIA (nvidia-vaapi-driver) comes from hardware.nvidia.videoAcceleration.
   hardware.graphics.enable = true;
 
-  # Enable location services
-  location.provider = "geoclue2";
-
   security.pam.services = {
     login.u2fAuth = true;
     sudo.u2fAuth = true;

@@ -40,6 +40,9 @@ in
       pkiBundle = "/var/lib/sbctl";
       # Bound the generations installed on the 1 GiB ESP (default: unlimited).
       configurationLimit = 10;
+      # New generations get 3 boot attempts; if none reaches boot-complete.target,
+      # systemd-boot falls back to the previous generation (systemd-bless-boot).
+      bootCounting.initialTries = 3;
     };
 
     initrd = {

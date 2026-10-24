@@ -43,6 +43,28 @@ in
       hide-on-clear = false;
       hide-on-action = true;
       script-fail-notify = false;
+
+      # swaync's default widgets, declared so it stops logging "Config not found".
+      widgets = [
+        "inhibitors"
+        "title"
+        "dnd"
+        "notifications"
+      ];
+      widget-config = {
+        inhibitors = {
+          text = "Inhibitors";
+          button-text = "Clear All";
+          clear-all-button = true;
+        };
+        title = {
+          text = "Notifications";
+          clear-all-button = true;
+          button-text = "Clear All";
+        };
+        dnd.text = "Do Not Disturb";
+        notifications.vexpand = true;
+      };
     };
   };
 }

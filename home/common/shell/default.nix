@@ -43,6 +43,11 @@ in
         "--group-directories-first"
       ];
     };
+    # fzf binary for fzf-tab. No zsh integration: its Ctrl-R would replace atuin's.
+    fzf = {
+      enable = true;
+      enableZshIntegration = false;
+    };
     home-manager.enable = true;
   };
 

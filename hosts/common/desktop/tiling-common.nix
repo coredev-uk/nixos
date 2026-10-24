@@ -37,6 +37,9 @@
     };
 
     gvfs.enable = true;
+
+    # Battery levels (Bluetooth peripherals) for quickshell and wireplumber.
+    upower.enable = true;
   };
 
   xdg.portal = {
