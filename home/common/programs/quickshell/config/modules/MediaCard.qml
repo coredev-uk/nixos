@@ -166,22 +166,20 @@ ClippingRectangle {
         anchors.margins: 10
         spacing: 4
 
-        BarText {
+        ScrollingText {
             Layout.fillWidth: true
             text: root.player?.trackTitle || "Unknown Track"
             color: root.accent
             font.pixelSize: 15
             font.bold: true
-            elide: Text.ElideRight
         }
 
-        BarText {
+        ScrollingText {
             Layout.fillWidth: true
-            text: root.player?.trackArtist || "Unknown Artist"
+            text: [root.player?.trackArtist, root.player?.trackAlbum].filter(part => part).join(" - ") || "Unknown Artist"
             color: root.textColor
             opacity: 0.9
             font.pixelSize: 13
-            elide: Text.ElideRight
         }
 
         Row {

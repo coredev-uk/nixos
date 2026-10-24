@@ -31,9 +31,8 @@ RowLayout {
         }
     }
 
-    BarText {
+    ScrollingText {
         Layout.maximumWidth: 600
         text: [root.player?.trackTitle, root.player?.trackArtist].filter(part => part).join(" - ")
-        elide: Text.ElideRight
     }
 }

@@ -4,6 +4,7 @@
   imports = [
     ../../programs/quickshell
     ../../programs/swaync.nix
+    ../../programs/swayosd.nix
     ../../programs/vicinae.nix
   ];
 
@@ -15,10 +16,7 @@
   ];
 
   fonts.fontconfig.enable = true;
-  services = {
-    hyprpolkitagent.enable = true;
-    swayosd.enable = true;
-  };
+  services.hyprpolkitagent.enable = true;
 
   # uwsm sources this into the session and exports the result to the systemd user manager,
   # so home.sessionVariables reach the compositor, user services and launched apps.

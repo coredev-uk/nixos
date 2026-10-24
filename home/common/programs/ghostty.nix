@@ -40,6 +40,8 @@ in
       font-family = theme.fonts.monospace.name;
       # window-decoration = false;
       clipboard-paste-protection = false;
+      # Close windows without asking, even with a running process (zellij keeps sessions).
+      confirm-close-surface = false;
       # Wrap ssh to install xterm-ghostty terminfo on remotes, falling back to
       # TERM=xterm-256color where that fails.
       shell-integration-features = "ssh-env,ssh-terminfo";
