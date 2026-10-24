@@ -10,7 +10,7 @@ import qs.widgets
 Item {
     id: root
 
-    required property LockContext context
+    required property AuthContext context
     property real s: 1
 
     readonly property bool concealed: context.active || context.unlocking
@@ -104,42 +104,49 @@ Item {
         anchors.bottomMargin: Math.round(48 * root.s)
         spacing: Math.round(18 * root.s)
 
-        // Now playing, as a quiet pill.
-        Rectangle {
+        // Now playing, as a quiet pill. Loaded only with a user session, so the greeter never
+        // starts the media service.
+        Loader {
             anchors.horizontalCenter: parent.horizontalCenter
-            visible: Media.active
-            width: nowPlaying.implicitWidth + Math.round(36 * root.s)
-            height: Math.round(40 * root.s)
-            radius: height / 2
-            color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.6)
+            active: root.context.hasUserSession
+            visible: item?.shown ?? false
 
-            Row {
-                id: nowPlaying
+            sourceComponent: Rectangle {
+                readonly property bool shown: Media.active
 
-                anchors.centerIn: parent
-                spacing: Math.round(10 * root.s)
+                width: nowPlaying.implicitWidth + Math.round(36 * root.s)
+                height: Math.round(40 * root.s)
+                radius: height / 2
+                color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.6)
 
-                Icon {
-                    anchors.verticalCenter: parent.verticalCenter
-                    text: Icons.music
-                    color: Theme.blue
-                    font.pixelSize: Math.round(16 * root.s)
-                }
+                Row {
+                    id: nowPlaying
 
-                BarText {
-                    anchors.verticalCenter: parent.verticalCenter
-                    width: Math.min(implicitWidth, Math.round(520 * root.s))
-                    elide: Text.ElideRight
-                    text: [Media.player?.trackTitle, Media.player?.trackArtist].filter(part => part).join("  ·  ")
-                    font.pixelSize: Math.round(14 * root.s)
-                    font.weight: Font.Medium
+                    anchors.centerIn: parent
+                    spacing: Math.round(10 * root.s)
+
+                    Icon {
+                        anchors.verticalCenter: parent.verticalCenter
+                        text: Icons.music
+                        color: Theme.blue
+                        font.pixelSize: Math.round(16 * root.s)
+                    }
+
+                    BarText {
+                        anchors.verticalCenter: parent.verticalCenter
+                        width: Math.min(implicitWidth, Math.round(520 * root.s))
+                        elide: Text.ElideRight
+                        text: [Media.player?.trackTitle, Media.player?.trackArtist].filter(part => part).join("  ·  ")
+                        font.pixelSize: Math.round(14 * root.s)
+                        font.weight: Font.Medium
+                    }
                 }
             }
         }
 
         BarText {
             anchors.horizontalCenter: parent.horizontalCenter
-            text: "Type or click to unlock"
+            text: root.context.idleHint
             color: Theme.subtext0
             font.pixelSize: Math.round(14 * root.s)
 

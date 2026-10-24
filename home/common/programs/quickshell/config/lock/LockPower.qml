@@ -8,7 +8,7 @@ import qs.widgets
 Item {
     id: root
 
-    required property LockContext context
+    required property AuthContext context
     property real s: 1
 
     property bool menuOpen: false

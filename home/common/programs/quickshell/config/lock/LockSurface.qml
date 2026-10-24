@@ -3,14 +3,14 @@ import QtQuick.Effects
 import Quickshell
 import qs.common
 
-// One screen of the lock. Idle: the wallpaper lightly blurred under a big clock. Active (any key or
-// click): the blur deepens, the clock folds away and the password card pops up with its wings.
+// One screen of the lock or greeter. Idle: the wallpaper lightly blurred under a big clock. Active
+// (any key or click): the blur deepens, the clock folds away and the password card pops up.
 Rectangle {
     id: root
 
-    required property LockContext context
+    required property AuthContext context
 
-    // Set by the quickshell-lock wrapper (home/common/programs/quickshell/default.nix).
+    // Set by the quickshell-lock and quickshell-greeter wrappers.
     readonly property string wallpaperPath: Quickshell.env("QS_LOCK_WALLPAPER") ?? ""
     // Layout scale, 1 at 1080p.
     readonly property real s: Math.max(0.75, height / 1080)

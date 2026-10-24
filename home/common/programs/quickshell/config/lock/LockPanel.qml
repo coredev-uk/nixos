@@ -11,7 +11,7 @@ import qs.widgets
 Item {
     id: root
 
-    required property LockContext context
+    required property AuthContext context
     property real s: 1
 
     readonly property real coreWidth: Math.round(440 * s)
@@ -24,8 +24,7 @@ Item {
     property real fold: 1
 
     readonly property string avatarPath: Quickshell.env("QS_LOCK_AVATAR") ?? ""
-    readonly property string userName: Quickshell.env("USER") ?? ""
-    readonly property string displayName: userName.charAt(0).toUpperCase() + userName.slice(1)
+    readonly property string displayName: root.context.user.charAt(0).toUpperCase() + root.context.user.slice(1)
 
     function focusInput() {
         password.focusInput();
@@ -91,7 +90,7 @@ Item {
         }
     }
 
-    // Fits inside LockContext's outro delay.
+    // Fits inside AuthContext's outro delay.
     SequentialAnimation {
         id: outroAnimation
 
@@ -128,7 +127,7 @@ Item {
 
         anchors.horizontalCenter: parent.horizontalCenter
         y: Math.round(parent.height * 0.52 - height / 2) + (root.context.active ? 0 : Math.round(60 * root.s))
-        width: root.coreWidth + root.wingsReveal * 2 * root.wingWidth
+        width: root.coreWidth + (root.context.hasUserSession ? root.wingsReveal * 2 * root.wingWidth : 0)
         height: root.cardHeight
         radius: Math.round(28 * root.s)
         color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.82)
@@ -169,16 +168,21 @@ Item {
             width: card.fullWidth
             height: parent.height
 
-            SystemWing {
+            Loader {
+                // The side panels show the user session (notifications, media); none before login.
+                active: root.context.hasUserSession
                 x: root.pad
                 width: root.wingWidth - 2 * root.pad
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.margins: root.pad
-                s: root.s
                 opacity: root.wingsReveal
                 transform: Translate {
                     x: (1 - root.wingsReveal) * 30 * root.s
+                }
+
+                sourceComponent: SystemWing {
+                    s: root.s
                 }
             }
 
@@ -271,7 +275,7 @@ Item {
 
                         BarText {
                             anchors.verticalCenter: parent.verticalCenter
-                            text: root.context.unlocking ? "Welcome back" : root.context.checking ? "Checking…" : root.context.statusText || (root.context.capsLock ? "Caps Lock is on" : "Locked")
+                            text: root.context.unlocking ? "Welcome back" : root.context.checking ? "Checking…" : root.context.statusText || (root.context.capsLock ? "Caps Lock is on" : root.context.idleStatus)
                             color: status.tone
                             font.pixelSize: Math.round(13 * root.s)
                             font.weight: Font.Medium
@@ -293,19 +297,23 @@ Item {
                 }
             }
 
-            InfoWing {
+            Loader {
+                active: root.context.hasUserSession
                 x: root.wingWidth + root.coreWidth + root.pad
                 width: root.wingWidth - 2 * root.pad
                 anchors.top: parent.top
                 anchors.bottom: parent.bottom
                 anchors.margins: root.pad
-                s: root.s
                 opacity: root.wingsReveal
                 transform: Translate {
                     x: -(1 - root.wingsReveal) * 30 * root.s
                 }
                 // Its play/pause button stays unclickable while the panel is hidden.
                 enabled: root.wingsReveal > 0.99
+
+                sourceComponent: InfoWing {
+                    s: root.s
+                }
             }
         }
     }

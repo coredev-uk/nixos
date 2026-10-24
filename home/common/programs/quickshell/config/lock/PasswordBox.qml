@@ -4,11 +4,11 @@ import qs.widgets
 
 // Password field: a hidden TextInput takes the keys (it keeps focus even while the card is hidden,
 // so the first key typed on the idle clock lands here), the field draws one dot per character.
-// Every screen's box mirrors the shared LockContext text, whichever one has keyboard focus.
+// Every screen's box mirrors the shared AuthContext text, whichever one has keyboard focus.
 Rectangle {
     id: root
 
-    required property LockContext context
+    required property AuthContext context
     // Layout scale from the surface (1 at 1080p).
     property real s: 1
 

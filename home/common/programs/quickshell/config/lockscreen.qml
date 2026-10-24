@@ -13,7 +13,7 @@ ShellRoot {
         // that change when we make it, which left the process running and blocked the next lock
         // (quickshell-lock runs with --no-duplicate). The delay lets the unlock request reach the
         // compositor before the connection closes.
-        onUnlocked: {
+        onFinished: {
             lock.locked = false;
             quitTimer.start();
         }
