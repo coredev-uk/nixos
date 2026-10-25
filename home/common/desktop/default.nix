@@ -41,8 +41,12 @@ in
     loupe
     mpv
     nautilus
-    proton-vpn-cli
     papers
+    # unstable.proton-drive-cli # TODO: needs to be merged into unstable... @SEE https://github.com/NixOS/nixpkgs/pull/557198
+    protonmail-desktop
+    proton-pass
+    proton-pass-cli
+    proton-vpn-cli
   ];
 
 }
