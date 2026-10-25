@@ -6,9 +6,10 @@
   ...
 }:
 let
-  # Apple's names, from `macos-wallpaper list`: the dynamic landscapes, which follow the sun at
-  # the location below. The wallpaper picker (Super+Shift+P, quickshell's WallpaperPicker)
-  # offers these; the one chosen stays until it's changed there.
+  # Names from `macos-wallpaper list`: the dynamic landscapes, which follow the sun at the
+  # location below. The first six are desktop pictures, the last three the macOS 15-27 places
+  # made from Apple's aerial videos. The wallpaper picker (Super+Shift+P, quickshell's
+  # WallpaperPicker) offers these; the one chosen stays until it's changed there.
   pictures = [
     "The Lake"
     "The Desert"
@@ -16,6 +17,9 @@ let
     "The Cliffs"
     "Big Sur"
     "Catalina"
+    "Sequoia"
+    "Tahoe"
+    "Golden Gate"
   ];
 
   # Not named after the source: hyprpaper and the lock screen read current.jpg from here
