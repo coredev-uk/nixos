@@ -33,13 +33,13 @@ let
 in
 {
   bind = [
-    # Media Keys
-    (bind "XF86AudioMicMute" (exec "wpctl set-mute @DEFAULT_AUDIO_SOURCE@ toggle")) # ${pkgs.swayosd}/bin/swayosd-client --input-volume mute-toggle"
-    (bind "XF86AudioMute" (exec "${pkgs.swayosd}/bin/swayosd-client --output-volume mute-toggle"))
-    (bind "XF86AudioPlay" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"))
-    (bind "XF86AudioPause" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl play-pause"))
-    (bind "XF86AudioNext" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl next"))
-    (bind "XF86AudioPrev" (exec "${pkgs.swayosd}/bin/swayosd-client --playerctl previous"))
+    # Media Keys (on-screen display: home/common/programs/quickshell/config/modules/Osd.qml)
+    (bind "XF86AudioMicMute" (exec "quickshell ipc -c bar call osd micMute"))
+    (bind "XF86AudioMute" (exec "quickshell ipc -c bar call osd mute"))
+    (bind "XF86AudioPlay" (exec "quickshell ipc -c bar call osd media play-pause"))
+    (bind "XF86AudioPause" (exec "quickshell ipc -c bar call osd media play-pause"))
+    (bind "XF86AudioNext" (exec "quickshell ipc -c bar call osd media next"))
+    (bind "XF86AudioPrev" (exec "quickshell ipc -c bar call osd media previous"))
 
     # Main Apps
     (bind "${mod} + L" (exec lock))
@@ -111,12 +111,16 @@ in
     (bindWith "${mod} + mouse:273" "hl.dsp.window.resize()" { mouse = true; }) # Right-Click
 
     # MultiMedia: Volume Up/Down
-    (bindWith "XF86AudioRaiseVolume" (exec "${pkgs.swayosd}/bin/swayosd-client --output-volume +5") {
+    (bindWith "XF86AudioRaiseVolume" (exec "quickshell ipc -c bar call osd volume +5") {
       repeating = true;
     })
-    (bindWith "XF86MonBrightnessDown" (exec "set-brightness-all 10%-") { repeating = true; })
-    (bindWith "XF86MonBrightnessUp" (exec "set-brightness-all 10%+") { repeating = true; })
-    (bindWith "XF86AudioLowerVolume" (exec "${pkgs.swayosd}/bin/swayosd-client --output-volume -5") {
+    (bindWith "XF86MonBrightnessDown" (exec "quickshell ipc -c bar call osd brightness -10") {
+      repeating = true;
+    })
+    (bindWith "XF86MonBrightnessUp" (exec "quickshell ipc -c bar call osd brightness +10") {
+      repeating = true;
+    })
+    (bindWith "XF86AudioLowerVolume" (exec "quickshell ipc -c bar call osd volume -5") {
       locked = true;
     })
   ];

@@ -18,10 +18,6 @@ _: {
 
     # Miscellaneous
     {
-      match.class = "^(hyprpolkitagent)$";
-      center = true;
-    }
-    {
       match.class = "^(zenity)$";
       float = true;
     }

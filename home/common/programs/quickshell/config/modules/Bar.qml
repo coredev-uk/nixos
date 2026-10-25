@@ -63,6 +63,12 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 10
 
+        PrivacyIndicators {
+            id: privacy
+        }
+        Sep {
+            visible: privacy.visible
+        }
         Tray {}
         Sep {}
         SystemStats {}

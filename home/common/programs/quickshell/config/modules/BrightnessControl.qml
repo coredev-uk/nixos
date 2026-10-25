@@ -1,41 +1,17 @@
 import QtQuick
-import Quickshell
-import Quickshell.Io
 import qs.common
+import qs.services
 import qs.widgets
 
-// DDC/CI monitors have no change notifications, so brightness is read whenever the row is created
-// (each time the panel's main view opens) and written through set-brightness-all.
+// Shares the Brightness service with the OSD so both show the same value. The monitors can also
+// be changed from their own buttons, so the value is re-read whenever the row is created (each
+// time the panel's main view opens).
 SliderRow {
-    id: root
-
     icon: Icons.brightness
     color: Theme.yellow
+    value: Brightness.percent
 
-    Component.onCompleted: reader.running = true
+    Component.onCompleted: Brightness.refresh()
 
-    onMoved: value => {
-        root.value = value;
-        apply.restart();
-    }
-
-    Process {
-        id: reader
-        command: ["brightnessctl", "-m"]
-        stdout: StdioCollector {
-            id: readerOut
-            onStreamFinished: {
-                const percent = parseInt(readerOut.text.split("\n")[0].split(",")[3]);
-                if (!isNaN(percent))
-                    root.value = percent;
-            }
-        }
-    }
-
-    // DDC/CI writes are slow; only apply once dragging settles.
-    Timer {
-        id: apply
-        interval: 150
-        onTriggered: Quickshell.execDetached(["set-brightness-all", String(Math.round(root.value))])
-    }
+    onMoved: value => Brightness.set(value)
 }

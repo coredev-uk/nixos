@@ -9,4 +9,7 @@ ShellRoot {
     }
 
     WallpaperPicker {}
+    NotificationPopups {}
+    Osd {}
+    PolkitDialog {}
 }

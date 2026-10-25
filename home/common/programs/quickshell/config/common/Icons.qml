@@ -75,4 +75,24 @@ Singleton {
     readonly property string checkboxOff: String.fromCodePoint(0xF0131) // checkbox_blank_outline
     readonly property string radioOn: String.fromCodePoint(0xF043E) // radiobox_marked
     readonly property string radioOff: String.fromCodePoint(0xF043D) // radiobox_blank
+
+    // OSD
+    readonly property string microphone: String.fromCodePoint(0xF036C) // microphone
+    readonly property string microphoneOff: String.fromCodePoint(0xF036D) // microphone_off
+
+    // Polkit dialog
+    readonly property string shieldLock: String.fromCodePoint(0xF099D) // shield_lock
+    readonly property string account: String.fromCodePoint(0xF0004) // account
+    readonly property string accountGroup: String.fromCodePoint(0xF0849) // account_group
+
+    // Privacy indicators (microphone is shared with the OSD group above)
+    readonly property string webcam: String.fromCodePoint(0xF05A0) // webcam
+    readonly property string monitorShare: String.fromCodePoint(0xF1483) // monitor_share
+    readonly property string waveform: String.fromCodePoint(0xF147D) // waveform
+    readonly property string application: String.fromCodePoint(0xF08C6) // application
+
+    // Notifications (bell, bellOff and close are shared with the groups above)
+    readonly property string bellOutline: String.fromCodePoint(0xF009C) // bell_outline
+    readonly property string notificationClearAll: String.fromCodePoint(0xF039F) // notification_clear_all
+    readonly property string send: String.fromCodePoint(0xF048A) // send
 }

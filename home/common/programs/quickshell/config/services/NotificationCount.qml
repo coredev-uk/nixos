@@ -4,32 +4,26 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Notification count and Do Not Disturb state pushed by swaync.
+// Notification count and Do Not Disturb state for the lock screen, a separate instance from the
+// bar: read from the file the bar's NotificationService publishes. Zero and off while the bar
+// isn't running.
 Singleton {
     id: root
 
     property int count: 0
     property bool dnd: false
 
-    Process {
-        id: subscription
-        command: ["swaync-client", "--subscribe"]
-        running: true
-        stdout: SplitParser {
-            onRead: line => {
-                try {
-                    const state = JSON.parse(line);
-                    root.count = state.count ?? 0;
-                    root.dnd = state.dnd ?? false;
-                } catch (e) {}
-            }
+    FileView {
+        path: `${Quickshell.env("XDG_RUNTIME_DIR")}/quickshell-notifications.json`
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            try {
+                const status = JSON.parse(text());
+                root.count = status.count ?? 0;
+                root.dnd = status.dnd ?? false;
+            } catch (e) {}
         }
-        onExited: restart.start()
-    }
-
-    Timer {
-        id: restart
-        interval: 2000
-        onTriggered: subscription.running = true
     }
 }
