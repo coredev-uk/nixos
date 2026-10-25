@@ -5,6 +5,7 @@
   ...
 }:
 let
+  # TODO: Remove when https://github.com/NixOS/nixpkgs/pull/576620 merged.
   # Audeze Maxwell 2 (3329:4b29) support starts in 4.0.0; 4.2.0 replaces the Maxwell
   # protocol (Sapd/HeadsetControl#591, tested on the Maxwell 2) and drops the init packet
   # that skewed the audio balance after battery reads (#577). nixpkgs is at 4.1.0.
