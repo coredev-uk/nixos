@@ -12,4 +12,5 @@ ShellRoot {
     NotificationPopups {}
     Osd {}
     PolkitDialog {}
+    PassQuickAccess {}
 }

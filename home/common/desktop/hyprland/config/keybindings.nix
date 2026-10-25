@@ -48,7 +48,8 @@ in
     (bind "${mod} + Space" (exec menu))
     # Wallpaper picker (home/common/programs/quickshell/config/modules/WallpaperPicker.qml)
     (bind "${mod} + SHIFT + P" (exec "quickshell ipc -c bar call wallpapers toggle"))
-    (bind "CTRL + SHIFT + Space" (exec "1password --quick-access"))
+    # Proton Pass quick access (home/common/programs/quickshell/config/modules/PassQuickAccess.qml)
+    (bind "CTRL + SHIFT + Space" (exec "quickshell ipc -c bar call pass toggle"))
 
     # WM Controls
     (bind "${mod} + R" (exec "hyprctl reload"))

@@ -49,4 +49,7 @@ in
     proton-vpn-cli
   ];
 
+  # pass-cli keeps its session key in the kernel keyring by default, which is denied here and
+  # wiped on reboot; gnome-keyring (unlocked at login) keeps it instead.
+  home.sessionVariables.PROTON_PASS_LINUX_KEYRING = "dbus";
 }

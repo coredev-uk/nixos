@@ -38,6 +38,20 @@ let
     text = builtins.readFile ./scripts/batteries.sh;
   };
 
+  # Proton Pass quick access (config/modules/PassQuickAccess.qml). pass-cli is not a runtime
+  # input: it comes from the user's PATH (home/common/desktop/default.nix), sharing the session
+  # the user signs in to.
+  quickshellPass = pkgs.writeShellApplication {
+    name = "quickshell-pass";
+    runtimeInputs = with pkgs; [
+      coreutils
+      jq
+      util-linux # flock
+      wl-clipboard
+    ];
+    text = builtins.readFile ./scripts/pass.sh;
+  };
+
   # Session lock (config/lockscreen.qml): its own one-shot instance, run by hypridle's lock_cmd
   # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down.
   quickshellLock = pkgs.writeShellApplication {
@@ -92,5 +106,6 @@ in
     quickshellVpn
     quickshellBatteries
     quickshellLock
+    quickshellPass
   ];
 }

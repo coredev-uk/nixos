@@ -95,4 +95,18 @@ Singleton {
     readonly property string bellOutline: String.fromCodePoint(0xF009C) // bell_outline
     readonly property string notificationClearAll: String.fromCodePoint(0xF039F) // notification_clear_all
     readonly property string send: String.fromCodePoint(0xF048A) // send
+
+    // Proton Pass quick access (search and wifi are shared with the groups above)
+    readonly property string shieldLockOutline: String.fromCodePoint(0xF0CCC) // shield_lock_outline
+    readonly property string key: String.fromCodePoint(0xF0306) // key
+    readonly property string noteText: String.fromCodePoint(0xF11D7) // note_text_outline
+    readonly property string at: String.fromCodePoint(0xF0065) // at
+    readonly property string creditCard: String.fromCodePoint(0xF019B) // credit_card_outline
+    readonly property string identityCard: String.fromCodePoint(0xF0DAB) // card_account_details_outline
+    readonly property string keyChain: String.fromCodePoint(0xF1575) // key_chain_variant
+    readonly property string shape: String.fromCodePoint(0xF0832) // shape_outline
+    readonly property string accountOutline: String.fromCodePoint(0xF0013) // account_outline
+    readonly property string email: String.fromCodePoint(0xF01F0) // email_outline
+    readonly property string web: String.fromCodePoint(0xF059F) // web
+    readonly property string twoFactor: String.fromCodePoint(0xF09AF) // two_factor_authentication
 }
