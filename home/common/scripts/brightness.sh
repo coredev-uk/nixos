@@ -1,28 +1,46 @@
 #!/usr/bin/env bash
-# Set matched hardware values directly using explicit device indexing
+# Set brightness on all DDC/CI monitors.
+# Takes an absolute percentage ("65", "65%") or a relative step ("10%+", "10%-");
+# "get" prints the current percentage instead.
+# The GN800 is dimmer than the GP850 at the same setting, so it is driven 1.18x higher.
+# Monitors are matched by model: ddcciN follows the i2c bus number, which can change.
 
-# Extract a clean, raw integer (e.g. 65)
-RAW_VAL=$(echo "$1" | tr -d '%')
+declare -A scale=([GN800]=118)
 
-for dev in /sys/class/backlight/ddcci*; do
-	[ -e "$dev" ] || continue
-	DEV_NAME=$(basename "$dev")
+devices=(/sys/class/backlight/ddcci*)
+[ -e "${devices[0]}" ] || exit 0
 
-	if [ "$DEV_NAME" = "ddcci6" ]; then
-		# Explicitly scale up the secondary lower-nit monitor by 1.18x
-		FINAL_VAL=$((RAW_VAL * 118 / 100))
+model() { cat "$1/device/idModel" 2>/dev/null; }
+percent() { echo $(($(cat "$1/brightness") * 100 / $(cat "$1/max_brightness"))); }
 
-		# Prevent integer overflow past 100
-		if [ "$FINAL_VAL" -gt 100 ]; then
-			FINAL_VAL=100
+# Read from an unscaled monitor: a scaled one sits at 100 well before the setting does.
+current() {
+	for dev in "${devices[@]}"; do
+		if [ -z "${scale[$(model "$dev")]:-}" ]; then
+			percent "$dev"
+			return
 		fi
-	else
-		# Primary monitor (ddcci5) gets the exact requested integer
-		FINAL_VAL="$RAW_VAL"
-	fi
+	done
+	percent "${devices[0]}"
+}
 
-	# Pass the raw integer value directly without the % sign
-	brightnessctl -d "$DEV_NAME" set "$FINAL_VAL" &
+arg="${1//%/}"
+case "$arg" in
+get)
+	current
+	exit 0
+	;;
+*+ | *-)
+	step=${arg%?}
+	if [ "${arg: -1}" = "+" ]; then target=$(($(current) + step)); else target=$(($(current) - step)); fi
+	;;
+*) target=$arg ;;
+esac
+target=$((target < 0 ? 0 : target > 100 ? 100 : target))
+
+for dev in "${devices[@]}"; do
+	value=$((target * ${scale[$(model "$dev")]:-100} / 100))
+	brightnessctl -q -d "$(basename "$dev")" set "$((value > 100 ? 100 : value))%" &
 done
 
 wait
