@@ -2,14 +2,13 @@ _: {
   atlas = [
     {
       output = "DP-1";
-      mode = "2560x1440@180";
+      mode = "2560x1440@165";
       position = "2560x0";
       scale = 1;
       bitdepth = 10;
-      cm = "hdr";
+      cm = "srgb";
       sdr_max_luminance = 250;
       # Always-on VRR (gaming monitor): unlike misc:vrr 2/3 this also covers tiled games.
-      # On NVIDIA it makes cursor:no_hardware_cursors=auto use software cursors everywhere.
       vrr = 1;
     }
     {
@@ -18,7 +17,7 @@ _: {
       position = "0x0";
       scale = 1;
       bitdepth = 10;
-      cm = "hdr";
+      cm = "srgb";
       sdr_max_luminance = 250;
     }
   ];

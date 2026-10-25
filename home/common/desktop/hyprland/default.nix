@@ -194,5 +194,4 @@ in
   # Nvidia Variables
   home.sessionVariables.LIBVA_DRIVER_NAME = "nvidia";
   home.sessionVariables.__GLX_VENDOR_LIBRARY_NAME = "nvidia";
-  home.sessionVariables.GDK_DEBUG = "hdr,color-mgmt,high-depth";
 }
