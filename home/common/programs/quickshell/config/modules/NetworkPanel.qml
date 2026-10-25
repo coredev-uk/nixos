@@ -14,6 +14,7 @@ BarPopup {
     enum View {
         Main,
         Wifi,
+        Ethernet,
         Vpn,
         Bluetooth
     }
@@ -85,7 +86,7 @@ BarPopup {
             id: content
             anchors.fill: parent
             anchors.margins: 12
-            sourceComponent: [mainView, wifiView, vpnView, bluetoothView][root.view]
+            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView][root.view]
         }
     }
 
@@ -116,14 +117,32 @@ BarPopup {
                 onToggled: NightLight.toggle()
             }
 
+            // Shown for any wired device, and in place of WiFi when there is no network hardware at all.
             PanelRow {
-                // Hidden rather than greyed out when there is no usable WiFi hardware.
-                visible: NetworkStatus.hasWifi
-                icon: Networking.wifiEnabled ? Icons.wifi : Icons.wifiOff
+                visible: NetworkStatus.wiredDevice !== null || NetworkStatus.wifiDevice === null
+                icon: NetworkStatus.wiredConnected ? Icons.ethernet : Icons.disconnected
+                iconColor: NetworkStatus.wiredConnected ? Theme.green : Theme.overlay0
+                label: "Ethernet"
+                sublabel: {
+                    const device = NetworkStatus.wiredDevice;
+                    if (!device)
+                        return "No network device";
+                    if (device.connected)
+                        return NetworkStatus.ip !== "" ? `Connected - ${NetworkStatus.ip}` : "Connected";
+                    return device.hasLink ? "Not connected" : "Cable unplugged";
+                }
+                canOpen: NetworkStatus.wiredDevice !== null
+                canToggle: false
+                onOpened: root.view = NetworkPanel.View.Ethernet
+            }
+
+            PanelRow {
+                visible: NetworkStatus.wifiDevice !== null
+                icon: Networking.wifiEnabled && Networking.wifiHardwareEnabled ? Icons.wifi : Icons.wifiOff
                 iconColor: Theme.green
                 label: "WiFi"
-                sublabel: NetworkStatus.wifiNetwork?.name ?? (Networking.wifiEnabled ? "Not connected" : "Off")
-                canOpen: Networking.wifiEnabled
+                sublabel: !Networking.wifiHardwareEnabled ? "Off (hardware switch)" : NetworkStatus.wifiNetwork?.name ?? (Networking.wifiEnabled ? "Not connected" : "Off")
+                canOpen: Networking.wifiEnabled && Networking.wifiHardwareEnabled
                 onToggled: Networking.wifiEnabled = !Networking.wifiEnabled
                 onOpened: root.view = NetworkPanel.View.Wifi
             }
@@ -231,6 +250,24 @@ BarPopup {
                     root.passwordNetwork = null;
                 }
                 onCancelled: root.passwordNetwork = null
+            }
+        }
+    }
+
+    Component {
+        id: ethernetView
+
+        ColumnLayout {
+            spacing: 4
+
+            BackButton {
+                title: "Ethernet"
+                onClicked: root.view = NetworkPanel.View.Main
+            }
+
+            ConnectionDetails {
+                Layout.fillWidth: true
+                device: NetworkStatus.wiredDevice
             }
         }
     }

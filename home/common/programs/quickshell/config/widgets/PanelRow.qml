@@ -3,6 +3,7 @@ import QtQuick.Layouts
 import qs.common
 
 // Main network panel row: left icon toggles the service, the rest opens its sub-view.
+// Rows without a toggle (canToggle: false) open from the icon too.
 Rectangle {
     id: root
 
@@ -11,6 +12,7 @@ Rectangle {
     property string label
     property string sublabel
     property bool canOpen: true
+    property bool canToggle: true
 
     signal toggled
     signal opened
@@ -35,7 +37,7 @@ Rectangle {
             implicitWidth: toggleIcon.implicitWidth + 16
             implicitHeight: toggleIcon.implicitHeight + 8
             radius: 6
-            color: toggleArea.containsMouse ? Theme.surface1 : "transparent"
+            color: toggleArea.containsMouse && root.canToggle ? Theme.surface1 : "transparent"
 
             Icon {
                 id: toggleIcon
@@ -49,7 +51,7 @@ Rectangle {
                 id: toggleArea
                 anchors.fill: parent
                 hoverEnabled: true
-                onClicked: root.toggled()
+                onClicked: root.canToggle ? root.toggled() : root.opened()
             }
         }
 
