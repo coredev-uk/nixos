@@ -104,17 +104,11 @@ BarPopup {
 
             BrightnessControl {
                 Layout.fillWidth: true
-                Layout.bottomMargin: 4
             }
 
-            PanelRow {
-                icon: Icons.nightLight
-                iconColor: NightLight.active ? Theme.peach : Theme.overlay0
-                label: "Night light"
-                sublabel: NightLight.active ? "On (follows sunset)" : "Off"
-                canOpen: false
-                Component.onCompleted: NightLight.refresh()
-                onToggled: NightLight.toggle()
+            NightLightControl {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 4
             }
 
             // Shown for any wired device, and in place of WiFi when there is no network hardware at all.

@@ -3,8 +3,8 @@ import QtQuick.Layouts
 import Quickshell.Widgets
 import qs.common
 
-// Panel row: icon (glyph or app icon), optional label, a full-width slider, the value in percent,
-// and optionally a chevron that expands extra content below the row.
+// Panel row: icon (glyph or app icon), optional label, a full-width slider, its value (percent
+// unless valueText says otherwise), and optionally a chevron that expands extra content below the row.
 Item {
     id: root
 
@@ -14,6 +14,7 @@ Item {
     property string label: ""
     property color color: Theme.blue
     property real value: 0 // 0-100
+    property string valueText: `${Math.round(value)}%`
     property bool expandable: false
     property bool expanded: false
 
@@ -72,9 +73,9 @@ Item {
         }
 
         BarText {
-            Layout.preferredWidth: 34
+            Layout.preferredWidth: 38
             horizontalAlignment: Text.AlignRight
-            text: `${Math.round(root.value)}%`
+            text: root.valueText
             color: Theme.subtext0
             font.pixelSize: 11
         }

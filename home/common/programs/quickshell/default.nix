@@ -103,6 +103,8 @@ in
     # The bar's glyphs; installed here so it doesn't depend on the system font set.
     theme.fonts.iconFont.package
     pkgs.iproute2
+    # Holds the night light's session temperature (config/services/NightLight.qml).
+    pkgs.hyprsunset
     quickshellVpn
     quickshellBatteries
     quickshellLock
