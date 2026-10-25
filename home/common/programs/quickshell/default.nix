@@ -105,6 +105,8 @@ in
     pkgs.iproute2
     # Holds the night light's session temperature (config/services/NightLight.qml).
     pkgs.hyprsunset
+    # Screen casting to Chromecast/Miracast, opened from the panel's Cast view.
+    pkgs.gnome-network-displays
     quickshellVpn
     quickshellBatteries
     quickshellLock

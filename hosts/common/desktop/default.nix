@@ -13,7 +13,10 @@ in
     ../hardware/yubikey.nix
     ../services/pipewire.nix
   ]
-  ++ lib.optional meta.isDesktop ./${meta.desktop}.nix;
+  ++ lib.optionals meta.isDesktop [
+    ./${meta.desktop}.nix
+    ./casting.nix
+  ];
 
   # Enable Plymouth and suppress some logs by default.
   boot.plymouth.enable = true;

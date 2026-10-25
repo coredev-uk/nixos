@@ -4,6 +4,7 @@
   # Notifications, the OSD and the polkit agent are part of the quickshell config.
   imports = [
     ../../programs/quickshell
+    ../../programs/airplay.nix
     ../../programs/vicinae.nix
   ];
 

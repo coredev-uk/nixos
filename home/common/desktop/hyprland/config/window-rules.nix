@@ -30,6 +30,23 @@ _: {
       center = true;
     }
 
+    # Screen casting (opened from the bar's Cast view): a small picker, not a tiled window.
+    {
+      match.class = "^(org\\.gnome\\.NetworkDisplays)$";
+      float = true;
+    }
+    {
+      match.class = "^(org\\.gnome\\.NetworkDisplays)$";
+      size = [
+        480
+        560
+      ];
+    }
+    {
+      match.class = "^(org\\.gnome\\.NetworkDisplays)$";
+      center = true;
+    }
+
     # Picture-in-Picture
     {
       match.title = "^(Picture-in-Picture|Firefox)$";

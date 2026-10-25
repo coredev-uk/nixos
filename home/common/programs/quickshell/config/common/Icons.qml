@@ -109,4 +109,10 @@ Singleton {
     readonly property string email: String.fromCodePoint(0xF01F0) // email_outline
     readonly property string web: String.fromCodePoint(0xF059F) // web
     readonly property string twoFactor: String.fromCodePoint(0xF09AF) // two_factor_authentication
+
+    // Cast view (monitorShare and headphones are shared with the groups above)
+    readonly property string cast: String.fromCodePoint(0xF0118) // cast
+    readonly property string castConnected: String.fromCodePoint(0xF0119) // cast_connected
+    readonly property string speaker: String.fromCodePoint(0xF04C3) // speaker
+    readonly property string speakerWireless: String.fromCodePoint(0xF071F) // speaker_wireless
 }

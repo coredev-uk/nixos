@@ -4,6 +4,7 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Networking
+import Quickshell.Services.Pipewire
 import qs.common
 import qs.services
 import qs.widgets
@@ -16,7 +17,8 @@ BarPopup {
         Wifi,
         Ethernet,
         Vpn,
-        Bluetooth
+        Bluetooth,
+        Cast
     }
 
     property int view: NetworkPanel.View.Main
@@ -27,6 +29,50 @@ BarPopup {
     property string wifiError: ""
     // Per-app volume list under the volume slider; kept while the panel is reopened.
     property bool mixerExpanded: false
+    // This computer's outputs for the Cast view; "airplay" is the sink that feeds OwnTone
+    // (home/common/programs/airplay.nix), whose speakers are listed separately.
+    readonly property var localOutputs: Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio && node.name !== "airplay").sort((a, b) => outputName(a).localeCompare(outputName(b)))
+    readonly property PwNode airplaySink: Pipewire.nodes.values.find(node => node.name === "airplay") ?? null
+    readonly property PwNode output: Pipewire.defaultAudioSink
+    readonly property bool casting: output !== null && output === airplaySink
+    // Where Stop casting goes back to.
+    property PwNode lastLocalOutput: null
+
+    function outputName(node: PwNode): string {
+        return node.description || node.nickname || node.name;
+    }
+
+    // Streams that follow the default output move with it.
+    function playOn(node: PwNode) {
+        Pipewire.preferredDefaultAudioSink = node;
+    }
+
+    function stopCasting() {
+        AirPlay.select([]);
+        const local = lastLocalOutput ?? localOutputs[0];
+        if (local)
+            playOn(local);
+    }
+
+    // Picking a speaker routes the computer's audio into OwnTone; the last one off routes it back.
+    // A speaker still chosen from last time resumes instead of turning off.
+    function toggleSpeaker(speaker: var) {
+        if (speaker.chosen && !casting && airplaySink) {
+            playOn(airplaySink);
+            return;
+        }
+        const remaining = AirPlay.chosen.filter(other => other.id !== speaker.id).length;
+        AirPlay.toggle(speaker);
+        if (!speaker.chosen && airplaySink && !casting)
+            playOn(airplaySink);
+        else if (speaker.chosen && remaining === 0)
+            stopCasting();
+    }
+
+    onOutputChanged: {
+        if (output && output !== airplaySink)
+            lastLocalOutput = output;
+    }
 
     function updateScanner() {
         if (wifiDevice)
@@ -50,7 +96,10 @@ BarPopup {
             passwordNetwork = network;
     }
 
-    onOpening: view = NetworkPanel.View.Main
+    onOpening: {
+        view = NetworkPanel.View.Main;
+        AirPlay.refresh();
+    }
     onVisibleChanged: updateScanner()
     onViewChanged: {
         updateScanner();
@@ -86,7 +135,7 @@ BarPopup {
             id: content
             anchors.fill: parent
             anchors.margins: 12
-            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView][root.view]
+            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView, castView][root.view]
         }
     }
 
@@ -165,6 +214,17 @@ BarPopup {
                         root.adapter.enabled = !root.adapter.enabled;
                 }
                 onOpened: root.view = NetworkPanel.View.Bluetooth
+            }
+
+            // The icon stops casting; the row opens the speaker list and screen casting.
+            PanelRow {
+                icon: root.casting ? Icons.castConnected : Icons.cast
+                iconColor: Theme.teal
+                label: "Cast"
+                sublabel: root.casting && AirPlay.chosen.length > 0 ? `AirPlay - ${AirPlay.chosen.map(speaker => speaker.name).join(", ")}` : "AirPlay speakers and screen"
+                canToggle: root.casting
+                onToggled: root.stopCasting()
+                onOpened: root.view = NetworkPanel.View.Cast
             }
 
             DeviceBatteries {
@@ -360,6 +420,129 @@ BarPopup {
                             modelData.connect();
                         }
                     }
+                }
+            }
+        }
+    }
+
+    Component {
+        id: castView
+
+        ColumnLayout {
+            spacing: 4
+
+            Component.onCompleted: AirPlay.watching = true
+            Component.onDestruction: AirPlay.watching = false
+
+            BackButton {
+                title: "Cast"
+                onClicked: root.view = NetworkPanel.View.Main
+            }
+
+            BarText {
+                Layout.leftMargin: 12
+                text: "This computer"
+                color: Theme.subtext0
+                font.pixelSize: 11
+            }
+
+            Repeater {
+                model: ScriptModel {
+                    values: root.localOutputs
+                }
+
+                ListRow {
+                    required property PwNode modelData
+                    // GNOME Network Displays leaves its sink behind; picking it sends audio along
+                    // with a screen cast.
+                    readonly property bool screenCast: modelData.name.startsWith("gnome_network_displays")
+
+                    Layout.fillWidth: true
+                    icon: screenCast ? Icons.monitorShare : Icons.speaker
+                    label: screenCast ? "Screen cast" : root.outputName(modelData)
+                    sublabel: screenCast ? "With Cast screen" : ""
+                    active: modelData === root.output
+                    accent: Theme.teal
+                    onClicked: {
+                        if (root.casting)
+                            AirPlay.select([]);
+                        root.playOn(modelData);
+                    }
+                }
+            }
+
+            BarText {
+                Layout.leftMargin: 12
+                Layout.topMargin: 6
+                text: "AirPlay"
+                color: Theme.subtext0
+                font.pixelSize: 11
+            }
+
+            // Several can play at once (multi-room); AirPlay buffers about 2 s, so it suits music.
+            Repeater {
+                model: ScriptModel {
+                    values: AirPlay.speakers
+                    objectProp: "id"
+                }
+
+                ListRow {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    icon: Icons.speakerWireless
+                    label: modelData.name
+                    sublabel: modelData.failed ? "Couldn't connect" : modelData.chosen ? (root.casting ? "Playing" : "Selected") : ""
+                    active: modelData.chosen && root.casting
+                    accent: Theme.teal
+                    onClicked: root.toggleSpeaker(modelData)
+                }
+            }
+
+            // The first connection to a TV shows a code on its screen.
+            Repeater {
+                model: ScriptModel {
+                    values: AirPlay.speakers.filter(speaker => speaker.needsPin)
+                    objectProp: "id"
+                }
+
+                PasswordField {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    title: `Code shown on ${modelData.name}, if any`
+                    onSubmitted: pin => AirPlay.submitPin(modelData, pin)
+                    onCancelled: AirPlay.toggle(modelData)
+                }
+            }
+
+            BarText {
+                visible: text !== ""
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                text: {
+                    if (!AirPlay.available)
+                        return "AirPlay isn't running (the owntone user service)";
+                    if (AirPlay.error !== "")
+                        return AirPlay.error;
+                    return AirPlay.speakers.length === 0 ? "No AirPlay speakers found on the network" : "";
+                }
+                color: AirPlay.available && AirPlay.error === "" ? Theme.overlay0 : Theme.red
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
+
+            // Screen mirroring goes over Chromecast: there is no open-source AirPlay video sender.
+            ListRow {
+                Layout.fillWidth: true
+                Layout.topMargin: 6
+                icon: Icons.monitorShare
+                label: "Cast screen"
+                sublabel: "Chromecast"
+                onClicked: {
+                    Quickshell.execDetached(["gnome-network-displays"]);
+                    root.visible = false;
                 }
             }
         }
