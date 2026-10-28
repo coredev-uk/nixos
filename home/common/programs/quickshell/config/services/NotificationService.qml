@@ -31,8 +31,21 @@ Singleton {
     }
 
     function clearAll() {
+        dismiss(entries);
+    }
+
+    // The app a notification is labelled with, and grouped under in the centre.
+    function appName(notification: Notification): string {
+        return notification?.appName || DesktopEntries.byId(notification?.desktopEntry ?? "")?.name || "Notification";
+    }
+
+    function clearApp(app: string) {
+        dismiss(entries.filter(entry => appName(entry.notification) === app));
+    }
+
+    function dismiss(list: var) {
         // dismiss() removes the entry through its closed signal.
-        for (const entry of entries.slice())
+        for (const entry of list.slice())
             entry.notification.dismiss();
     }
 

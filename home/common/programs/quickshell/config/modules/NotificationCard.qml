@@ -20,6 +20,11 @@ Rectangle {
     // For the relative time; the centre ticks it, popups are always recent.
     property double now: Date.now()
     property int bodyLines: 4
+    // How many more of the app's notifications sit collapsed behind this one in the centre: shown
+    // as a badge, and clicking the card asks to expand them instead of running its action.
+    property int stacked: 0
+
+    signal expand
 
     readonly property Notification notification: entry?.notification ?? null
     readonly property bool hovered: hover.hovered
@@ -67,8 +72,13 @@ Rectangle {
 
     MouseArea {
         anchors.fill: parent
-        cursorShape: root.hasDefault ? Qt.PointingHandCursor : Qt.ArrowCursor
-        onClicked: NotificationService.activate(root.entry)
+        cursorShape: root.hasDefault || root.stacked > 0 ? Qt.PointingHandCursor : Qt.ArrowCursor
+        onClicked: {
+            if (root.stacked > 0)
+                root.expand();
+            else
+                NotificationService.activate(root.entry);
+        }
     }
 
     ColumnLayout {
@@ -120,10 +130,27 @@ Rectangle {
 
                     BarText {
                         Layout.fillWidth: true
-                        text: `${root.notification?.appName || root.desktopEntry?.name || "Notification"} · ${root.relativeTime(root.now - (root.entry?.time ?? root.now))}`
+                        text: `${NotificationService.appName(root.notification)} · ${root.relativeTime(root.now - (root.entry?.time ?? root.now))}`
                         color: root.critical ? Theme.red : Theme.subtext0
                         font.pixelSize: 11
                         elide: Text.ElideRight
+                    }
+
+                    Rectangle {
+                        visible: root.stacked > 0
+                        implicitWidth: moreText.implicitWidth + 12
+                        implicitHeight: 18
+                        radius: 6
+                        color: root.inner
+
+                        BarText {
+                            id: moreText
+
+                            anchors.centerIn: parent
+                            text: `${root.stacked} more`
+                            color: Theme.subtext0
+                            font.pixelSize: 11
+                        }
                     }
 
                     Rectangle {

@@ -9,13 +9,29 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Notification history under the bell: every notification not yet dismissed, newest first.
+// Notification history under the bell: every notification not yet dismissed, grouped by app.
+// Groups are ordered by their newest notification, newest first inside; a group of several is a
+// stack of its newest card that expands on click.
 BarPopup {
     id: root
 
     // Opened over IPC (a key binding) the bar has had no input, which the popup grab needs, so
     // Hyprland drops it at once; Hyprland's focus grab does the dismissing instead.
     property bool fromIpc: false
+    // Apps whose stack is expanded, by name. Dropped once an app is down to one notification, so
+    // its next stack starts collapsed.
+    property var expandedApps: []
+    // App names, in the order of their newest notification (entries are newest first).
+    readonly property var apps: [...new Set(NotificationService.entries.map(entry => NotificationService.appName(entry.notification)))]
+
+    function entriesOf(app: string): var {
+        return NotificationService.entries.filter(entry => NotificationService.appName(entry.notification) === app);
+    }
+
+    function setExpanded(app: string, expanded: bool) {
+        const others = expandedApps.filter(other => other !== app);
+        expandedApps = expanded ? [...others, app] : others;
+    }
 
     function toggleFromIpc() {
         if (!visible)
@@ -36,6 +52,16 @@ BarPopup {
         active: root.fromIpc && root.visible
         windows: [root]
         onCleared: root.visible = false
+    }
+
+    Connections {
+        target: NotificationService
+
+        function onEntriesChanged() {
+            const kept = root.expandedApps.filter(app => root.entriesOf(app).length > 1);
+            if (kept.length !== root.expandedApps.length)
+                root.expandedApps = kept;
+        }
     }
 
     SystemClock {
@@ -126,19 +152,139 @@ BarPopup {
                 spacing: 6
                 ScrollBar.vertical: ListScrollBar {}
                 model: ScriptModel {
-                    values: NotificationService.entries
+                    values: root.apps
                 }
-                delegate: NotificationCard {
-                    required property QtObject modelData
+                delegate: Item {
+                    id: group
+
+                    required property string modelData
+                    readonly property var entries: root.entriesOf(modelData)
+                    readonly property bool expanded: entries.length > 1 && root.expandedApps.includes(modelData)
+                    // Cards peeking out below a collapsed stack, at most two. Kept off the empty
+                    // group a delegate briefly holds on its way out.
+                    readonly property int layers: expanded ? 0 : Math.max(0, Math.min(entries.length - 1, 2))
+                    // Only expanding and collapsing animate the height, not cards coming and going.
+                    property bool animating: false
+
+                    function setExpanded(expanded: bool) {
+                        animating = true;
+                        settle.restart();
+                        root.setExpanded(modelData, expanded);
+                    }
 
                     width: list.width - (list.ScrollBar.vertical.visible ? 10 : 0)
-                    entry: modelData
-                    // The clock only paces it: its date is the start of the minute.
-                    now: {
-                        clock.date;
-                        return Date.now();
+                    implicitHeight: cards.implicitHeight + 5 * layers
+                    clip: animating
+
+                    Behavior on implicitHeight {
+                        enabled: group.animating
+
+                        NumberAnimation {
+                            duration: 200
+                            easing.type: Easing.OutCubic
+                        }
                     }
-                    bodyLines: 8
+
+                    Timer {
+                        id: settle
+
+                        interval: 250
+                        onTriggered: group.animating = false
+                    }
+
+                    // Behind the newest card, which is the only one shown while collapsed.
+                    Repeater {
+                        model: group.layers
+
+                        Rectangle {
+                            required property int index
+
+                            x: 8 * (index + 1)
+                            y: cards.implicitHeight - height + 5 * (index + 1)
+                            z: -index
+                            width: group.width - 2 * x
+                            height: 24
+                            radius: 8
+                            color: Qt.tint(Theme.base, Qt.alpha(Theme.mantle, 0.4 + 0.3 * index))
+                            border.color: Qt.alpha(Theme.surface0, 0.8 - 0.3 * index)
+                            border.width: 1
+                        }
+                    }
+
+                    Column {
+                        id: cards
+
+                        width: parent.width
+                        spacing: 6
+
+                        RowLayout {
+                            width: parent.width
+                            visible: group.expanded
+                            spacing: 6
+
+                            BarText {
+                                Layout.fillWidth: true
+                                Layout.leftMargin: 4
+                                text: group.modelData
+                                color: Theme.subtext0
+                                font.pixelSize: 12
+                                font.bold: true
+                                elide: Text.ElideRight
+                            }
+
+                            HeaderButton {
+                                icon: Icons.chevronUp
+                                label: "Show less"
+                                onClicked: group.setExpanded(false)
+                            }
+
+                            HeaderButton {
+                                icon: Icons.notificationClearAll
+                                label: "Clear"
+                                onClicked: NotificationService.clearApp(group.modelData)
+                            }
+                        }
+
+                        Repeater {
+                            model: ScriptModel {
+                                values: group.entries
+                            }
+
+                            NotificationCard {
+                                required property QtObject modelData
+                                required property int index
+
+                                width: group.width
+                                visible: index === 0 || group.expanded
+                                entry: modelData
+                                // The clock only paces it: its date is the start of the minute.
+                                now: {
+                                    clock.date;
+                                    return Date.now();
+                                }
+                                bodyLines: 8
+                                stacked: index === 0 && !group.expanded ? group.entries.length - 1 : 0
+                                onExpand: group.setExpanded(true)
+                            }
+                        }
+
+                        add: Transition {
+                            NumberAnimation {
+                                property: "opacity"
+                                from: 0
+                                to: 1
+                                duration: 200
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                        move: Transition {
+                            NumberAnimation {
+                                property: "y"
+                                duration: 200
+                                easing.type: Easing.OutCubic
+                            }
+                        }
+                    }
                 }
 
                 add: Transition {
