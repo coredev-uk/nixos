@@ -16,7 +16,6 @@ Singleton {
     readonly property string logout: String.fromCodePoint(0xF0343) // logout
     readonly property string restart: String.fromCodePoint(0xF0709) // restart
     readonly property string sleep: String.fromCodePoint(0xF04B2) // sleep
-    readonly property string windows: String.fromCodePoint(0xF05B3) // microsoft_windows
     readonly property string monitor: String.fromCodePoint(0xF0379) // monitor
     readonly property string coffee: String.fromCodePoint(0xF0176) // coffee
     readonly property string coffeeOff: String.fromCodePoint(0xF06CA) // coffee_outline

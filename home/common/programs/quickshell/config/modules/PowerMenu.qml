@@ -6,10 +6,10 @@ import Quickshell.Io
 import qs.common
 import qs.widgets
 
-// Session actions. Log out, reboot, the Windows ones and shut down need a second click to confirm.
-// Windows comes from the VFIO module (hosts/common/services/vfio.nix): its VM with the GPU passed
-// through (which ends this session) and a reboot straight into Windows, each shown when its
-// command is on PATH.
+// Session actions, then Windows in a section of its own. Log out, reboot, shut down and both
+// Windows ones need a second click to confirm. The Windows ones come from the VFIO module
+// (hosts/common/services/vfio.nix): a reboot into Windows, or the same install in a VM with the
+// GPU passed through while Linux keeps running underneath; each shown when its command is on PATH.
 BarPopup {
     id: root
 
@@ -53,26 +53,6 @@ BarPopup {
             run: () => Quickshell.execDetached(["systemctl", "reboot"])
         },
         {
-            id: "windows",
-            label: "Restart to Windows",
-            icon: Icons.windows,
-            color: Theme.sapphire,
-            confirm: true,
-            confirmLabel: "Click again for Windows",
-            command: "vfio-boot-native",
-            run: () => Quickshell.execDetached(["vfio-boot-native"])
-        },
-        {
-            id: "windowsVm",
-            label: "Windows VM",
-            icon: Icons.monitor,
-            color: Theme.teal,
-            confirm: true,
-            confirmLabel: "Click again to start the VM",
-            command: "vfio-start-vm",
-            run: () => Quickshell.execDetached(["vfio-start-vm"])
-        },
-        {
             id: "poweroff",
             label: "Shut down",
             icon: Icons.power,
@@ -80,7 +60,30 @@ BarPopup {
             confirm: true,
             run: () => Quickshell.execDetached(["systemctl", "poweroff"])
         }
-    ].filter(action => !action.command || commands.includes(action.command))
+    ]
+
+    readonly property var windowsActions: [
+        {
+            id: "windows",
+            label: "Restart into Windows",
+            icon: Icons.restart,
+            color: Theme.sapphire,
+            confirm: true,
+            confirmLabel: "Click again to restart",
+            command: "vfio-boot-native",
+            run: () => Quickshell.execDetached(["vfio-boot-native"])
+        },
+        {
+            id: "windowsVm",
+            label: "Open in a VM",
+            icon: Icons.monitor,
+            color: Theme.teal,
+            confirm: true,
+            confirmLabel: "Click again to open",
+            command: "vfio-start-vm",
+            run: () => Quickshell.execDetached(["vfio-start-vm"])
+        }
+    ].filter(action => commands.includes(action.command))
 
     Process {
         running: true
@@ -126,18 +129,48 @@ BarPopup {
             Repeater {
                 model: root.actions
 
-                ListRow {
-                    required property var modelData
-                    readonly property bool armed: root.pending === modelData.id
+                ActionRow {}
+            }
 
-                    Layout.fillWidth: true
-                    icon: modelData.icon
-                    label: armed ? modelData.confirmLabel ?? `Click again to ${modelData.label.toLowerCase()}` : modelData.label
-                    active: armed
-                    accent: modelData.color
-                    onClicked: root.activate(modelData)
-                }
+            // The Windows section, under a rule and its own heading.
+            Rectangle {
+                visible: root.windowsActions.length > 0
+                Layout.fillWidth: true
+                Layout.leftMargin: 8
+                Layout.rightMargin: 8
+                Layout.topMargin: 4
+                Layout.bottomMargin: 4
+                implicitHeight: 1
+                color: Theme.surface0
+            }
+
+            BarText {
+                visible: root.windowsActions.length > 0
+                Layout.leftMargin: 12
+                Layout.topMargin: 2
+                Layout.bottomMargin: 2
+                text: "Windows"
+                color: Theme.subtext0
+                font.pixelSize: 11
+            }
+
+            Repeater {
+                model: root.windowsActions
+
+                ActionRow {}
             }
         }
+    }
+
+    component ActionRow: ListRow {
+        required property var modelData
+        readonly property bool armed: root.pending === modelData.id
+
+        Layout.fillWidth: true
+        icon: modelData.icon
+        label: armed ? modelData.confirmLabel ?? `Click again to ${modelData.label.toLowerCase()}` : modelData.label
+        active: armed
+        accent: modelData.color
+        onClicked: root.activate(modelData)
     }
 }
