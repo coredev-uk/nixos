@@ -10,6 +10,8 @@ _: {
       show_startup_tips = false;
       show_release_notes = false;
       ui.pane_frames.rounded_corners = true;
+      # Plain separators in the tab and status bars instead of powerline triangles.
+      simplified_ui = true;
     };
 
     extraConfig = ''
