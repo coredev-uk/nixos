@@ -121,7 +121,9 @@ list() {
 			| sort_by(.title | ascii_downcase)'
 }
 
-# The non-secret side of one item, plus which secrets it has. `primary` is the field Enter copies.
+# The non-secret side of one item, plus which secrets it has. `primary` is the field Enter copies;
+# `apiKeys` are the custom fields named like an API key ("SONARR_API_KEY", "API key"), by their
+# position, since two of them may share a name.
 # The content is serde's externally tagged ItemContent from proton-pass-types, e.g.
 # {"Login": {"username", "email", "password", "urls", "totp_uri", …}}.
 details() {
@@ -146,19 +148,28 @@ details() {
 				elif $type == "credit_card" and ($data.number | filled) then "number"
 				elif $type == "ssh_key" and ($data.private_key | filled) then "private_key"
 				elif $type == "note" and ($item.content.note | filled) then "note"
-				else "" end)
+				else "" end),
+			apiKeys: [($item.content.extra_fields // []) | to_entries[]
+				| select((.value.name // "") | test("api[ _-]?key"; "i"))
+				| {index: .key, name: .value.name}]
 		}'
 }
 
-# One field (password, totp → current code, …) onto the clipboard, marked sensitive so clipboard
-# managers skip it, and off it again after $clear_after seconds unless something else was copied
-# since. Read into a variable (not piped) so a failed lookup leaves the clipboard alone; only its
-# hash outlives this function.
+# One field (password, totp → current code, extra:N → the Nth custom field, …) onto the
+# clipboard, marked sensitive so clipboard managers skip it, and off it again after $clear_after
+# seconds unless something else was copied since. Read into a variable (not piped) so a failed
+# lookup leaves the clipboard alone; only its hash outlives this function.
 copy() {
 	local value hash token
-	value=$(cli item view --share-id "$1" --item-id "$2" --field "$3")
+	if [[ $3 =~ ^extra:([0-9]+)$ ]]; then
+		# By position: pass-cli's --field takes a name, and custom field names can repeat.
+		value=$(cli item view --share-id "$1" --item-id "$2" --output json |
+			jq -j --argjson i "${BASH_REMATCH[1]}" '.item.content.extra_fields[$i].content // {} | to_entries[0].value // ""')
+	else
+		value=$(cli item view --share-id "$1" --item-id "$2" --field "$3")
+	fi
 	if [[ -z $value ]]; then
-		echo "The item has no $3" >&2
+		echo "The item has no ${3/#extra:*/such field}" >&2
 		return 1
 	fi
 	hash=$(printf '%s' "$value" | sha256sum)

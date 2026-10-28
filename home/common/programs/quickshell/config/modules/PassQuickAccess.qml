@@ -12,9 +12,10 @@ import qs.widgets
 
 // Proton Pass quick access (`quickshell ipc -c bar call pass toggle`), laid out like 1Password's:
 // search every vault from the focused monitor, Enter opens the item's actions (copy username,
-// password or one-time code, open the login's website in the browser). The copy and open keys
-// also work straight from the list on the highlighted item. There is no "Open in Proton Pass":
-// the desktop app's protonpass:// links only cover sign-in, and the web app signs in every time.
+// password, one-time code or API keys, open the login's website in the browser). The copy and
+// open keys also work straight from the list on the highlighted item. There is no "Open in
+// Proton Pass": the desktop app's protonpass:// links only cover sign-in, and the web app signs
+// in every time.
 // Secrets go from pass-cli to the clipboard inside the quickshell-pass helper (scripts/pass.sh),
 // which clears them again after 45s; services/Pass.qml holds only titles and non-secret details.
 Scope {
@@ -100,6 +101,21 @@ Scope {
                 label: "Copy one-time code",
                 shortcut: "Ctrl+Alt+C"
             });
+        // One row per API key field, named by the field (numbered when names repeat). The
+        // confirmation says which one was copied when there are several.
+        const apiKeys = info?.apiKeys ?? [];
+        for (const field of apiKeys) {
+            const same = apiKeys.filter(other => other.name === field.name);
+            const name = same.length > 1 ? `${field.name} (${same.indexOf(field) + 1})` : field.name;
+            list.push({
+                id: `apiKey:${field.index}`,
+                icon: Icons.keyChain,
+                label: "Copy API key",
+                detail: name,
+                what: apiKeys.length > 1 ? name : "API key",
+                shortcut: ""
+            });
+        }
         const url = info?.urls[0] ?? "";
         if (url !== "")
             list.push({
@@ -231,15 +247,17 @@ Scope {
         openedItem = null;
     }
 
-    function runAction(id: string) {
-        if (id === "user")
+    function runAction(action: var) {
+        if (action.id === "user")
             copyUser();
-        else if (id === "primary")
+        else if (action.id === "primary")
             copyPrimary();
-        else if (id === "totp")
+        else if (action.id === "totp")
             copyTotp();
-        else if (id === "url")
+        else if (action.id === "url")
             openUrl();
+        else if (action.id.startsWith("apiKey:"))
+            Pass.copySecret(target, `extra:${action.id.slice(7)}`, action.what);
     }
 
     function copyPrimary() {
@@ -301,7 +319,7 @@ Scope {
             else if (event.key === Qt.Key_Down)
                 actionIndex = Math.min(actions.length - 1, actionIndex + 1);
             else if (enter && actions[actionIndex])
-                runAction(actions[actionIndex].id);
+                runAction(actions[actionIndex]);
             else
                 return;
         } else if (event.key === Qt.Key_Up) {
@@ -711,7 +729,7 @@ Scope {
                                     shortcut: modelData.shortcut
                                     highlighted: index === root.actionIndex
                                     onHovered: root.actionIndex = index
-                                    onClicked: root.runAction(modelData.id)
+                                    onClicked: root.runAction(modelData)
                                 }
                             }
                         }
