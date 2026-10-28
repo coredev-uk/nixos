@@ -58,13 +58,8 @@ in
       "ddcci-nvidia-attach.service"
       "openrgb.service"
     ];
-    desktopItem = {
-      name = "windows";
-      desktopName = "Windows";
-      comment = "Start the Windows 11 VM, or boot natively into Windows";
-      icon = "vfio-windows-11";
-      nativeBootEfiEntry = "Windows Boot Manager";
-    };
+    # Offered in the shell's power menu, as is starting the VM.
+    nativeBootEfiEntry = "Windows Boot Manager";
   };
 
   # Split top-io usb controller for vfio passthrough

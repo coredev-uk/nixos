@@ -22,8 +22,7 @@ let
 
   cfg = config.services.vfioSingleGpu;
   userUid = toString config.users.users.${cfg.user}.uid;
-  desktopItemName = "start-${cfg.vmName}-vfio";
-  nativeBootEnabled = cfg.desktopItem.nativeBootEfiEntry != null;
+  nativeBootEnabled = cfg.nativeBootEfiEntry != null;
   vfioStartUnitName = "${cfg.vmName}-vfio-start";
   nativeBootUnitName = "${cfg.vmName}-native-boot";
   allowedStartUnits = [
@@ -37,15 +36,6 @@ let
   userProcessesWaitSeconds = toString cfg.userProcessesWaitSeconds;
   recoveryTimeoutSeconds = toString cfg.recoveryTimeoutSeconds;
   vbiosPath = "/run/libvirt/${cfg.vmName}-vfio/gpu.rom";
-  desktopIcon = pkgs.stdenvNoCC.mkDerivation {
-    pname = "${cfg.vmName}-desktop-icon";
-    version = "1";
-    src = ./assets/vfio-windows-11.png;
-    dontUnpack = true;
-    installPhase = ''
-      install -Dm0644 "$src" "$out/share/icons/hicolor/256x256/apps/${cfg.desktopItem.icon}.png"
-    '';
-  };
   # AMD-Vi is enabled by default; amd_iommu= takes no "on" value.
   iommuKernelParams = [
     "iommu=pt"
@@ -106,7 +96,9 @@ let
     ${pkgs.libvirt}/bin/virsh -c ${escapeShellArg cfg.libvirtUri} start ${escapeShellArg cfg.vmName}
   '';
 
-  startVfio = pkgs.writeShellScriptBin desktopItemName ''
+  # The shell's power menu (home/common/programs/quickshell/config/modules/PowerMenu.qml) offers
+  # these two by name when they're on PATH.
+  startVfio = pkgs.writeShellScriptBin "vfio-start-vm" ''
     set -euo pipefail
 
     VIRSH="${pkgs.libvirt}/bin/virsh"
@@ -123,7 +115,7 @@ let
       pkgs.writeShellScript "${cfg.vmName}-native-boot" ''
         set -euo pipefail
 
-        bootnum="$(${pkgs.efibootmgr}/bin/efibootmgr | ${pkgs.gawk}/bin/awk -v pattern=${escapeShellArg cfg.desktopItem.nativeBootEfiEntry} '
+        bootnum="$(${pkgs.efibootmgr}/bin/efibootmgr | ${pkgs.gawk}/bin/awk -v pattern=${escapeShellArg cfg.nativeBootEfiEntry} '
           /^Boot[0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f][0-9A-Fa-f]/ && index($0, pattern) {
             bootnum = substr($1, 5, 4)
             sub(/\*$/, "", bootnum)
@@ -133,7 +125,7 @@ let
         ')"
 
         if [ -z "$bootnum" ]; then
-          echo "Could not find EFI boot entry matching ${escapeShellArg cfg.desktopItem.nativeBootEfiEntry}" >&2
+          echo "Could not find EFI boot entry matching ${escapeShellArg cfg.nativeBootEfiEntry}" >&2
           exit 1
         fi
 
@@ -148,51 +140,12 @@ let
   # is needed (a pkexec/polkit-agent GUI prompt proved unreliable here).
   startNativeBoot =
     if nativeBootEnabled then
-      pkgs.writeShellScriptBin nativeBootUnitName ''
+      pkgs.writeShellScriptBin "vfio-boot-native" ''
         set -euo pipefail
         ${pkgs.systemd}/bin/systemctl start ${escapeShellArg "${nativeBootUnitName}.service"}
       ''
     else
       null;
-
-  chooserScript =
-    if nativeBootEnabled then
-      pkgs.writeShellScript "${cfg.vmName}-vfio-chooser" ''
-        set -euo pipefail
-
-        choice="$(${pkgs.zenity}/bin/zenity --list \
-          --title=${escapeShellArg cfg.desktopItem.desktopName} \
-          --text=${escapeShellArg "How would you like to start ${cfg.desktopItem.desktopName}?"} \
-          --column=Option --hide-header \
-          --width=420 --height=220 \
-          "Launch Virtual Machine" \
-          ${escapeShellArg cfg.desktopItem.bootLabel})" || exit 0
-
-        case "$choice" in
-          "Launch Virtual Machine")
-            exec ${startVfio}/bin/${desktopItemName}
-            ;;
-          ${escapeShellArg cfg.desktopItem.bootLabel})
-            ${pkgs.zenity}/bin/zenity --question \
-              --title="Reboot required" \
-              --text=${escapeShellArg "This will reboot the computer into ${cfg.desktopItem.desktopName} now. Continue?"} \
-              --ok-label="Reboot" --cancel-label="Cancel" || exit 0
-            exec ${startNativeBoot}/bin/${nativeBootUnitName}
-            ;;
-        esac
-      ''
-    else
-      null;
-
-  startDesktopItem = pkgs.makeDesktopItem {
-    name = cfg.desktopItem.name;
-    desktopName = cfg.desktopItem.desktopName;
-    comment = cfg.desktopItem.comment;
-    exec = if nativeBootEnabled then "${chooserScript}" else "${startVfio}/bin/${desktopItemName}";
-    icon = cfg.desktopItem.icon;
-    categories = cfg.desktopItem.categories;
-    terminal = false;
-  };
 
   gpuHook = pkgs.writeShellScript "${cfg.vmName}-vfio-hook" ''
     set -euo pipefail
@@ -687,49 +640,11 @@ in
       description = "Kernel modules to reload after the VM stops.";
     };
 
-    desktopItem = {
-      name = mkOption {
-        type = types.str;
-        default = cfg.vmName;
-        description = "Desktop file id for the VM launcher.";
-      };
-
-      desktopName = mkOption {
-        type = types.str;
-        default = cfg.vmName;
-        description = "Display name for the VM launcher.";
-      };
-
-      comment = mkOption {
-        type = types.str;
-        default = "Start ${cfg.vmName} with single-GPU passthrough";
-        description = "Comment shown by desktop launchers.";
-      };
-
-      icon = mkOption {
-        type = types.str;
-        default = "computer";
-        description = "Icon name for the VM launcher.";
-      };
-
-      categories = mkOption {
-        type = types.listOf types.str;
-        default = [ "System" ];
-        description = "Desktop menu categories for the VM launcher.";
-      };
-
-      nativeBootEfiEntry = mkOption {
-        type = types.nullOr types.str;
-        default = null;
-        example = "Windows Boot Manager";
-        description = "EFI boot entry label to BootNext into and reboot, instead of starting the VM. When set, the launcher shows a chooser dialog offering the VM or this native boot. Authorized via the same polkit rule as the VM start action, so no password prompt is needed.";
-      };
-
-      bootLabel = mkOption {
-        type = types.str;
-        default = "Boot into Windows";
-        description = "Label for the native-boot option in the chooser dialog. Only used when nativeBootEfiEntry is set.";
-      };
+    nativeBootEfiEntry = mkOption {
+      type = types.nullOr types.str;
+      default = null;
+      example = "Windows Boot Manager";
+      description = "EFI boot entry that `vfio-boot-native` sets as BootNext before rebooting, to start the guest's OS on the hardware instead of in the VM. Authorized via the same polkit rule as the VM start action, so no password prompt is needed.";
     };
   };
 
@@ -759,9 +674,7 @@ in
     environment.systemPackages =
       with pkgs;
       [
-        desktopIcon
         looking-glass-client
-        startDesktopItem
         startVfio
         swtpm
         virt-viewer
@@ -786,7 +699,7 @@ in
     }
     // lib.optionalAttrs nativeBootEnabled {
       ${nativeBootUnitName} = {
-        description = "Reboot into EFI entry ${cfg.desktopItem.nativeBootEfiEntry}";
+        description = "Reboot into EFI entry ${cfg.nativeBootEfiEntry}";
         restartIfChanged = false;
         unitConfig.CollectMode = "inactive-or-failed";
         serviceConfig = {

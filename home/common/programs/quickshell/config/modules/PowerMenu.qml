@@ -2,15 +2,21 @@ import QtQuick
 import QtQuick.Layouts
 import Quickshell
 import Quickshell.Hyprland
+import Quickshell.Io
 import qs.common
 import qs.widgets
 
-// Session actions. Log out, reboot and shut down need a second click to confirm.
+// Session actions. Log out, reboot, the Windows ones and shut down need a second click to confirm.
+// Windows comes from the VFIO module (hosts/common/services/vfio.nix): its VM with the GPU passed
+// through (which ends this session) and a reboot straight into Windows, each shown when its
+// command is on PATH.
 BarPopup {
     id: root
 
     // Action awaiting confirmation.
     property string pending: ""
+    // The Windows commands found on PATH.
+    property var commands: []
 
     readonly property var actions: [
         {
@@ -47,6 +53,26 @@ BarPopup {
             run: () => Quickshell.execDetached(["systemctl", "reboot"])
         },
         {
+            id: "windows",
+            label: "Restart to Windows",
+            icon: Icons.windows,
+            color: Theme.sapphire,
+            confirm: true,
+            confirmLabel: "Click again for Windows",
+            command: "vfio-boot-native",
+            run: () => Quickshell.execDetached(["vfio-boot-native"])
+        },
+        {
+            id: "windowsVm",
+            label: "Windows VM",
+            icon: Icons.monitor,
+            color: Theme.teal,
+            confirm: true,
+            confirmLabel: "Click again to start the VM",
+            command: "vfio-start-vm",
+            run: () => Quickshell.execDetached(["vfio-start-vm"])
+        },
+        {
             id: "poweroff",
             label: "Shut down",
             icon: Icons.power,
@@ -54,7 +80,15 @@ BarPopup {
             confirm: true,
             run: () => Quickshell.execDetached(["systemctl", "poweroff"])
         }
-    ]
+    ].filter(action => !action.command || commands.includes(action.command))
+
+    Process {
+        running: true
+        command: ["sh", "-c", "for c in vfio-boot-native vfio-start-vm; do command -v \"$c\" >/dev/null && echo \"$c\"; done"]
+        stdout: StdioCollector {
+            onStreamFinished: root.commands = text.split("\n").filter(line => line)
+        }
+    }
 
     function activate(action: var) {
         if (action.confirm && pending !== action.id) {
@@ -98,7 +132,7 @@ BarPopup {
 
                     Layout.fillWidth: true
                     icon: modelData.icon
-                    label: armed ? `Click again to ${modelData.label.toLowerCase()}` : modelData.label
+                    label: armed ? modelData.confirmLabel ?? `Click again to ${modelData.label.toLowerCase()}` : modelData.label
                     active: armed
                     accent: modelData.color
                     onClicked: root.activate(modelData)
