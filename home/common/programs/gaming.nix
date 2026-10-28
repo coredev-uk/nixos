@@ -48,6 +48,7 @@ in
 
   home.packages = with pkgs; [
     heroic
+    r2modman
     umu-launcher
     vulkan-tools
     wineWow64Packages.staging
