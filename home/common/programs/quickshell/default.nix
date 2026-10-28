@@ -1,5 +1,6 @@
 {
   config,
+  inputs,
   lib,
   pkgs,
   self,
@@ -51,6 +52,23 @@ let
     ];
     text = builtins.readFile ./scripts/pass.sh;
   };
+
+  # Events for the calendar popup (config/services/Calendar.qml): iCloud over CalDAV and the
+  # Sonarr/Radarr release calendars, from ~/.config/quickshell/calendars.json (kept out of git;
+  # format in the script's header). pass:// secrets come from Proton Pass; pass-cli is not a
+  # runtime input, for the same reason as quickshell-pass above. Built from the stable nixpkgs:
+  # unstable's caldav 3 pulls in niquests and urllib3-future, which aren't in the binary cache
+  # and whose test suites hang in the offline build sandbox.
+  quickshellCalendar =
+    let
+      stable = inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
+    in
+    stable.writers.writePython3Bin "quickshell-calendar" {
+      libraries = with stable.python3Packages; [
+        caldav
+        requests
+      ];
+    } (builtins.readFile ./scripts/calendar-events.py);
 
   # Session lock (config/lockscreen.qml): its own one-shot instance, run by hypridle's lock_cmd
   # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down.
@@ -111,5 +129,6 @@ in
     quickshellBatteries
     quickshellLock
     quickshellPass
+    quickshellCalendar
   ];
 }
