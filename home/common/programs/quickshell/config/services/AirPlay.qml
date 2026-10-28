@@ -25,7 +25,11 @@ Singleton {
     readonly property var chosen: speakers.filter(speaker => speaker.chosen)
     // The last failure, for the Cast view.
     property string error: ""
-    readonly property bool casting: Pipewire.defaultAudioSink?.name === "airplay"
+    // The sink that feeds OwnTone; casting means it is the default output.
+    readonly property PwNode sink: Pipewire.nodes.values.find(node => node.name === "airplay") ?? null
+    readonly property bool casting: sink !== null && Pipewire.defaultAudioSink === sink
+    // Where stop() goes back to.
+    property PwNode lastLocalOutput: null
     readonly property var player: Media.player
     // Changes with the track; the periodic resend covers OwnTone (re)starting the pipe.
     readonly property string track: [player?.trackTitle, player?.trackArtist, player?.trackAlbum, player?.trackArtUrl].join("\n")
@@ -89,6 +93,34 @@ Singleton {
         select(ids);
     }
 
+    // Streams that follow the default output move with it.
+    function playOn(node: PwNode) {
+        Pipewire.preferredDefaultAudioSink = node;
+    }
+
+    // Back to this computer's last output (the first by name if there was none), speakers off.
+    function stop() {
+        select([]);
+        const local = lastLocalOutput ?? Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio && node !== sink).sort((a, b) => (a.description || a.name).localeCompare(b.description || b.name))[0];
+        if (local)
+            playOn(local);
+    }
+
+    // Picking a speaker routes the computer's audio into OwnTone; the last one off routes it back.
+    // A speaker still chosen from last time resumes instead of turning off.
+    function toggleSpeaker(speaker: var) {
+        if (speaker.chosen && !casting && sink) {
+            playOn(sink);
+            return;
+        }
+        const remaining = chosen.filter(other => other.id !== speaker.id).length;
+        toggle(speaker);
+        if (!speaker.chosen && sink && !casting)
+            playOn(sink);
+        else if (speaker.chosen && remaining === 0)
+            stop();
+    }
+
     // The code shown on the device's screen; once paired, it is selected again.
     function submitPin(speaker: var, pin: string) {
         error = "";
@@ -108,10 +140,27 @@ Singleton {
         metadata.running = true;
     }
 
+    function rememberOutput() {
+        const output = Pipewire.defaultAudioSink;
+        if (output && output !== sink)
+            lastLocalOutput = output;
+    }
+
     onTrackChanged: sendMetadata()
     onCastingChanged: sendMetadata()
 
-    Component.onCompleted: refresh()
+    Component.onCompleted: {
+        rememberOutput();
+        refresh();
+    }
+
+    Connections {
+        target: Pipewire
+
+        function onDefaultAudioSinkChanged() {
+            root.rememberOutput();
+        }
+    }
 
     Timer {
         running: root.watching

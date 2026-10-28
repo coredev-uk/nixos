@@ -29,49 +29,13 @@ BarPopup {
     property string wifiError: ""
     // Per-app volume list under the volume slider; kept while the panel is reopened.
     property bool mixerExpanded: false
-    // This computer's outputs for the Cast view; "airplay" is the sink that feeds OwnTone
-    // (home/common/programs/airplay.nix), whose speakers are listed separately.
-    readonly property var localOutputs: Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio && node.name !== "airplay").sort((a, b) => outputName(a).localeCompare(outputName(b)))
-    readonly property PwNode airplaySink: Pipewire.nodes.values.find(node => node.name === "airplay") ?? null
+    // This computer's outputs for the Cast view; AirPlay's sink feeds OwnTone, whose speakers are
+    // listed separately.
+    readonly property var localOutputs: Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio && node !== AirPlay.sink).sort((a, b) => outputName(a).localeCompare(outputName(b)))
     readonly property PwNode output: Pipewire.defaultAudioSink
-    readonly property bool casting: output !== null && output === airplaySink
-    // Where Stop casting goes back to.
-    property PwNode lastLocalOutput: null
 
     function outputName(node: PwNode): string {
         return node.description || node.nickname || node.name;
-    }
-
-    // Streams that follow the default output move with it.
-    function playOn(node: PwNode) {
-        Pipewire.preferredDefaultAudioSink = node;
-    }
-
-    function stopCasting() {
-        AirPlay.select([]);
-        const local = lastLocalOutput ?? localOutputs[0];
-        if (local)
-            playOn(local);
-    }
-
-    // Picking a speaker routes the computer's audio into OwnTone; the last one off routes it back.
-    // A speaker still chosen from last time resumes instead of turning off.
-    function toggleSpeaker(speaker: var) {
-        if (speaker.chosen && !casting && airplaySink) {
-            playOn(airplaySink);
-            return;
-        }
-        const remaining = AirPlay.chosen.filter(other => other.id !== speaker.id).length;
-        AirPlay.toggle(speaker);
-        if (!speaker.chosen && airplaySink && !casting)
-            playOn(airplaySink);
-        else if (speaker.chosen && remaining === 0)
-            stopCasting();
-    }
-
-    onOutputChanged: {
-        if (output && output !== airplaySink)
-            lastLocalOutput = output;
     }
 
     function updateScanner() {
@@ -218,12 +182,12 @@ BarPopup {
 
             // The icon stops casting; the row opens the speaker list and screen casting.
             PanelRow {
-                icon: root.casting ? Icons.castConnected : Icons.cast
+                icon: AirPlay.casting ? Icons.castConnected : Icons.cast
                 iconColor: Theme.teal
                 label: "Cast"
-                sublabel: root.casting && AirPlay.chosen.length > 0 ? `AirPlay - ${AirPlay.chosen.map(speaker => speaker.name).join(", ")}` : "AirPlay speakers and screen"
-                canToggle: root.casting
-                onToggled: root.stopCasting()
+                sublabel: AirPlay.casting && AirPlay.chosen.length > 0 ? `AirPlay - ${AirPlay.chosen.map(speaker => speaker.name).join(", ")}` : "AirPlay speakers and screen"
+                canToggle: AirPlay.casting
+                onToggled: AirPlay.stop()
                 onOpened: root.view = NetworkPanel.View.Cast
             }
 
@@ -464,9 +428,9 @@ BarPopup {
                     active: modelData === root.output
                     accent: Theme.teal
                     onClicked: {
-                        if (root.casting)
+                        if (AirPlay.casting)
                             AirPlay.select([]);
-                        root.playOn(modelData);
+                        AirPlay.playOn(modelData);
                     }
                 }
             }
@@ -479,7 +443,7 @@ BarPopup {
                 font.pixelSize: 11
             }
 
-            // Several can play at once (multi-room); AirPlay buffers about 2 s, so it suits music.
+            // Several can play at once (multi-room); they play about a second late, so it suits music.
             Repeater {
                 model: ScriptModel {
                     values: AirPlay.speakers
@@ -492,10 +456,10 @@ BarPopup {
                     Layout.fillWidth: true
                     icon: Icons.speakerWireless
                     label: modelData.name
-                    sublabel: modelData.failed ? "Couldn't connect" : modelData.chosen ? (root.casting ? "Playing" : "Selected") : ""
-                    active: modelData.chosen && root.casting
+                    sublabel: modelData.failed ? "Couldn't connect" : modelData.chosen ? (AirPlay.casting ? "Playing" : "Selected") : ""
+                    active: modelData.chosen && AirPlay.casting
                     accent: Theme.teal
-                    onClicked: root.toggleSpeaker(modelData)
+                    onClicked: AirPlay.toggleSpeaker(modelData)
                 }
             }
 

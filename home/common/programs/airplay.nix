@@ -9,9 +9,9 @@
 # PipeWire's own AirPlay sender only speaks AirPlay 1, which the HomePod and the TV refuse
 # (403 Forbidden), so OwnTone does the AirPlay 2 side: a PipeWire sink writes into a named pipe
 # in OwnTone's library, OwnTone starts playing as soon as data arrives and streams it to the
-# speakers selected through its JSON API (localhost:3689). AirPlay buffers about 2 s, so this is
-# for music rather than for watching video. The firewall side (UDP 6001-6002 for the speakers'
-# timing and control packets) is in hosts/common/desktop/casting.nix.
+# speakers selected through its JSON API (localhost:3689). Speakers play about a second behind
+# the computer, so this is for music rather than for watching video. The firewall side (UDP
+# 6001-6002 for the speakers' timing and control packets) is in hosts/common/desktop/casting.nix.
 let
   stateDir = "${config.xdg.stateHome}/owntone";
   fifo = "${stateDir}/music/system.fifo";
@@ -39,6 +39,10 @@ let
       ipv6 = false
       # Only the bar talks to it; the ports aren't open in the firewall either.
       trusted_networks = { "localhost" }
+      # How far ahead of the speakers OwnTone streams, which is how late play, pause and the
+      # sound itself reach them. The 2250 ms default is for first-generation AirPlay devices;
+      # OwnTone's own docs suggest current ones cope with 500. Raise it if speakers drop out.
+      start_buffer_ms = 750
     }
     library {
       name = "${config.home.username}"

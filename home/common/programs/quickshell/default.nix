@@ -144,6 +144,28 @@ let
     '';
   };
 
+  # Screen casting to Chromecast, opened from the panel's Cast view. The TV fetches the stream
+  # over HTTP, and whenever it (re)connects GNOME Network Displays replays it from the latest
+  # keyframe; with x264's default interval of 250 frames that left the TV up to ~8 s behind the
+  # screen. Its encoder loads x264enc's "Zero Latency" preset, so a copy of the preset file with
+  # a 1 s keyframe interval (and more bitrate to pay for the extra keyframes) takes over through
+  # GST_PRESET_PATH, for this app only.
+  x264Presets = pkgs.runCommand "gnome-network-displays-presets" { } ''
+    mkdir $out
+    substitute ${pkgs.gst_all_1.gst-plugins-ugly}/share/gstreamer-1.0/presets/GstX264Enc.prs \
+      $out/GstX264Enc.prs \
+      --replace-fail $'[Zero Latency]\ntune=zerolatency' $'[Zero Latency]\ntune=zerolatency\nkey-int-max=30\nbitrate=6000'
+  '';
+  gnomeNetworkDisplays = pkgs.symlinkJoin {
+    name = "gnome-network-displays";
+    paths = [ pkgs.gnome-network-displays ];
+    nativeBuildInputs = [ pkgs.makeWrapper ];
+    postBuild = ''
+      for bin in $out/bin/*; do
+        wrapProgram "$bin" --set GST_PRESET_PATH ${x264Presets}
+      done
+    '';
+  };
 in
 {
   programs.quickshell = {
@@ -172,8 +194,7 @@ in
     pkgs.iproute2
     # Holds the night light's session temperature (config/services/NightLight.qml).
     pkgs.hyprsunset
-    # Screen casting to Chromecast/Miracast, opened from the panel's Cast view.
-    pkgs.gnome-network-displays
+    gnomeNetworkDisplays
     quickshellVpn
     quickshellBatteries
     quickshellLock

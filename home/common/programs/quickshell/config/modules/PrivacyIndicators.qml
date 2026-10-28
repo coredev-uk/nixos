@@ -5,8 +5,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Coloured glyphs for whatever is being captured right now (macOS colours: orange microphone,
-// green camera, purple screen); hidden when nothing is. Click lists the apps.
+// Coloured glyphs for whatever is being captured or cast right now (macOS colours: orange
+// microphone, green camera, purple screen); hidden when nothing is. Click lists the apps.
 Item {
     id: root
 
@@ -34,6 +34,14 @@ Item {
             label: "System audio",
             icon: Icons.waveform,
             color: Theme.red
+        },
+        {
+            key: "cast",
+            label: "AirPlay",
+            icon: Icons.castConnected,
+            color: Theme.teal,
+            // Its entries are speakers, not apps.
+            entryIcon: Icons.speakerWireless
         }
     ]
     readonly property var activeCategories: categories.filter(category => Privacy[category.key].length > 0)
@@ -192,7 +200,7 @@ Item {
                                         Icon {
                                             anchors.centerIn: parent
                                             visible: app.modelData.icon === ""
-                                            text: Icons.application
+                                            text: card.modelData.entryIcon ?? Icons.application
                                             color: Theme.overlay0
                                         }
                                     }
