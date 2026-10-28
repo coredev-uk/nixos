@@ -11,6 +11,9 @@
     home-manager.url = "github:nix-community/home-manager";
     home-manager.inputs.nixpkgs.follows = "unstable";
 
+    impeccable.url = "github:pbakaus/impeccable";
+    impeccable.flake = false;
+
     lanzaboote.url = "github:nix-community/lanzaboote/v1.2.0";
     lanzaboote.inputs.nixpkgs.follows = "unstable";
 
@@ -47,6 +50,9 @@
 
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "unstable";
+
+    taste-skill.url = "github:Leonxlnx/taste-skill";
+    taste-skill.flake = false;
 
     treefmt-nix.url = "github:numtide/treefmt-nix";
     treefmt-nix.inputs.nixpkgs.follows = "unstable";
