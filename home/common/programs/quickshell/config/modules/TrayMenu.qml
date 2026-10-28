@@ -75,7 +75,7 @@ BarPopup {
                         anchors.fill: parent
                         radius: 6
                         color: area.containsMouse && entry.modelData.enabled ? Theme.surface0 : "transparent"
-                        opacity: entry.modelData.enabled ? 1 : 0.4
+                        opacity: entry.modelData.enabled ? 1 : 0.5
 
                         RowLayout {
                             id: row
@@ -87,7 +87,7 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.buttonType !== QsMenuButtonType.None
                                 text: entry.radio ? (entry.checked ? Icons.radioOn : Icons.radioOff) : (entry.checked ? Icons.checkboxOn : Icons.checkboxOff)
-                                color: Theme.blue
+                                color: entry.checked ? Theme.blue : Theme.overlay0
                                 font.pixelSize: 14
                             }
 
@@ -108,7 +108,7 @@ BarPopup {
                                 visible: entry.modelData.hasChildren
                                 text: Icons.chevronRight
                                 color: Theme.overlay0
-                                font.pixelSize: 12
+                                font.pixelSize: 14
                             }
                         }
 

@@ -146,7 +146,7 @@ BarPopup {
             PanelRow {
                 visible: NetworkStatus.wifiDevice !== null
                 icon: Networking.wifiEnabled && Networking.wifiHardwareEnabled ? Icons.wifi : Icons.wifiOff
-                iconColor: Theme.green
+                iconColor: Networking.wifiEnabled && Networking.wifiHardwareEnabled ? Theme.green : Theme.overlay0
                 label: "WiFi"
                 sublabel: !Networking.wifiHardwareEnabled ? "Off (hardware switch)" : NetworkStatus.wifiNetwork?.name ?? (Networking.wifiEnabled ? "Not connected" : "Off")
                 canOpen: Networking.wifiEnabled && Networking.wifiHardwareEnabled
@@ -169,7 +169,7 @@ BarPopup {
             PanelRow {
                 visible: root.adapter !== null
                 icon: root.adapter?.enabled ? Icons.bluetooth : Icons.bluetoothOff
-                iconColor: Theme.blue
+                iconColor: root.adapter?.enabled ? Theme.green : Theme.overlay0
                 label: "Bluetooth"
                 sublabel: root.adapter?.enabled ? "On" : "Off"
                 canOpen: root.adapter?.enabled ?? false
@@ -213,13 +213,24 @@ BarPopup {
             spacing: 4
 
             BackButton {
-                title: "WiFi Networks"
+                title: "WiFi networks"
                 onClicked: root.view = NetworkPanel.View.Main
             }
 
+            BarText {
+                visible: wifiList.count === 0
+                Layout.leftMargin: 12
+                text: "No networks found"
+                color: Theme.subtext0
+                font.pixelSize: 11
+            }
+
             ListView {
+                id: wifiList
+
+                visible: count > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 250
+                Layout.preferredHeight: Math.min(contentHeight, 250)
                 clip: true
                 ScrollBar.vertical: ListScrollBar {}
                 spacing: 2
@@ -297,7 +308,7 @@ BarPopup {
             spacing: 4
 
             BackButton {
-                title: "VPN Countries"
+                title: "VPN countries"
                 onClicked: root.view = NetworkPanel.View.Main
             }
 
@@ -306,12 +317,13 @@ BarPopup {
                 Layout.leftMargin: 12
                 text: Vpn.loadingCountries ? "Loading…" : "No countries available (signed in to protonvpn?)"
                 color: Theme.subtext0
-                font.pixelSize: 12
+                font.pixelSize: 11
             }
 
             ListView {
+                visible: count > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 250
+                Layout.preferredHeight: Math.min(contentHeight, 250)
                 clip: true
                 ScrollBar.vertical: ListScrollBar {}
                 spacing: 2
@@ -340,7 +352,7 @@ BarPopup {
             spacing: 4
 
             BackButton {
-                title: "Bluetooth Devices"
+                title: "Bluetooth devices"
                 onClicked: root.view = NetworkPanel.View.Main
             }
 
@@ -349,7 +361,7 @@ BarPopup {
                 Layout.bottomMargin: 4
                 icon: Icons.search
                 label: root.adapter?.discovering ? "Scanning…" : "Scan for devices"
-                active: true
+                active: root.adapter?.discovering ?? false
                 accent: Theme.blue
                 onClicked: {
                     if (!root.adapter)
@@ -359,9 +371,20 @@ BarPopup {
                 }
             }
 
+            BarText {
+                visible: btList.count === 0 && !(root.adapter?.discovering ?? false)
+                Layout.leftMargin: 12
+                text: "No devices found"
+                color: Theme.subtext0
+                font.pixelSize: 11
+            }
+
             ListView {
+                id: btList
+
+                visible: count > 0
                 Layout.fillWidth: true
-                Layout.preferredHeight: 220
+                Layout.preferredHeight: Math.min(contentHeight, 220)
                 clip: true
                 ScrollBar.vertical: ListScrollBar {}
                 spacing: 2
@@ -426,7 +449,6 @@ BarPopup {
                     label: screenCast ? "Screen cast" : root.outputName(modelData)
                     sublabel: screenCast ? "With Cast screen" : ""
                     active: modelData === root.output
-                    accent: Theme.teal
                     onClicked: {
                         if (AirPlay.casting)
                             AirPlay.select([]);
@@ -458,7 +480,6 @@ BarPopup {
                     label: modelData.name
                     sublabel: modelData.failed ? "Couldn't connect" : modelData.chosen ? (AirPlay.casting ? "Playing" : "Selected") : ""
                     active: modelData.chosen && AirPlay.casting
-                    accent: Theme.teal
                     onClicked: AirPlay.toggleSpeaker(modelData)
                 }
             }
@@ -476,7 +497,7 @@ BarPopup {
                     Layout.fillWidth: true
                     title: `Code shown on ${modelData.name}, if any`
                     onSubmitted: pin => AirPlay.submitPin(modelData, pin)
-                    onCancelled: AirPlay.toggle(modelData)
+                    onCancelled: AirPlay.dismissPin(modelData)
                 }
             }
 
@@ -486,6 +507,8 @@ BarPopup {
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
                 text: {
+                    if (!AirPlay.known)
+                        return "";
                     if (!AirPlay.available)
                         return "AirPlay isn't running (the owntone user service)";
                     if (AirPlay.error !== "")

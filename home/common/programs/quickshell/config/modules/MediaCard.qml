@@ -141,7 +141,7 @@ ClippingRectangle {
         implicitHeight: label.implicitHeight + 12
         radius: 8
         color: area.containsMouse ? Qt.rgba(accent.r, accent.g, accent.b, 0.15) : "transparent"
-        opacity: enabled ? 1 : 0.4
+        opacity: enabled ? 1 : 0.5
 
         Icon {
             id: label
@@ -170,7 +170,7 @@ ClippingRectangle {
             Layout.fillWidth: true
             text: root.player?.trackTitle || "Unknown Track"
             color: root.accent
-            font.pixelSize: 15
+            font.pixelSize: 13
             font.bold: true
         }
 
@@ -179,7 +179,7 @@ ClippingRectangle {
             text: [root.player?.trackArtist, root.player?.trackAlbum].filter(part => part).join(" - ") || "Unknown Artist"
             color: root.textColor
             opacity: 0.9
-            font.pixelSize: 13
+            font.pixelSize: 12
         }
 
         Row {

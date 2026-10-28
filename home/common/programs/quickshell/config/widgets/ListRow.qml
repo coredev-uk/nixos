@@ -18,6 +18,14 @@ Rectangle {
     implicitHeight: row.implicitHeight + 16
     radius: 6
     color: active ? Qt.rgba(accent.r, accent.g, accent.b, 0.1) : area.containsMouse ? Theme.surface0 : "transparent"
+    opacity: enabled ? 1 : 0.5
+
+    Behavior on opacity {
+        NumberAnimation {
+            duration: 150
+            easing.type: Easing.OutCubic
+        }
+    }
 
     RowLayout {
         id: row

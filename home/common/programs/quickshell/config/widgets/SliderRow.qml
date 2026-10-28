@@ -5,6 +5,7 @@ import qs.common
 
 // Panel row: icon (glyph or app icon), optional label, a full-width slider, its value (percent
 // unless valueText says otherwise), and optionally a chevron that expands extra content below the row.
+// The chevron's slot is kept on every row so tracks and values line up down the panel.
 Item {
     id: root
 
@@ -81,14 +82,14 @@ Item {
         }
 
         Rectangle {
-            visible: root.expandable
             implicitWidth: 22
             implicitHeight: 22
             radius: 6
-            color: expandArea.containsMouse ? Theme.surface0 : "transparent"
+            color: root.expandable && expandArea.containsMouse ? Theme.surface0 : "transparent"
 
             Icon {
                 anchors.centerIn: parent
+                visible: root.expandable
                 text: root.expanded ? Icons.chevronUp : Icons.chevronDown
                 color: Theme.overlay0
                 font.pixelSize: 14
@@ -97,6 +98,7 @@ Item {
             MouseArea {
                 id: expandArea
                 anchors.fill: parent
+                enabled: root.expandable
                 hoverEnabled: true
                 onClicked: root.expandToggled()
             }

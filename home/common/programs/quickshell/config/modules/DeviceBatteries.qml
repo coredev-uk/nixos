@@ -41,7 +41,7 @@ GridLayout {
             required property var modelData
             readonly property bool known: modelData.level !== null
             readonly property real level: known ? modelData.level : 0
-            readonly property color accent: !known ? Theme.overlay0 : modelData.charging ? Theme.blue : level > 50 ? Theme.green : level > 20 ? Theme.yellow : Theme.red
+            readonly property color accent: !known ? Theme.overlay0 : level > 50 ? Theme.green : level > 20 ? Theme.yellow : Theme.red
 
             Layout.fillWidth: true
             Layout.preferredWidth: 1 // equal columns

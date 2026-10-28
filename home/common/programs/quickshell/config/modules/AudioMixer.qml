@@ -35,7 +35,7 @@ ColumnLayout {
         Layout.topMargin: 4
         Layout.bottomMargin: 4
         text: "No apps are playing audio"
-        color: Theme.overlay0
+        color: Theme.subtext0
         font.pixelSize: 11
     }
 

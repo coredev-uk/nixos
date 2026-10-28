@@ -3,6 +3,7 @@ import Quickshell.Services.SystemTray
 import Quickshell.Widgets
 
 Row {
+    visible: SystemTray.items.values.length > 0
     spacing: 10
 
     Repeater {

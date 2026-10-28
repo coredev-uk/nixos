@@ -62,12 +62,19 @@ def config_path():
 
 
 def read_secret(ref):
+    # As in pass.sh: without the dbus key store, pass-cli falls back to the
+    # kernel keyring, is denied, and deletes the signed-in session. Callers
+    # (the bar, the lock under hypridle) can start before the session
+    # variables are in place, so don't rely on them.
+    env = dict(os.environ, PROTON_PASS_LINUX_KEYRING="dbus",
+               PROTON_PASS_NO_UPDATE_CHECK="1")
     try:
         proc = subprocess.run(
             ["pass-cli", "item", "view", ref],
             capture_output=True,
             text=True,
             timeout=PASS_TIMEOUT,
+            env=env,
         )
     except FileNotFoundError:
         raise SourceError("Proton Pass CLI (pass-cli) not found")

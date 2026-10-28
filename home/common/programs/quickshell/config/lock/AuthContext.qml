@@ -51,7 +51,14 @@ Scope {
         if (currentText !== "")
             currentText = "";
         else
-            active = false;
+            idle();
+    }
+
+    // Back to the clock, dropping any old message so it doesn't greet the next wake.
+    function idle() {
+        active = false;
+        statusText = "";
+        statusIsError = false;
     }
 
     function tryUnlock() {
@@ -84,7 +91,7 @@ Scope {
     Timer {
         interval: 15000
         running: root.active && root.currentText === "" && !root.checking && !root.unlocking
-        onTriggered: root.active = false
+        onTriggered: root.idle()
     }
 
     Timer {

@@ -33,8 +33,9 @@ Rectangle {
         anchors.rightMargin: 12
         spacing: 10
 
+        // Fixed width, whatever the glyph, so the titles line up down the panel.
         Rectangle {
-            implicitWidth: toggleIcon.implicitWidth + 16
+            implicitWidth: toggleIcon.width + 16
             implicitHeight: toggleIcon.implicitHeight + 8
             radius: 6
             color: toggleArea.containsMouse && root.canToggle ? Theme.surface1 : "transparent"

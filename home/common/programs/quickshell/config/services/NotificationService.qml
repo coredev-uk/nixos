@@ -77,6 +77,11 @@ Singleton {
                 notification,
                 popup
             }), ...entries];
+        trimPopups();
+    }
+
+    // Only the newest maxPopups show; older ones stay in the centre.
+    function trimPopups() {
         for (const extra of popups.slice(maxPopups))
             extra.popup = false;
     }
@@ -92,6 +97,7 @@ Singleton {
         entry.time = Date.now();
         entry.popup = !dnd || entry.notification.urgency === NotificationUrgency.Critical;
         entries = [entry, ...entries.filter(other => other !== entry)];
+        trimPopups();
     }
 
     // Replaces whatever a previous run left behind, even when nothing changes.

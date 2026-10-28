@@ -381,7 +381,7 @@ Scope {
                         }
                     }
 
-                    // Status while loading or switching, else the keys.
+                    // Status while loading or switching, an empty note, else the keys.
                     BarText {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: {
@@ -391,6 +391,8 @@ Scope {
                                 return root.progress !== "" ? `${root.progress}…` : "Applying…";
                             if (root.loading && root.pictures.length === 0)
                                 return root.progress !== "" ? `${root.progress}… (first time only)` : "Loading wallpapers…";
+                            if (root.pictures.length === 0)
+                                return "No wallpapers found";
                             return "←  →  to browse     Enter to apply     Esc to close";
                         }
                         color: root.error !== "" ? Theme.red : Theme.subtext0

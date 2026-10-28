@@ -144,6 +144,7 @@ Item {
             Behavior on opacity {
                 NumberAnimation {
                     duration: 150
+                    easing.type: Easing.OutCubic
                 }
             }
         }
@@ -261,13 +262,14 @@ Item {
             Behavior on opacity {
                 NumberAnimation {
                     duration: 160
+                    easing.type: Easing.OutCubic
                 }
             }
 
             Behavior on scale {
                 NumberAnimation {
                     duration: 220
-                    easing.type: Easing.OutBack
+                    easing.type: Easing.OutCubic
                 }
             }
 

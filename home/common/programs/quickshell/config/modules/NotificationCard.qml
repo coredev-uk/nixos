@@ -63,7 +63,7 @@ Rectangle {
     implicitHeight: column.implicitHeight + 24
     radius: floating ? 12 : 8
     color: floating ? Theme.mantle : Theme.base
-    border.width: floating ? 1 : 0
+    border.width: floating || critical ? 1 : 0
     border.color: critical ? Qt.alpha(Theme.red, 0.6) : Theme.surface0
 
     HoverHandler {
@@ -304,6 +304,15 @@ Rectangle {
                 implicitHeight: 28
                 radius: 6
                 color: sendArea.containsMouse ? root.innerHover : root.inner
+                // Nothing to send yet.
+                opacity: reply.text === "" ? 0.5 : 1
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: 150
+                        easing.type: Easing.OutCubic
+                    }
+                }
 
                 Icon {
                     anchors.centerIn: parent
@@ -314,6 +323,8 @@ Rectangle {
 
                 MouseArea {
                     id: sendArea
+
+                    enabled: reply.text !== ""
 
                     anchors.fill: parent
                     hoverEnabled: true

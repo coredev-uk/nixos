@@ -73,7 +73,7 @@ BarPopup {
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
-        implicitHeight: content.implicitHeight + 32
+        implicitHeight: content.implicitHeight + 24
         radius: 12
         color: Theme.mantle
         border.color: Theme.surface0
@@ -82,7 +82,7 @@ BarPopup {
         ColumnLayout {
             id: content
             anchors.fill: parent
-            anchors.margins: 16
+            anchors.margins: 12
             spacing: 8
 
             RowLayout {
@@ -152,9 +152,10 @@ BarPopup {
                     border.width: selected && !model.today ? 1 : 0
                     border.color: Theme.lavender
 
+                    // Raised the same on every day, dots or not, so the numbers sit on one line.
                     BarText {
                         anchors.centerIn: parent
-                        anchors.verticalCenterOffset: day.dots.length > 0 ? -3 : 0
+                        anchors.verticalCenterOffset: -3
                         text: day.model.day
                         color: day.model.today ? Theme.base : day.model.month === grid.month ? Theme.text : Theme.surface2
                         font.pixelSize: 12
@@ -220,7 +221,8 @@ BarPopup {
             }
 
             BarText {
-                visible: root.selectedEvents.length === 0 && Calendar.loaded
+                // A failed fetch leaves configured false; the errors below say why instead.
+                visible: root.selectedEvents.length === 0 && Calendar.loaded && (Calendar.configured || Calendar.errors.length === 0)
                 Layout.fillWidth: true
                 text: Calendar.configured ? "No events" : "Add calendars in ~/.config/quickshell/calendars.json"
                 color: Theme.subtext0

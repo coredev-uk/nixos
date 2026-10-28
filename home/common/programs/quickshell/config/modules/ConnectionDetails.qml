@@ -203,9 +203,8 @@ ColumnLayout {
                     Layout.leftMargin: 6
                     Layout.bottomMargin: 2
                     text: section.modelData.title
-                    color: Theme.subtext1
-                    font.pixelSize: 12
-                    font.bold: true
+                    color: Theme.subtext0
+                    font.pixelSize: 11
                 }
 
                 Repeater {

@@ -81,7 +81,10 @@ Rectangle {
                     {
                         icon: Icons.close,
                         color: Theme.red,
-                        action: () => root.cancelled()
+                        action: () => {
+                            input.text = "";
+                            root.cancelled();
+                        }
                     }
                 ]
 

@@ -9,7 +9,8 @@ BarPopup {
     property bool active: false
 
     gap: 6
-    implicitWidth: label.implicitWidth + 16
+    // Long tooltips (e.g. several apps using the mic) wrap past 360px.
+    implicitWidth: Math.min(Math.ceil(metrics.advanceWidth), 360) + 16
     implicitHeight: label.implicitHeight + 10 + gap
 
     onActiveChanged: {
@@ -19,6 +20,12 @@ BarPopup {
             delay.stop();
             visible = false;
         }
+    }
+
+    TextMetrics {
+        id: metrics
+        font: label.font
+        text: root.text
     }
 
     Timer {
@@ -39,6 +46,8 @@ BarPopup {
         BarText {
             id: label
             anchors.centerIn: parent
+            width: Math.min(Math.ceil(metrics.advanceWidth), 360)
+            wrapMode: Text.Wrap
             text: root.text
             font.pixelSize: 12
         }

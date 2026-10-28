@@ -242,7 +242,7 @@ Scope {
             Layout.fillWidth: true
             implicitHeight: 6
             radius: 3
-            color: Theme.surface1
+            color: Theme.surface0
 
             Rectangle {
                 width: parent.width * Math.max(0, Math.min(1, level.value / 100))

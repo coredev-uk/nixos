@@ -39,7 +39,7 @@ Row {
 
     Stat {
         value: SystemUsage.disk
-        color: Theme.peach
+        color: Theme.sapphire
         icon: Icons.disk
         tooltip: `Disk ${SystemUsage.disk.toFixed(1)}%`
     }
@@ -58,7 +58,7 @@ Row {
 
         visible: battery?.isLaptopBattery ?? false
         value: (battery?.percentage ?? 0) * 100
-        color: Theme.green
+        color: value > 50 ? Theme.green : value > 25 ? Theme.yellow : Theme.red
         icon: charging ? Icons.batteryCharging : value > 75 ? Icons.battery : value > 50 ? Icons.battery70 : value > 25 ? Icons.battery50 : Icons.battery20
         tooltip: `Battery ${Math.round(value)}% (${UPowerDeviceState.toString(battery?.state ?? UPowerDeviceState.Unknown)})`
     }

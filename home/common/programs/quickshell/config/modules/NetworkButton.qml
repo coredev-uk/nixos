@@ -6,7 +6,7 @@ import qs.widgets
 Icon {
     id: root
 
-    color: Theme.green
+    color: NetworkStatus.type === "disconnected" ? Theme.red : Theme.green
     text: {
         switch (NetworkStatus.type) {
         case "ethernet":
@@ -29,7 +29,7 @@ Icon {
     Tooltip {
         anchorItem: root
         active: area.containsMouse && !panel.visible
-        text: NetworkStatus.type === "disconnected" ? "Disconnected" : `${NetworkStatus.name} (${NetworkStatus.ip})`
+        text: NetworkStatus.type === "disconnected" ? "Disconnected" : NetworkStatus.ip ? `${NetworkStatus.name} (${NetworkStatus.ip})` : NetworkStatus.name
     }
 
     NetworkPanel {

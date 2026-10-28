@@ -10,6 +10,8 @@ SliderRow {
     icon: Icons.brightness
     color: Theme.yellow
     value: Brightness.percent
+    // 0% would read as a real value before the first read answers.
+    valueText: Brightness.known ? `${Math.round(value)}%` : "…"
 
     Component.onCompleted: Brightness.refresh()
 

@@ -48,6 +48,7 @@ PanelWindow {
         }
         WindowTitle {
             id: windowTitle
+            visible: text !== ""
             screen: bar.screen
             Layout.maximumWidth: 400
         }
@@ -69,8 +70,12 @@ PanelWindow {
         Sep {
             visible: privacy.visible
         }
-        Tray {}
-        Sep {}
+        Tray {
+            id: tray
+        }
+        Sep {
+            visible: tray.visible
+        }
         SystemStats {}
         Sep {}
         CaffeineButton {}

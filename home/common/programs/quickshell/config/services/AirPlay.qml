@@ -17,6 +17,10 @@ Singleton {
     property bool watching: false
     // OwnTone answered the last request.
     property bool available: false
+    // Some request has answered, so `available` means something.
+    property bool known: false
+    // Speakers whose code prompt was cancelled; picking one again asks again.
+    property var pinDismissedIds: []
     // Speaker ids picked in the Cast view. OwnTone drops a speaker from its selection when it
     // fails to connect, so the difference shows which ones failed. null until the first answer.
     property var chosenIds: null
@@ -47,6 +51,7 @@ Singleton {
     function refresh() {
         request("GET", "/outputs", undefined, (status, text) => {
             available = status === 200;
+            known = true;
             if (!available) {
                 speakers = [];
                 return;
@@ -67,7 +72,7 @@ Singleton {
                     name: output.name,
                     chosen,
                     failed,
-                    needsPin: output.needs_auth_key || failed
+                    needsPin: (output.needs_auth_key || failed) && !pinDismissedIds.includes(output.id)
                 };
             }).sort((a, b) => a.name.localeCompare(b.name));
         });
@@ -88,9 +93,20 @@ Singleton {
 
     function toggle(speaker: var) {
         const ids = (chosenIds ?? []).filter(id => id !== speaker.id);
-        if (!speaker.chosen)
+        if (!speaker.chosen) {
             ids.push(speaker.id);
+            pinDismissedIds = pinDismissedIds.filter(id => id !== speaker.id);
+        }
         select(ids);
+    }
+
+    // Hides the code prompt without picking the speaker; a chosen one that failed is dropped.
+    function dismissPin(speaker: var) {
+        pinDismissedIds = pinDismissedIds.concat([speaker.id]);
+        if (speaker.chosen)
+            select((chosenIds ?? []).filter(id => id !== speaker.id));
+        else
+            refresh();
     }
 
     // Streams that follow the default output move with it.

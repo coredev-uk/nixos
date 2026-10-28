@@ -50,6 +50,7 @@ Row {
         Behavior on color {
             ColorAnimation {
                 duration: 120
+                easing.type: Easing.OutCubic
             }
         }
 
@@ -107,6 +108,7 @@ Row {
             Behavior on opacity {
                 NumberAnimation {
                     duration: 140
+                    easing.type: Easing.OutCubic
                 }
             }
 
