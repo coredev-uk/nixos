@@ -1,5 +1,7 @@
-{ pkgs, meta, ... }:
+{ meta, ... }:
 {
+  # The daemon alone: the bar reads peripheral batteries from it over D-Bus
+  # (home/common/programs/quickshell/scripts/batteries.sh).
   hardware.openrazer = {
     enable = true;
     batteryNotifier = {
@@ -8,8 +10,4 @@
     };
     users = [ meta.username ];
   };
-
-  environment.systemPackages = with pkgs; [
-    polychromatic
-  ];
 }
