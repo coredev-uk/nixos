@@ -1,37 +1,26 @@
 import QtQuick
-import QtQuick.Effects
 import Quickshell
 import qs.common
-import qs.services
-import qs.widgets
+import "sun.js" as Sun
 
-// Idle face: two-tone clock and date over the wallpaper, a now-playing line and a hint at the bottom.
-// Folds away while the password card is up.
+// Bottom-left: the time, large, over the date and the next sunrise or sunset (the wallpaper
+// follows the sun, so that's when the picture changes next). The date line gives way to the
+// password (LockPrompt) while it's up.
 Item {
     id: root
 
     required property AuthContext context
     property real s: 1
+    property real margin: 80
+    property real lineHeight: 56
 
-    readonly property bool concealed: context.active || context.unlocking
+    readonly property real clockSize: Math.round(300 * s)
+    readonly property bool engaged: context.active && !context.unlocking
 
-    opacity: concealed ? 0 : 1
-    scale: concealed ? 0.92 : 1
-    visible: opacity > 0.01
-
-    Behavior on opacity {
-        NumberAnimation {
-            duration: 200
-            easing.type: Easing.OutCubic
-        }
-    }
-
-    Behavior on scale {
-        NumberAnimation {
-            duration: 240
-            easing.type: Easing.OutCubic
-        }
-    }
+    // wlsunset's location, set by the quickshell-lock and quickshell-greeter wrappers.
+    readonly property real latitude: parseFloat(Quickshell.env("QS_LOCK_LATITUDE") ?? "")
+    readonly property real longitude: parseFloat(Quickshell.env("QS_LOCK_LONGITUDE") ?? "")
+    readonly property var sun: isNaN(latitude) || isNaN(longitude) ? null : Sun.next(clock.date, latitude, longitude)
 
     SystemClock {
         id: clock
@@ -39,132 +28,63 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    component ClockText: Text {
+    Text {
+        // Inter's digits carry side bearing; pull the ink onto the margin. The baseline sits a
+        // fixed gap above the date line.
+        x: root.margin - Math.round(0.035 * root.clockSize)
+        y: parent.height - root.margin - root.lineHeight - Math.round(40 * root.s) - baselineOffset
+        text: Qt.formatTime(clock.date, "HH:mm")
+        color: Theme.text
         font.family: Theme.displayFontFamily
-        font.pixelSize: Math.round(168 * root.s)
-        font.weight: Font.Bold
-        font.letterSpacing: -0.02 * Math.round(168 * root.s)
-        // Tabular digits keep the clock from shifting as it ticks.
+        font.pixelSize: root.clockSize
+        font.weight: Font.Medium
+        font.letterSpacing: -0.04 * root.clockSize
+        // Colon centred on the digits.
         font.features: {
-            "tnum": 1
+            "case": 1
         }
     }
 
-    Column {
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: Math.round(parent.height * 0.36 - height / 2)
-        spacing: Math.round(4 * root.s)
+    Row {
+        x: root.margin
+        y: parent.height - root.margin - (root.lineHeight + height) / 2
+        spacing: Math.round(40 * root.s)
+        opacity: root.engaged ? 0 : 1
+        visible: opacity > 0
 
-        layer.enabled: true
-        layer.effect: MultiEffect {
-            shadowEnabled: true
-            shadowColor: Theme.crust
-            shadowOpacity: 0.45
-            shadowBlur: 0.6
-            shadowVerticalOffset: Math.round(3 * root.s)
+        transform: Translate {
+            y: root.engaged ? Math.round(16 * root.s) : 0
+
+            Behavior on y {
+                NumberAnimation {
+                    duration: 300
+                    easing.type: Easing.OutCubic
+                }
+            }
         }
 
-        Row {
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: Math.round(6 * root.s)
-
-            ClockText {
-                text: Qt.formatTime(clock.date, "HH")
-                color: Theme.blue
-            }
-
-            ClockText {
-                anchors.verticalCenter: parent.verticalCenter
-                anchors.verticalCenterOffset: Math.round(-8 * root.s)
-                text: ":"
-                color: Theme.subtext0
-                font.pixelSize: Math.round(112 * root.s)
-            }
-
-            ClockText {
-                text: Qt.formatTime(clock.date, "mm")
-                color: Theme.text
+        Behavior on opacity {
+            NumberAnimation {
+                duration: 220
             }
         }
 
         Text {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: Qt.formatDate(clock.date, "dddd, d MMMM").toUpperCase()
-            color: Theme.subtext1
+            text: Qt.formatDate(clock.date, "dddd d MMMM")
+            color: Theme.text
             font.family: Theme.fontFamily
-            font.pixelSize: Math.round(17 * root.s)
-            font.weight: Font.DemiBold
-            font.letterSpacing: 2.5 * root.s
-        }
-    }
-
-    Column {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.bottom: parent.bottom
-        anchors.bottomMargin: Math.round(48 * root.s)
-        spacing: Math.round(18 * root.s)
-
-        // Now playing, as a quiet pill. Loaded only with a user session, so the greeter never
-        // starts the media service.
-        Loader {
-            anchors.horizontalCenter: parent.horizontalCenter
-            active: root.context.hasUserSession
-            visible: item?.shown ?? false
-
-            sourceComponent: Rectangle {
-                readonly property bool shown: Media.active
-
-                width: nowPlaying.implicitWidth + Math.round(36 * root.s)
-                height: Math.round(40 * root.s)
-                radius: height / 2
-                color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.6)
-
-                Row {
-                    id: nowPlaying
-
-                    anchors.centerIn: parent
-                    spacing: Math.round(10 * root.s)
-
-                    Icon {
-                        anchors.verticalCenter: parent.verticalCenter
-                        text: Icons.music
-                        color: Theme.blue
-                        font.pixelSize: Math.round(16 * root.s)
-                    }
-
-                    BarText {
-                        anchors.verticalCenter: parent.verticalCenter
-                        width: Math.min(implicitWidth, Math.round(520 * root.s))
-                        elide: Text.ElideRight
-                        text: [Media.player?.trackTitle, Media.player?.trackArtist].filter(part => part).join("  ·  ")
-                        font.pixelSize: Math.round(14 * root.s)
-                        font.weight: Font.Medium
-                    }
-                }
-            }
+            font.pixelSize: Math.round(26 * root.s)
+            font.weight: Font.Medium
         }
 
-        BarText {
-            anchors.horizontalCenter: parent.horizontalCenter
-            text: root.context.idleHint
-            color: Theme.subtext0
-            font.pixelSize: Math.round(14 * root.s)
-
-            SequentialAnimation on opacity {
-                running: root.visible
-                loops: Animation.Infinite
-
-                NumberAnimation {
-                    to: 0.35
-                    duration: 1400
-                    easing.type: Easing.InOutSine
-                }
-                NumberAnimation {
-                    to: 0.9
-                    duration: 1400
-                    easing.type: Easing.InOutSine
-                }
-            }
+        Text {
+            visible: root.sun !== null
+            text: root.sun ? `${root.sun.label} ${Qt.formatTime(root.sun.time, "HH:mm")}` : ""
+            color: Theme.text
+            opacity: 0.72
+            font.family: Theme.fontFamily
+            font.pixelSize: Math.round(26 * root.s)
+            font.weight: Font.Medium
         }
     }
 }

@@ -7,11 +7,17 @@ AuthContext {
 
     checking: Greetd.state === GreetdState.Authenticating
 
+    // Quickshell cancels the greetd session after a rejected password, but greetd's PAM worker
+    // has already exited, so the cancel comes back as an error ("unable to send message:
+    // Connection refused"). That error belongs to the attempt already reported as rejected.
+    property bool rejected: false
+
     onSubmitted: {
         if (!Greetd.available) {
             fail("greetd is not running");
             return;
         }
+        rejected = false;
         Greetd.createSession(user);
     }
 
@@ -27,6 +33,7 @@ AuthContext {
         }
 
         function onAuthFailure(message: string) {
+            root.rejected = true;
             root.fail("Incorrect password");
         }
 
@@ -35,7 +42,8 @@ AuthContext {
         }
 
         function onError(error: string) {
-            root.fail(`Login failed (${error})`);
+            if (!root.rejected)
+                root.fail(`Login failed (${error})`);
         }
     }
 }

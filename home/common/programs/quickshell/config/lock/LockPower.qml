@@ -3,169 +3,133 @@ import Quickshell
 import qs.common
 import qs.widgets
 
-// Bottom-right power button, shown with the password card. Its menu's actions run only after being
-// held for a moment, so a stray click on the lock screen can't power the machine off.
-Item {
+// Suspend, restart and shut down as flat round buttons, shown with the password. Each runs only
+// after being held for a moment, so a stray click can't power the machine off: a disc of its
+// colour grows from the centre while held. Hovering names the button in a tooltip above it.
+Row {
     id: root
 
-    required property AuthContext context
     property real s: 1
 
-    property bool menuOpen: false
+    spacing: Math.round(12 * s)
 
-    anchors.fill: parent
-
-    Connections {
-        target: root.context
-
-        function onActiveChanged() {
-            if (!root.context.active)
-                root.menuOpen = false;
-        }
+    HoldButton {
+        icon: Icons.sleep
+        label: "Suspend"
+        command: ["systemctl", "suspend"]
     }
 
-    Rectangle {
-        id: toggle
-
-        anchors.right: parent.right
-        anchors.bottom: parent.bottom
-        anchors.margins: Math.round(32 * root.s)
-        width: Math.round(52 * root.s)
-        height: width
-        radius: Math.round(16 * root.s)
-        color: toggleArea.containsMouse || root.menuOpen ? Theme.surface1 : Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.82)
-        opacity: root.context.active && !root.context.unlocking ? 1 : 0
-        visible: opacity > 0.01
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 300
-                easing.type: Easing.OutCubic
-            }
-        }
-
-        Icon {
-            anchors.centerIn: parent
-            text: root.menuOpen ? Icons.close : Icons.power
-            color: root.menuOpen ? Theme.text : Theme.red
-            font.pixelSize: Math.round(22 * root.s)
-        }
-
-        MouseArea {
-            id: toggleArea
-
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: root.menuOpen = !root.menuOpen
-        }
+    HoldButton {
+        icon: Icons.restart
+        label: "Restart"
+        command: ["systemctl", "reboot"]
     }
 
-    Rectangle {
-        id: menu
-
-        anchors.right: toggle.right
-        anchors.bottom: toggle.top
-        anchors.bottomMargin: Math.round(14 * root.s)
-        width: Math.round(280 * root.s)
-        height: root.menuOpen ? actions.implicitHeight + 2 * Math.round(12 * root.s) : 0
-        radius: Math.round(20 * root.s)
-        color: Qt.rgba(Theme.base.r, Theme.base.g, Theme.base.b, 0.9)
-        clip: true
-        opacity: root.menuOpen ? 1 : 0
-        visible: height > 0
-
-        Behavior on height {
-            NumberAnimation {
-                duration: 320
-                easing.type: Easing.OutBack
-                easing.overshoot: 1.1
-            }
-        }
-
-        Behavior on opacity {
-            NumberAnimation {
-                duration: 200
-                easing.type: Easing.OutCubic
-            }
-        }
-
-        Column {
-            id: actions
-
-            anchors.left: parent.left
-            anchors.right: parent.right
-            anchors.top: parent.top
-            anchors.margins: Math.round(12 * root.s)
-            spacing: Math.round(8 * root.s)
-
-            HoldButton {
-                icon: Icons.sleep
-                label: "Suspend"
-                accent: Theme.mauve
-                command: ["systemctl", "suspend"]
-            }
-
-            HoldButton {
-                icon: Icons.restart
-                label: "Restart"
-                accent: Theme.blue
-                command: ["systemctl", "reboot"]
-            }
-
-            HoldButton {
-                icon: Icons.power
-                label: "Shut down"
-                accent: Theme.red
-                command: ["systemctl", "poweroff"]
-            }
-        }
+    HoldButton {
+        icon: Icons.power
+        label: "Shut down"
+        accent: Theme.red
+        command: ["systemctl", "poweroff"]
     }
 
-    // Fills with its accent while held; runs the command when full, drains if let go early.
     component HoldButton: Rectangle {
         id: button
 
         property string icon
         property string label
-        property color accent
+        property color accent: Theme.text
         property var command
         property real progress: 0
 
-        width: parent.width
-        height: Math.round(48 * root.s)
-        radius: Math.round(14 * root.s)
-        color: holdArea.containsMouse ? Theme.surface1 : Theme.surface0
-        clip: true
+        width: Math.round(52 * root.s)
+        height: width
+        radius: width / 2
+        color: Qt.rgba(1, 1, 1, area.containsMouse ? 0.24 : 0.14)
+        scale: area.pressed ? 0.94 : 1
 
-        Rectangle {
-            anchors.left: parent.left
-            anchors.top: parent.top
-            anchors.bottom: parent.bottom
-            width: parent.width * button.progress
-            radius: parent.radius
-            color: Qt.rgba(button.accent.r, button.accent.g, button.accent.b, 0.35)
+        Behavior on color {
+            ColorAnimation {
+                duration: 120
+            }
         }
 
-        Row {
-            anchors.left: parent.left
-            anchors.leftMargin: Math.round(16 * root.s)
-            anchors.verticalCenter: parent.verticalCenter
-            spacing: Math.round(14 * root.s)
+        Behavior on scale {
+            NumberAnimation {
+                duration: 160
+                easing.type: Easing.OutCubic
+            }
+        }
 
-            Icon {
-                anchors.verticalCenter: parent.verticalCenter
-                text: button.icon
-                color: button.accent
-                font.pixelSize: Math.round(20 * root.s)
+        Rectangle {
+            anchors.centerIn: parent
+            width: parent.width
+            height: width
+            radius: width / 2
+            color: button.accent
+            opacity: 0.5
+            scale: button.progress
+        }
+
+        Icon {
+            anchors.centerIn: parent
+            text: button.icon
+            color: Theme.text
+            font.pixelSize: Math.round(22 * root.s)
+        }
+
+        // Above the button: its name on hover, the instruction while pressed.
+        Rectangle {
+            id: tooltip
+
+            readonly property bool shown: area.pressed || hoverDelay.passed
+
+            anchors.horizontalCenter: parent.horizontalCenter
+            anchors.bottom: parent.top
+            anchors.bottomMargin: Math.round(12 * root.s)
+            width: tip.implicitWidth + Math.round(28 * root.s)
+            height: Math.round(36 * root.s)
+            radius: height / 2
+            color: Theme.base
+            opacity: shown ? 1 : 0
+            visible: opacity > 0
+
+            transform: Translate {
+                y: tooltip.shown ? 0 : Math.round(6 * root.s)
+
+                Behavior on y {
+                    NumberAnimation {
+                        duration: 160
+                        easing.type: Easing.OutCubic
+                    }
+                }
             }
 
-            BarText {
-                anchors.verticalCenter: parent.verticalCenter
-                text: holdArea.pressed ? `Hold to ${button.label.toLowerCase()}…` : button.label
-                font.pixelSize: Math.round(15 * root.s)
+            Behavior on opacity {
+                NumberAnimation {
+                    duration: 140
+                }
+            }
+
+            Text {
+                id: tip
+
+                anchors.centerIn: parent
+                text: area.pressed ? `Hold to ${button.label.toLowerCase()}` : button.label
+                color: Theme.text
+                font.family: Theme.fontFamily
+                font.pixelSize: Math.round(16 * root.s)
                 font.weight: Font.Medium
             }
+        }
+
+        Timer {
+            id: hoverDelay
+
+            property bool passed: false
+
+            interval: 250
+            running: area.containsMouse && !passed
+            onTriggered: passed = true
         }
 
         NumberAnimation {
@@ -177,7 +141,6 @@ Item {
             duration: 900
             onFinished: {
                 if (button.progress >= 1) {
-                    root.menuOpen = false;
                     button.progress = 0;
                     Quickshell.execDetached(button.command);
                 }
@@ -195,11 +158,15 @@ Item {
         }
 
         MouseArea {
-            id: holdArea
+            id: area
 
             anchors.fill: parent
             hoverEnabled: true
             cursorShape: Qt.PointingHandCursor
+            onContainsMouseChanged: {
+                if (!containsMouse)
+                    hoverDelay.passed = false;
+            }
             onPressed: {
                 drain.stop();
                 // Resume from wherever an earlier, released hold drained to.

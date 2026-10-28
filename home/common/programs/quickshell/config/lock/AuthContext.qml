@@ -16,18 +16,15 @@ Scope {
     property string currentText: ""
     // Whose password this is; the greeter sets it, the lock screen is always its own user.
     property string user: Quickshell.env("USER") ?? ""
-    // False before login (the greeter): no notifications, media or other user-session widgets.
+    // False before login (the greeter): no calendar, music or other user-session widgets.
     property bool hasUserSession: true
-    // Wording for the idle state.
-    property string idleStatus: "Locked"
-    property string idleHint: "Type or click to unlock"
-    // Idle shows only the clock; any key or click brings up the password card.
+    // Idle shows the clock and the date; any key or click brings up the password.
     property bool active: false
     // Authenticated; surfaces play their outro before `finished` fires.
     property bool unlocking: false
     // A check is running; set by the backend.
     property bool checking: false
-    // Shown under the user name; cleared as soon as the user types again.
+    // Shown under the password; cleared as soon as the user types again.
     property string statusText: ""
     property bool statusIsError: false
     // Guessed from typed letters vs Shift (Qt exposes no Caps Lock state).

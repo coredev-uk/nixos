@@ -26,6 +26,10 @@ let
     in
     all.${meta.hostname} or all.default;
 
+  # wlsunset's location (home/common/programs/hypr/sunset.nix), for the next sunrise or sunset
+  # under the clock; the greeter can't see the home-manager config, so the module is read as is.
+  location = (import ../../../home/common/programs/hypr/sunset.nix { }).services.wlsunset;
+
   # What greetd starts once the password is accepted: the package's hyprland-uwsm.desktop
   # launch line. uwsm runs hyprland.desktop (start-hyprland -> /run/wrappers/bin/Hyprland) and
   # exports the session environment, including ~/.config/uwsm/env, into the systemd user manager.
@@ -47,6 +51,8 @@ let
     export QS_GREETER_USER=${lib.escapeShellArg meta.username}
     export QS_GREETER_SESSION=${lib.escapeShellArg (builtins.toJSON session)}
     export QS_LOCK_WALLPAPER=${wallpaperDir}/wallpaper.jpg
+    export QS_LOCK_LATITUDE=${lib.escapeShellArg location.latitude}
+    export QS_LOCK_LONGITUDE=${lib.escapeShellArg location.longitude}
     ${lib.getExe unstable.quickshell} --path ${quickshellConfig}/greeter.qml
     ${hyprland}/bin/hyprctl dispatch 'hl.dsp.exit()'
   '';

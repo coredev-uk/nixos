@@ -5,8 +5,8 @@ import Quickshell.Wayland
 import qs.lock
 
 // greetd greeter, run by `quickshell-greeter` inside a greeter-only Hyprland
-// (hosts/common/desktop/greeter.nix). Same faces as the lock screen, minus the side panels:
-// there is no user session yet to show notifications or media from. Once logged in it hands
+// (hosts/common/desktop/greeter.nix). Same faces as the lock screen, minus today's events and
+// the music: there is no user session yet to show them from. Once logged in it hands
 // greetd the session command and quits; the wrapper then closes the compositor so greetd can
 // start the session.
 ShellRoot {
@@ -21,8 +21,6 @@ ShellRoot {
 
         user: Quickshell.env("QS_GREETER_USER") ?? ""
         hasUserSession: false
-        idleStatus: "Log in"
-        idleHint: "Type or click to log in"
 
         onFinished: Greetd.launch(shell.session.command ?? [], shell.session.environment ?? [], true)
     }
