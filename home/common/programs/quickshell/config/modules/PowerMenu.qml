@@ -23,7 +23,8 @@ BarPopup {
             id: "lock",
             label: "Lock",
             icon: Icons.lock,
-            color: Theme.blue,
+            // Never armed (no confirm), so this hue never shows; neutral like any idle row.
+            color: Theme.text,
             confirm: false,
             // hypridle's lock_cmd starts quickshell-lock (lockscreen.qml) on lock-session.
             run: () => Quickshell.execDetached(["loginctl", "lock-session"])
@@ -32,7 +33,7 @@ BarPopup {
             id: "suspend",
             label: "Suspend",
             icon: Icons.sleep,
-            color: Theme.mauve,
+            color: Theme.text,
             confirm: false,
             run: () => Quickshell.execDetached(["systemctl", "suspend"])
         },
@@ -40,7 +41,7 @@ BarPopup {
             id: "logout",
             label: "Log out",
             icon: Icons.logout,
-            color: Theme.yellow,
+            color: Theme.caution,
             confirm: true,
             run: () => Hyprland.dispatch(Hyprland.usingLua ? "hl.dsp.exit()" : "exit")
         },
@@ -48,7 +49,7 @@ BarPopup {
             id: "reboot",
             label: "Reboot",
             icon: Icons.restart,
-            color: Theme.peach,
+            color: Theme.caution,
             confirm: true,
             run: () => Quickshell.execDetached(["systemctl", "reboot"])
         },
@@ -56,7 +57,7 @@ BarPopup {
             id: "poweroff",
             label: "Shut down",
             icon: Icons.power,
-            color: Theme.red,
+            color: Theme.alert,
             confirm: true,
             run: () => Quickshell.execDetached(["systemctl", "poweroff"])
         }
@@ -67,7 +68,7 @@ BarPopup {
             id: "windows",
             label: "Restart into Windows",
             icon: Icons.restart,
-            color: Theme.sapphire,
+            color: Theme.series1,
             confirm: true,
             confirmLabel: "Click again to restart",
             command: "vfio-boot-native",
@@ -77,7 +78,7 @@ BarPopup {
             id: "windowsVm",
             label: "Open in a VM",
             icon: Icons.monitor,
-            color: Theme.teal,
+            color: Theme.series2,
             confirm: true,
             confirmLabel: "Click again to open",
             command: "vfio-start-vm",
@@ -109,16 +110,12 @@ BarPopup {
     implicitWidth: 220
     implicitHeight: frame.implicitHeight + gap
 
-    Rectangle {
+    Plate {
         id: frame
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: column.implicitHeight + 12
-        radius: 12
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         ColumnLayout {
             id: column
@@ -141,7 +138,7 @@ BarPopup {
                 Layout.topMargin: 4
                 Layout.bottomMargin: 4
                 implicitHeight: 1
-                color: Theme.surface0
+                color: Theme.rule
             }
 
             BarText {
@@ -150,7 +147,7 @@ BarPopup {
                 Layout.topMargin: 2
                 Layout.bottomMargin: 2
                 text: "Windows"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
             }
 

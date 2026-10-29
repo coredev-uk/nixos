@@ -41,13 +41,15 @@ GridLayout {
             required property var modelData
             readonly property bool known: modelData.level !== null
             readonly property real level: known ? modelData.level : 0
-            readonly property color accent: !known ? Theme.overlay0 : level > 50 ? Theme.green : level > 20 ? Theme.yellow : Theme.red
+            // Level reports only when it needs attention; charging is "on" and reads gilt.
+            readonly property color levelColor: !known ? Theme.muted : level <= 10 ? Theme.alert : level <= 25 ? Theme.caution : Theme.text
+            readonly property color accent: !known ? Theme.muted : modelData.charging ? Theme.gilt : level <= 25 ? levelColor : Theme.fill
 
             Layout.fillWidth: true
             Layout.preferredWidth: 1 // equal columns
             implicitHeight: row.implicitHeight + 14
-            radius: 8
-            color: Theme.surface0
+            radius: Theme.radiusInset
+            color: Theme.inset
 
             HoverHandler {
                 id: hover
@@ -96,7 +98,7 @@ GridLayout {
                         Layout.fillWidth: true
                         text: chip.modelData.short
                         font.pixelSize: 11
-                        color: Theme.subtext0
+                        color: Theme.text2
                         elide: Text.ElideRight
                     }
 
@@ -105,7 +107,7 @@ GridLayout {
                         text: !chip.known ? "Off" : `${chip.level}%${chip.modelData.charging ? " · Charging" : ""}`
                         font.pixelSize: 12
                         font.bold: true
-                        color: chip.known ? Theme.text : Theme.overlay0
+                        color: chip.levelColor
                         elide: Text.ElideRight
                     }
                 }

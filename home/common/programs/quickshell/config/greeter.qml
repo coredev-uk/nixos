@@ -2,6 +2,7 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Greetd
 import Quickshell.Wayland
+import qs.common
 import qs.lock
 
 // greetd greeter, run by `quickshell-greeter` inside a greeter-only Hyprland
@@ -39,7 +40,7 @@ ShellRoot {
                 right: true
             }
             exclusionMode: ExclusionMode.Ignore
-            color: "black"
+            color: Theme.ground
             WlrLayershell.namespace: "greeter"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive

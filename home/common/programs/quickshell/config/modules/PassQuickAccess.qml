@@ -423,17 +423,13 @@ Scope {
                     onClicked: root.close()
                 }
 
-                Rectangle {
+                Plate {
                     id: card
 
                     x: Math.round((parent.width - width) / 2)
                     y: Math.round(parent.height * 0.2)
                     width: 560
                     height: body.implicitHeight + 24
-                    radius: 12
-                    color: Theme.mantle
-                    border.color: Theme.surface0
-                    border.width: 1
                     opacity: 0
                     transform: Translate {
                         id: slide
@@ -441,8 +437,8 @@ Scope {
 
                         Behavior on y {
                             NumberAnimation {
-                                duration: 180
-                                easing.type: Easing.OutCubic
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
                             }
                         }
                     }
@@ -463,8 +459,8 @@ Scope {
 
                     Behavior on opacity {
                         NumberAnimation {
-                            duration: 180
-                            easing.type: Easing.OutCubic
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
                         }
                     }
 
@@ -485,8 +481,17 @@ Scope {
                             Layout.fillWidth: true
                             visible: Pass.signedIn
                             implicitHeight: 40
-                            radius: 8
-                            color: Theme.base
+                            radius: Theme.radiusRow
+                            color: Theme.inset
+                            border.width: 1
+                            border.color: input.activeFocus ? Theme.gilt : Theme.rule
+
+                            Behavior on border.color {
+                                ColorAnimation {
+                                    duration: Theme.durationState
+                                    easing.type: Theme.easing
+                                }
+                            }
 
                             RowLayout {
                                 anchors.fill: parent
@@ -496,8 +501,8 @@ Scope {
 
                                 Icon {
                                     text: Icons.search
-                                    color: Theme.overlay0
-                                    font.pixelSize: 16
+                                    color: Theme.muted
+                                    font.pixelSize: 14
                                 }
 
                                 TextInput {
@@ -507,9 +512,9 @@ Scope {
                                     Layout.fillHeight: true
                                     verticalAlignment: TextInput.AlignVCenter
                                     color: Theme.text
-                                    selectionColor: Theme.surface2
+                                    selectionColor: Theme.selection
                                     font.family: Theme.fontFamily
-                                    font.pixelSize: 13
+                                    font.pixelSize: 12
                                     clip: true
                                     focus: true
                                     onVisibleChanged: {
@@ -524,15 +529,15 @@ Scope {
                                         anchors.fill: parent
                                         visible: input.text === ""
                                         text: "Search Proton Pass"
-                                        color: Theme.overlay0
-                                        font.pixelSize: 13
+                                        color: Theme.muted
+                                        font.pixelSize: 12
                                     }
                                 }
 
                                 BarText {
                                     visible: Pass.loading
                                     text: "Syncing…"
-                                    color: Theme.subtext0
+                                    color: Theme.text2
                                     font.pixelSize: 11
                                 }
                             }
@@ -564,8 +569,8 @@ Scope {
                                 // Clear of the scrollbar when the list scrolls.
                                 width: ListView.view.width - (list.contentHeight > list.height ? 10 : 0)
                                 height: root.rowHeight
-                                radius: 8
-                                color: isCurrent ? Theme.surface0 : rowArea.containsMouse ? Qt.rgba(Theme.surface0.r, Theme.surface0.g, Theme.surface0.b, 0.5) : "transparent"
+                                radius: Theme.radiusRow
+                                color: isCurrent ? (rowArea.containsMouse ? Theme.tint(Theme.gilt, 0.16) : Theme.tint(Theme.gilt, 0.1)) : rowArea.containsMouse ? Theme.hover : "transparent"
 
                                 RowLayout {
                                     anchors.fill: parent
@@ -576,7 +581,7 @@ Scope {
                                     Icon {
                                         Layout.preferredWidth: 18
                                         text: root.typeIcon(row.modelData.type)
-                                        color: row.isCurrent ? Theme.blue : Theme.overlay0
+                                        color: row.isCurrent ? Theme.gilt : Theme.muted
                                     }
 
                                     ColumnLayout {
@@ -586,6 +591,7 @@ Scope {
                                         BarText {
                                             Layout.fillWidth: true
                                             text: row.modelData.title
+                                            color: row.isCurrent ? Theme.gilt : Theme.text
                                             font.pixelSize: 12
                                             elide: Text.ElideRight
                                         }
@@ -594,7 +600,7 @@ Scope {
                                         BarText {
                                             Layout.fillWidth: true
                                             text: root.userOf(row.modelData) || root.typeName(row.modelData.type)
-                                            color: Theme.subtext0
+                                            color: Theme.text2
                                             font.pixelSize: 11
                                             elide: Text.ElideRight
                                         }
@@ -603,7 +609,7 @@ Scope {
                                     BarText {
                                         Layout.maximumWidth: 160
                                         text: row.modelData.vault
-                                        color: Theme.subtext0
+                                        color: Theme.text2
                                         font.pixelSize: 11
                                         elide: Text.ElideRight
                                     }
@@ -644,16 +650,16 @@ Scope {
                             spacing: 12
 
                             Rectangle {
-                                implicitWidth: 40
-                                implicitHeight: 40
-                                radius: 8
-                                color: Theme.surface0
+                                implicitWidth: 32
+                                implicitHeight: 32
+                                radius: Theme.radiusRow
+                                color: Theme.inset
 
                                 Icon {
                                     anchors.centerIn: parent
                                     text: root.typeIcon(root.openedItem?.type ?? "")
-                                    color: Theme.blue
-                                    font.pixelSize: 20
+                                    color: Theme.gilt
+                                    font.pixelSize: 16
                                 }
                             }
 
@@ -680,7 +686,7 @@ Scope {
                                         const parts = [root.userOf(item), root.urlOf(item)].filter(part => part !== "");
                                         return parts.length > 0 ? parts.join(" - ") : root.typeName(item.type);
                                     }
-                                    color: Theme.subtext0
+                                    color: Theme.text2
                                     font.pixelSize: 11
                                     elide: Text.ElideRight
                                 }
@@ -689,13 +695,13 @@ Scope {
                             Rectangle {
                                 implicitWidth: 28
                                 implicitHeight: 28
-                                radius: 6
-                                color: backArea.containsMouse ? Theme.surface0 : "transparent"
+                                radius: Theme.radiusRow
+                                color: backArea.containsMouse ? Theme.hover : "transparent"
 
                                 Icon {
                                     anchors.centerIn: parent
                                     text: Icons.close
-                                    color: Theme.overlay0
+                                    color: Theme.muted
                                     font.pixelSize: 14
                                 }
 
@@ -785,7 +791,7 @@ Scope {
                             Icon {
                                 visible: root.notice !== ""
                                 text: root.noticeIsError ? Icons.close : Icons.check
-                                color: root.noticeIsError ? Theme.red : Theme.green
+                                color: root.noticeIsError ? Theme.alert : Theme.ok
                                 font.pixelSize: 14
                             }
 
@@ -805,8 +811,8 @@ Scope {
                                 }
                                 color: {
                                     if (root.notice !== "")
-                                        return root.noticeIsError ? Theme.red : Theme.text;
-                                    return refreshError !== "" ? Theme.red : Theme.subtext0;
+                                        return root.noticeIsError ? Theme.alert : Theme.text;
+                                    return refreshError !== "" ? Theme.alert : Theme.text2;
                                 }
                                 font.pixelSize: 11
                                 elide: Text.ElideRight
@@ -814,14 +820,14 @@ Scope {
 
                             BarText {
                                 text: Pass.account
-                                color: Theme.subtext0
+                                color: Theme.text2
                                 font.pixelSize: 11
                             }
 
                             BarText {
                                 visible: root.openedItem === null
                                 text: "Sign out"
-                                color: signOutArea.containsMouse ? Theme.text : Theme.subtext0
+                                color: signOutArea.containsMouse ? Theme.text : Theme.text2
                                 font.pixelSize: 11
 
                                 MouseArea {
@@ -855,8 +861,8 @@ Scope {
 
         Layout.fillWidth: true
         implicitHeight: 34
-        radius: 6
-        color: highlighted ? Theme.surface0 : "transparent"
+        radius: Theme.radiusRow
+        color: highlighted ? Theme.inset : "transparent"
 
         RowLayout {
             anchors.fill: parent
@@ -867,7 +873,7 @@ Scope {
             Icon {
                 Layout.preferredWidth: 18
                 text: action.icon
-                color: action.highlighted ? Theme.blue : Theme.overlay0
+                color: action.highlighted ? Theme.gilt : Theme.muted
                 font.pixelSize: 14
             }
 
@@ -879,14 +885,14 @@ Scope {
             BarText {
                 Layout.fillWidth: true
                 text: action.detail
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
 
             BarText {
                 text: action.shortcut
-                color: action.highlighted ? Theme.subtext1 : Theme.overlay0
+                color: action.highlighted ? Theme.text2 : Theme.muted
                 font.pixelSize: 11
             }
         }
@@ -928,7 +934,7 @@ Scope {
             Layout.bottomMargin: 4
             visible: message.icon !== ""
             text: message.icon
-            color: Theme.blue
+            color: Theme.muted
             font.pixelSize: 32
         }
 
@@ -938,7 +944,7 @@ Scope {
             text: message.title
             font.pixelSize: 13
             font.bold: message.icon !== ""
-            color: message.icon !== "" ? Theme.text : Theme.subtext0
+            color: message.icon !== "" ? Theme.text : Theme.text2
         }
 
         BarText {
@@ -947,7 +953,7 @@ Scope {
             Layout.rightMargin: 40
             visible: message.detail !== ""
             text: message.detail
-            color: message.detailIsError ? Theme.red : Theme.subtext0
+            color: message.detailIsError ? Theme.alert : Theme.text2
             font.pixelSize: 11
             wrapMode: Text.Wrap
             horizontalAlignment: Text.AlignHCenter
@@ -981,17 +987,19 @@ Scope {
 
         signal clicked
 
-        implicitWidth: buttonLabel.implicitWidth + 28
-        implicitHeight: 30
-        radius: 6
-        color: primary ? (buttonArea.containsMouse ? Theme.lavender : Theme.blue) : buttonArea.containsMouse ? Theme.surface1 : Theme.surface0
+        implicitWidth: Math.max(primary ? 88 : 0, buttonLabel.implicitWidth + 28)
+        implicitHeight: 32
+        radius: Theme.radiusInset
+        color: primary ? (buttonArea.containsMouse ? Theme.giltHover : Theme.gilt) : buttonArea.containsMouse ? Theme.hover : "transparent"
+        border.width: primary ? 0 : 1
+        border.color: Theme.rule
 
         BarText {
             id: buttonLabel
 
             anchors.centerIn: parent
             text: button.text
-            color: button.primary ? Theme.crust : Theme.text
+            color: button.primary ? Theme.ground : Theme.text
             font.pixelSize: 12
             font.bold: button.primary
         }

@@ -14,8 +14,6 @@ in
     ../../programs/hypr
   ];
 
-  catppuccin.hyprland.enable = true;
-
   wayland.windowManager.hyprland = {
     enable = true;
     configType = "lua";
@@ -39,9 +37,8 @@ in
         lock = "loginctl lock-session";
         animations = import ./config/animations.nix { inherit luaCall; };
 
-        # `colors` is the catppuccin palette module the catppuccin HM module loads at the
-        # top of hyprland.lua (flavour follows lib/theme); values are 'rgb(...)' strings.
-        color = name: lua "colors.${name}";
+        # Hyprland colour strings from the Meridian palette: "#rrggbb" -> "rgb(rrggbb)".
+        color = name: "rgb(${lib.removePrefix "#" theme.meridian.${name}})";
       in
       {
         monitor = (import ./config/monitors.nix { })."${meta.hostname}";
@@ -64,14 +61,8 @@ in
             border_size = 2; # 0
 
             col = {
-              active_border = {
-                colors = [
-                  (color "accent")
-                  (color "lavender")
-                ];
-                angle = 45;
-              };
-              inactive_border = color "surface0";
+              active_border = color "gilt";
+              inactive_border = color "rule";
             };
 
             allow_tearing = true;
@@ -83,10 +74,10 @@ in
           # window showed the wallpaper. Filled tabs, no upper gap, flush with the window.
           group = {
             col = {
-              border_active = color "accent";
-              border_inactive = color "surface0";
-              border_locked_active = color "peach";
-              border_locked_inactive = color "surface1";
+              border_active = color "gilt";
+              border_inactive = color "rule";
+              border_locked_active = color "caution";
+              border_locked_inactive = color "muted";
             };
 
             groupbar = {
@@ -101,19 +92,19 @@ in
               round_only_edges = true;
               gradient_round_only_edges = true;
 
-              font_family = theme.fonts.default.name;
+              font_family = theme.fonts.shell.name;
               font_size = 11;
               font_weight_active = "semibold";
-              text_color = color "base";
-              text_color_inactive = color "text";
-              text_color_locked_active = color "base";
-              text_color_locked_inactive = color "text";
+              text_color = color "gilt";
+              text_color_inactive = color "text2";
+              text_color_locked_active = color "caution";
+              text_color_locked_inactive = color "muted";
 
               col = {
-                active = color "accent";
-                inactive = color "surface0";
-                locked_active = color "peach";
-                locked_inactive = color "surface1";
+                active = color "rule";
+                inactive = color "inset";
+                locked_active = color "rule";
+                locked_inactive = color "inset";
               };
             };
           };

@@ -6,7 +6,7 @@ Item {
     id: root
 
     property real value: 0 // 0-100
-    property color color: Theme.pink
+    property color color: Theme.fill
     property real thickness: 3
     property alias icon: label.text
 
@@ -16,7 +16,7 @@ Item {
     Rectangle {
         anchors.fill: parent
         radius: width / 2
-        color: Theme.base
+        color: Theme.inset
     }
 
     Shape {

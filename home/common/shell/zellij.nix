@@ -1,11 +1,80 @@
-_: {
+{ self, pkgs, ... }:
+let
+  m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
+  term = m.terminal;
+
+  # Colours as RGB triplets, the form zellij's own themes use: "#c9a24f" -> [ 201 162 79 ].
+  rgb =
+    hex:
+    map pkgs.lib.fromHexString [
+      (builtins.substring 1 2 hex)
+      (builtins.substring 3 2 hex)
+      (builtins.substring 5 2 hex)
+    ];
+  # base/background plus the four emphasis slots every component takes.
+  component = base: background: emphasis: {
+    base = rgb base;
+    background = rgb background;
+    emphasis_0 = rgb (builtins.elemAt emphasis 0);
+    emphasis_1 = rgb (builtins.elemAt emphasis 1);
+    emphasis_2 = rgb (builtins.elemAt emphasis 2);
+    emphasis_3 = rgb (builtins.elemAt emphasis 3);
+  };
+  # Key hints and highlighted words: gilt first, then the calm categorical hues.
+  emphasis = [
+    m.gilt
+    m.link
+    m.ok
+    m.series4
+  ];
+in
+{
   programs.zellij = {
     enable = true;
+
+    # New-style (0.42+) component theme.
+    themes.meridian.themes.meridian = {
+      text_unselected = component m.text m.ground emphasis;
+      text_selected = component m.text m.selection emphasis;
+      # The selected tab (and the active mode key) is "here": ground on gilt. Everything
+      # else sits on plate, so the bar reads as one quiet strip.
+      ribbon_selected = component m.ground m.gilt [
+        m.inset
+        m.ground
+        m.ground
+        m.ground
+      ];
+      ribbon_unselected = component m.text2 m.plate emphasis;
+      table_title = component m.gilt m.ground emphasis;
+      table_cell_selected = component m.text m.selection emphasis;
+      table_cell_unselected = component m.text2 m.ground emphasis;
+      list_selected = component m.text m.selection emphasis;
+      list_unselected = component m.text2 m.ground emphasis;
+      # The focused pane's frame is gilt; resting frames recede to the rule.
+      frame_selected = component m.gilt m.ground emphasis;
+      frame_unselected = component m.rule m.ground emphasis;
+      frame_highlight = component m.caution m.ground emphasis;
+      exit_code_success = component m.ok m.ground emphasis;
+      exit_code_error = component m.alert m.ground emphasis;
+      multiplayer_user_colors = {
+        player_1 = rgb m.series1;
+        player_2 = rgb m.series2;
+        player_3 = rgb m.series3;
+        player_4 = rgb m.series4;
+        player_5 = rgb term.normal.cyan;
+        player_6 = rgb term.bright.blue;
+        player_7 = rgb term.bright.green;
+        player_8 = rgb term.bright.magenta;
+        player_9 = rgb term.bright.cyan;
+        player_10 = rgb m.fill;
+      };
+    };
 
     enableZshIntegration = true;
     exitShellOnExit = true;
 
     settings = {
+      theme = "meridian";
       default_shell = "zsh";
       show_startup_tips = false;
       show_release_notes = false;

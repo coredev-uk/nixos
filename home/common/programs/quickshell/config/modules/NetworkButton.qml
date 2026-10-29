@@ -3,10 +3,12 @@ import qs.common
 import qs.services
 import qs.widgets
 
+// Connected is the normal state, so it stays enamel; disconnected is the alert. Gilt while its
+// panel is open.
 Icon {
     id: root
 
-    color: NetworkStatus.type === "disconnected" ? Theme.red : Theme.green
+    color: panel.visible ? Theme.gilt : NetworkStatus.type === "disconnected" ? Theme.alert : area.containsMouse ? Theme.text : Theme.text2
     text: {
         switch (NetworkStatus.type) {
         case "ethernet":
@@ -22,6 +24,7 @@ Icon {
     MouseArea {
         id: area
         anchors.fill: parent
+        anchors.margins: -4
         hoverEnabled: true
         onClicked: panel.toggle()
     }

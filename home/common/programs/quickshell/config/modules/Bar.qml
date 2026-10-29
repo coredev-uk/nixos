@@ -19,14 +19,8 @@ PanelWindow {
         bottom: !Theme.barAtTop
     }
     implicitHeight: Theme.barHeight
-    color: Theme.crust
-    // Matched by the hyprland blur layer rule
+    color: Theme.ground
     WlrLayershell.namespace: "bar"
-
-    SystemClock {
-        id: clock
-        precision: SystemClock.Minutes
-    }
 
     // Keeps hypridle from dimming/locking while Caffeine is on.
     IdleInhibitor {
@@ -34,22 +28,30 @@ PanelWindow {
         enabled: Caffeine.enabled
     }
 
+    // The 1px rule along the bar's inner edge.
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.top: Theme.barAtTop ? undefined : parent.top
+        anchors.bottom: Theme.barAtTop ? parent.bottom : undefined
+        height: 1
+        color: Theme.rule
+    }
+
     RowLayout {
         anchors.left: parent.left
-        anchors.leftMargin: 10
+        anchors.leftMargin: 6
         anchors.verticalCenter: parent.verticalCenter
         spacing: 10
 
         Workspaces {
             screen: bar.screen
         }
-        Sep {
-            visible: windowTitle.text !== ""
-        }
         WindowTitle {
             id: windowTitle
             visible: text !== ""
             screen: bar.screen
+            Layout.leftMargin: 4
             Layout.maximumWidth: 400
         }
     }
@@ -81,12 +83,7 @@ PanelWindow {
         CaffeineButton {}
         NetworkButton {}
         Sep {}
-        DateButton {
-            clock: clock
-        }
-        BarText {
-            text: Qt.formatDateTime(clock.date, "HH:mm")
-        }
+        Clock {}
         Sep {}
         Notifications {}
         Sep {}

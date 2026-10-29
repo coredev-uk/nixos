@@ -27,7 +27,7 @@ Rectangle {
     property bool ready: false
     readonly property bool shown: ready && !context.unlocking
 
-    color: Theme.crust
+    color: Theme.ground
 
     Component.onCompleted: ready = true
 
@@ -69,7 +69,7 @@ Rectangle {
     // Under the blur until the still has loaded.
     Rectangle {
         anchors.fill: parent
-        color: Theme.crust
+        color: Theme.ground
     }
 
     MultiEffect {
@@ -85,21 +85,21 @@ Rectangle {
         Behavior on blur {
             NumberAnimation {
                 duration: 600
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
 
         Behavior on saturation {
             NumberAnimation {
                 duration: 600
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
 
         Behavior on opacity {
             NumberAnimation {
                 duration: 400
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
     }
@@ -107,13 +107,13 @@ Rectangle {
     // Flat scrim so the text holds up on bright wallpapers; deeper with the password up.
     Rectangle {
         anchors.fill: parent
-        color: Theme.crust
+        color: Theme.ground
         opacity: root.engaged ? 0.42 : 0.18
 
         Behavior on opacity {
             NumberAnimation {
                 duration: 600
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
     }

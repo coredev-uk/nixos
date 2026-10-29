@@ -148,8 +148,8 @@ Scope {
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 220
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationReveal
+                        easing.type: Theme.easing
                     }
                 }
 
@@ -179,7 +179,7 @@ Scope {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: Theme.crust
+                    color: Theme.ground
                 }
 
                 // The highlighted picture full screen; the stack crossfades as the selection moves.
@@ -206,7 +206,7 @@ Scope {
                             Behavior on opacity {
                                 NumberAnimation {
                                     duration: 320
-                                    easing.type: Easing.OutCubic
+                                    easing.type: Theme.easing
                                 }
                             }
                         }
@@ -224,7 +224,7 @@ Scope {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: Theme.crust
+                    color: Theme.ground
                     opacity: 0.4
                 }
 
@@ -256,7 +256,7 @@ Scope {
                     Behavior on position {
                         NumberAnimation {
                             duration: 320
-                            easing.type: Easing.OutCubic
+                            easing.type: Theme.easing
                         }
                     }
 
@@ -316,15 +316,15 @@ Scope {
                             Parallelogram {
                                 anchors.fill: parent
                                 slant: card.slant
-                                fill: Theme.crust
+                                fill: Theme.ground
                                 opacity: 0.35 * card.side
                             }
 
                             Parallelogram {
                                 anchors.fill: parent
                                 slant: card.slant
-                                stroke: Theme.blue
-                                strokeWidth: Math.max(2, Math.round(3 * window.s))
+                                stroke: Theme.gilt
+                                strokeWidth: 2
                                 opacity: 1 - card.side
                             }
 
@@ -366,15 +366,15 @@ Scope {
                             visible: (root.pictures[root.selected]?.id ?? "") === root.current && root.current !== ""
                             width: currentLabel.implicitWidth + Math.round(20 * window.s)
                             height: Math.round(26 * window.s)
-                            radius: height / 2
-                            color: Qt.rgba(Theme.blue.r, Theme.blue.g, Theme.blue.b, 0.18)
+                            radius: Theme.radiusRow
+                            color: Theme.tint(Theme.gilt, 0.1)
 
                             BarText {
                                 id: currentLabel
 
                                 anchors.centerIn: parent
                                 text: "Current"
-                                color: Theme.blue
+                                color: Theme.gilt
                                 font.pixelSize: Math.round(13 * window.s)
                                 font.weight: Font.Medium
                             }
@@ -395,7 +395,7 @@ Scope {
                                 return "No wallpapers found";
                             return "←  →  to browse     Enter to apply     Esc to close";
                         }
-                        color: root.error !== "" ? Theme.red : Theme.subtext0
+                        color: root.error !== "" ? Theme.alert : Theme.text2
                         font.pixelSize: Math.round(15 * window.s)
                     }
                 }

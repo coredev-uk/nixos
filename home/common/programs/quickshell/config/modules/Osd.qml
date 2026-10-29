@@ -138,7 +138,7 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.None
 
-            Rectangle {
+            Plate {
                 id: card
 
                 // Rises into place as it fades in, sinks as it fades out.
@@ -149,10 +149,6 @@ Scope {
                 anchors.horizontalCenter: parent.horizontalCenter
                 y: window.shadowPadding + drop
                 opacity: 0
-                radius: 12
-                color: Theme.mantle
-                border.width: 1
-                border.color: Theme.surface0
 
                 // Fade in on creation too; later shows reuse the window if it hasn't unloaded yet.
                 Component.onCompleted: {
@@ -162,15 +158,15 @@ Scope {
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 180
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
 
                 Behavior on y {
                     NumberAnimation {
-                        duration: 180
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
 
@@ -180,7 +176,7 @@ Scope {
                     shadowColor: "black"
                     shadowOpacity: 0.35
                     shadowBlur: 1
-                    shadowVerticalOffset: 6
+                    shadowVerticalOffset: 8
                 }
 
                 Item {
@@ -218,7 +214,9 @@ Scope {
 
         readonly property bool muted: root.kind === "volume" ? root.sink?.audio?.muted ?? false : root.kind === "mic" ? root.source?.audio?.muted ?? false : false
         readonly property real value: root.kind === "volume" ? (root.sink?.audio?.volume ?? 0) * 100 : root.brightness
-        readonly property color accent: muted ? Theme.overlay0 : root.kind === "brightness" ? Theme.yellow : Theme.blue
+        // Glyph in the legend colour, level in the enamel fill; both drop to muted when muted.
+        readonly property color glyph: muted ? Theme.muted : Theme.text
+        readonly property color accent: muted ? Theme.muted : Theme.fill
 
         spacing: 10
 
@@ -233,7 +231,7 @@ Scope {
                     return Icons.volumeOff;
                 return level.value > 66 ? Icons.volumeHigh : level.value > 33 ? Icons.volumeMedium : Icons.volumeLow;
             }
-            color: level.accent
+            color: level.glyph
             font.pixelSize: 20
         }
 
@@ -242,7 +240,7 @@ Scope {
             Layout.fillWidth: true
             implicitHeight: 6
             radius: 3
-            color: Theme.surface0
+            color: Theme.inset
 
             Rectangle {
                 width: parent.width * Math.max(0, Math.min(1, level.value / 100))
@@ -252,8 +250,8 @@ Scope {
 
                 Behavior on width {
                     NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
             }
@@ -264,7 +262,7 @@ Scope {
             Layout.preferredWidth: 34
             horizontalAlignment: Text.AlignRight
             text: `${Math.round(level.value)}%`
-            color: level.muted ? Theme.overlay0 : Theme.subtext0
+            color: level.muted ? Theme.muted : Theme.text2
             font.pixelSize: 12
         }
 
@@ -272,7 +270,7 @@ Scope {
             visible: root.kind === "mic"
             Layout.fillWidth: true
             text: level.muted ? "Microphone muted" : "Microphone on"
-            color: level.muted ? Theme.subtext0 : Theme.text
+            color: level.muted ? Theme.text2 : Theme.text
             font.pixelSize: 12
         }
     }
@@ -284,14 +282,14 @@ Scope {
         ClippingRectangle {
             implicitWidth: 40
             implicitHeight: 40
-            radius: 6
-            color: Theme.surface0
+            radius: Theme.radiusRow
+            color: Theme.inset
 
             Icon {
                 anchors.centerIn: parent
                 visible: art.status !== Image.Ready
                 text: Icons.music
-                color: Theme.subtext0
+                color: Theme.muted
             }
 
             Image {
@@ -320,7 +318,7 @@ Scope {
             BarText {
                 Layout.fillWidth: true
                 text: root.player?.trackArtist || "Unknown artist"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
@@ -329,7 +327,7 @@ Scope {
         Icon {
             Layout.preferredWidth: 24
             text: root.player?.isPlaying ? Icons.play : Icons.pause
-            color: Theme.pink
+            color: Theme.text
             font.pixelSize: 20
         }
     }

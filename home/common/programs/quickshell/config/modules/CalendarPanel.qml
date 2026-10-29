@@ -50,13 +50,13 @@ BarPopup {
 
         implicitWidth: 28
         implicitHeight: 28
-        radius: 6
-        color: area.containsMouse ? Theme.surface0 : "transparent"
+        radius: Theme.radiusRow
+        color: area.containsMouse ? Theme.hover : "transparent"
 
         Icon {
             id: label
             anchors.centerIn: parent
-            color: Theme.lavender
+            color: Theme.muted
             font.pixelSize: 14
         }
 
@@ -68,16 +68,12 @@ BarPopup {
         }
     }
 
-    Rectangle {
+    Plate {
         id: frame
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: content.implicitHeight + 24
-        radius: 12
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         ColumnLayout {
             id: content
@@ -97,7 +93,7 @@ BarPopup {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     text: Qt.locale().standaloneMonthName(root.month) + " " + root.year
-                    color: Theme.lavender
+                    color: Theme.text
                     font.pixelSize: 13
                     font.bold: true
                 }
@@ -116,9 +112,8 @@ BarPopup {
 
                     text: shortName
                     horizontalAlignment: Text.AlignHCenter
-                    color: Theme.lavender
-                    font.pixelSize: 12
-                    font.bold: true
+                    color: Theme.text2
+                    font.pixelSize: 11
                 }
             }
 
@@ -147,18 +142,20 @@ BarPopup {
 
                     implicitWidth: 40
                     implicitHeight: 32
-                    radius: 6
-                    color: model.today ? Theme.pink : selected || area.containsMouse ? Theme.surface0 : "transparent"
-                    border.width: selected && !model.today ? 1 : 0
-                    border.color: Theme.lavender
+                    radius: Theme.radiusRow
+                    // Today is told by its gilt numeral, the selected day by a gilt ring.
+                    color: area.containsMouse ? Theme.hover : "transparent"
+                    border.width: selected ? 1 : 0
+                    border.color: Theme.gilt
 
                     // Raised the same on every day, dots or not, so the numbers sit on one line.
                     BarText {
                         anchors.centerIn: parent
                         anchors.verticalCenterOffset: -3
                         text: day.model.day
-                        color: day.model.today ? Theme.base : day.model.month === grid.month ? Theme.text : Theme.surface2
+                        color: day.model.today ? Theme.gilt : day.model.month === grid.month ? Theme.text : Theme.muted
                         font.pixelSize: 12
+                        font.bold: day.model.today
                     }
 
                     Row {
@@ -176,8 +173,7 @@ BarPopup {
                                 width: 4
                                 height: 4
                                 radius: 2
-                                // Calendar colours would clash with today's highlight.
-                                color: day.model.today ? Theme.base : modelData
+                                color: modelData
                                 opacity: day.model.month === grid.month ? 1 : 0.5
                             }
                         }
@@ -196,7 +192,7 @@ BarPopup {
                 Layout.fillWidth: true
                 Layout.topMargin: 4
                 implicitHeight: 1
-                color: Theme.surface0
+                color: Theme.rule
             }
 
             RowLayout {
@@ -205,7 +201,7 @@ BarPopup {
                 BarText {
                     Layout.fillWidth: true
                     text: Qt.formatDate(root.selected, "dddd d MMMM")
-                    color: Theme.lavender
+                    color: Theme.text
                     font.pixelSize: 12
                     font.bold: true
                     elide: Text.ElideRight
@@ -215,17 +211,17 @@ BarPopup {
                     // Only before the first answer: later fetches refresh what's already shown.
                     visible: Calendar.loading && !Calendar.loaded
                     text: "Loading…"
-                    color: Theme.subtext0
+                    color: Theme.text2
                     font.pixelSize: 11
                 }
             }
 
             BarText {
                 // A failed fetch leaves configured false; the errors below say why instead.
-                visible: root.selectedEvents.length === 0 && Calendar.loaded && (Calendar.configured || Calendar.errors.length === 0)
+                visible: root.selectedEvents.length === 0 && Calendar.loaded && Calendar.errors.length === 0
                 Layout.fillWidth: true
                 text: Calendar.configured ? "No events" : "Add calendars in ~/.config/quickshell/calendars.json"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
@@ -267,7 +263,7 @@ BarPopup {
                             BarText {
                                 Layout.preferredWidth: 64
                                 text: event.modelData.time
-                                color: Theme.subtext0
+                                color: Theme.text2
                                 font.pixelSize: 11
                             }
 
@@ -281,7 +277,7 @@ BarPopup {
                             Icon {
                                 visible: event.modelData.done
                                 text: Icons.check
-                                color: Theme.green
+                                color: Theme.text2
                                 font.pixelSize: 12
                             }
                         }
@@ -290,7 +286,7 @@ BarPopup {
                             Layout.fillWidth: true
                             Layout.leftMargin: 72
                             text: [event.modelData.detail, event.modelData.calendar].filter(part => part).join(" · ")
-                            color: Theme.subtext0
+                            color: Theme.text2
                             font.pixelSize: 11
                             elide: Text.ElideRight
                         }
@@ -306,7 +302,7 @@ BarPopup {
 
                     Layout.fillWidth: true
                     text: `${Calendar.sourceNames[modelData.source] ?? modelData.source}: ${modelData.message}`
-                    color: Theme.red
+                    color: Theme.alert
                     font.pixelSize: 11
                     wrapMode: Text.Wrap
                 }

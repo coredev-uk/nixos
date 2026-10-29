@@ -22,16 +22,16 @@ ClippingRectangle {
     readonly property color artAverage: {
         const colors = quantizer.colors;
         if (colors.length === 0)
-            return Theme.surface0;
+            return Theme.inset;
         const sum = colors.reduce((acc, c) => [acc[0] + c.r, acc[1] + c.g, acc[2] + c.b], [0, 0, 0]);
         return Qt.rgba(sum[0] / colors.length, sum[1] / colors.length, sum[2] / colors.length, 1);
     }
     readonly property bool lightArt: hasArt && luminance(artAverage) > 0.5
     readonly property color scrim: lightArt ? Qt.rgba(1, 1, 1, 0.35) : Qt.rgba(0, 0, 0, 0.45)
     // What the text actually sits on: the artwork average seen through the scrim.
-    readonly property color background: hasArt ? blend(artAverage, scrim) : Theme.surface0
-    readonly property color textColor: lightArt ? Theme.crust : Theme.text
-    readonly property color accent: hasArt ? pickAccent(quantizer.colors, background) : Theme.pink
+    readonly property color background: hasArt ? blend(artAverage, scrim) : Theme.inset
+    readonly property color textColor: lightArt ? Theme.ground : Theme.text
+    readonly property color accent: hasArt ? pickAccent(quantizer.colors, background) : Theme.fill
 
     // WCAG relative luminance and contrast ratio.
     function luminance(c: color): real {
@@ -90,8 +90,8 @@ ClippingRectangle {
     }
 
     implicitHeight: Math.max(90, overlay.implicitHeight + 20)
-    radius: 10
-    color: Theme.surface0
+    radius: Theme.radiusInset
+    color: Theme.inset
 
     ColorQuantizer {
         id: quantizer
@@ -139,8 +139,8 @@ ClippingRectangle {
 
         implicitWidth: label.implicitWidth + 24
         implicitHeight: label.implicitHeight + 12
-        radius: 8
-        color: area.containsMouse ? Qt.rgba(accent.r, accent.g, accent.b, 0.15) : "transparent"
+        radius: Theme.radiusRow
+        color: Theme.tint(accent, area.containsMouse ? 0.16 : 0.1)
         opacity: enabled ? 1 : 0.5
 
         Icon {

@@ -84,16 +84,12 @@ BarPopup {
         }
     }
 
-    Rectangle {
+    Plate {
         id: frame
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: content.implicitHeight + 24
-        radius: 12
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         Loader {
             id: content
@@ -128,7 +124,7 @@ BarPopup {
             PanelRow {
                 visible: NetworkStatus.wiredDevice !== null || NetworkStatus.wifiDevice === null
                 icon: NetworkStatus.wiredConnected ? Icons.ethernet : Icons.disconnected
-                iconColor: NetworkStatus.wiredConnected ? Theme.green : Theme.overlay0
+                on: NetworkStatus.wiredConnected
                 label: "Ethernet"
                 sublabel: {
                     const device = NetworkStatus.wiredDevice;
@@ -146,7 +142,7 @@ BarPopup {
             PanelRow {
                 visible: NetworkStatus.wifiDevice !== null
                 icon: Networking.wifiEnabled && Networking.wifiHardwareEnabled ? Icons.wifi : Icons.wifiOff
-                iconColor: Networking.wifiEnabled && Networking.wifiHardwareEnabled ? Theme.green : Theme.overlay0
+                on: Networking.wifiEnabled && Networking.wifiHardwareEnabled
                 label: "WiFi"
                 sublabel: !Networking.wifiHardwareEnabled ? "Off (hardware switch)" : NetworkStatus.wifiNetwork?.name ?? (Networking.wifiEnabled ? "Not connected" : "Off")
                 canOpen: Networking.wifiEnabled && Networking.wifiHardwareEnabled
@@ -156,7 +152,7 @@ BarPopup {
 
             PanelRow {
                 icon: Icons.vpn
-                iconColor: Theme.mauve
+                on: Vpn.connected
                 label: "VPN"
                 sublabel: Vpn.connected ? `Connected - ${Vpn.server}` : "Disconnected"
                 onToggled: Vpn.toggle()
@@ -169,7 +165,7 @@ BarPopup {
             PanelRow {
                 visible: root.adapter !== null
                 icon: root.adapter?.enabled ? Icons.bluetooth : Icons.bluetoothOff
-                iconColor: root.adapter?.enabled ? Theme.green : Theme.overlay0
+                on: root.adapter?.enabled ?? false
                 label: "Bluetooth"
                 sublabel: root.adapter?.enabled ? "On" : "Off"
                 canOpen: root.adapter?.enabled ?? false
@@ -183,7 +179,7 @@ BarPopup {
             // The icon stops casting; the row opens the speaker list and screen casting.
             PanelRow {
                 icon: AirPlay.casting ? Icons.castConnected : Icons.cast
-                iconColor: Theme.teal
+                on: AirPlay.casting
                 label: "Cast"
                 sublabel: AirPlay.casting && AirPlay.chosen.length > 0 ? `AirPlay - ${AirPlay.chosen.map(speaker => speaker.name).join(", ")}` : "AirPlay speakers and screen"
                 canToggle: AirPlay.casting
@@ -221,7 +217,7 @@ BarPopup {
                 visible: wifiList.count === 0
                 Layout.leftMargin: 12
                 text: "No networks found"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
             }
 
@@ -264,7 +260,7 @@ BarPopup {
                 Layout.leftMargin: 12
                 Layout.rightMargin: 12
                 text: root.wifiError
-                color: Theme.red
+                color: Theme.alert
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
             }
@@ -316,7 +312,7 @@ BarPopup {
                 visible: Vpn.countries.length === 0
                 Layout.leftMargin: 12
                 text: Vpn.loadingCountries ? "Loading…" : "No countries available (signed in to protonvpn?)"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
             }
 
@@ -362,7 +358,6 @@ BarPopup {
                 icon: Icons.search
                 label: root.adapter?.discovering ? "Scanning…" : "Scan for devices"
                 active: root.adapter?.discovering ?? false
-                accent: Theme.blue
                 onClicked: {
                     if (!root.adapter)
                         return;
@@ -375,7 +370,7 @@ BarPopup {
                 visible: btList.count === 0 && !(root.adapter?.discovering ?? false)
                 Layout.leftMargin: 12
                 text: "No devices found"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
             }
 
@@ -429,7 +424,7 @@ BarPopup {
             BarText {
                 Layout.leftMargin: 12
                 text: "This computer"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
             }
 
@@ -461,7 +456,7 @@ BarPopup {
                 Layout.leftMargin: 12
                 Layout.topMargin: 6
                 text: "AirPlay"
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
             }
 
@@ -515,7 +510,7 @@ BarPopup {
                         return AirPlay.error;
                     return AirPlay.speakers.length === 0 ? "No AirPlay speakers found on the network" : "";
                 }
-                color: AirPlay.available && AirPlay.error === "" ? Theme.overlay0 : Theme.red
+                color: AirPlay.available && AirPlay.error === "" ? Theme.muted : Theme.alert
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
             }

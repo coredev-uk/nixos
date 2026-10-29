@@ -35,7 +35,7 @@ ColumnLayout {
         Layout.topMargin: 4
         Layout.bottomMargin: 4
         text: "No apps are playing audio"
-        color: Theme.subtext0
+        color: Theme.text2
         font.pixelSize: 11
     }
 
@@ -55,7 +55,8 @@ ColumnLayout {
             label: name
             iconSource: Quickshell.iconPath(name.toLowerCase(), true)
             icon: muted ? Icons.volumeOff : Icons.volumeHigh
-            color: muted ? Theme.overlay0 : Theme.lavender
+            color: muted ? Theme.muted : Theme.fill
+            iconColor: muted ? Theme.muted : Theme.text2
             value: (modelData.audio?.volume ?? 0) * 100
             opacity: muted ? 0.6 : 1
             onMoved: value => {

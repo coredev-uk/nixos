@@ -16,7 +16,8 @@ SliderRow {
     }
 
     icon: Icons.nightLight
-    color: NightLight.active ? Theme.peach : Theme.overlay0
+    color: NightLight.active ? Theme.fill : Theme.muted
+    iconColor: NightLight.active ? Theme.gilt : Theme.muted
     value: NightLight.custom > 0 ? position(NightLight.custom) : NightLight.scheduled ? position(NightLight.nightTemperature) : 0
     valueText: NightLight.custom > 0 ? `${NightLight.custom}K` : NightLight.scheduled ? "Auto" : "Off"
 

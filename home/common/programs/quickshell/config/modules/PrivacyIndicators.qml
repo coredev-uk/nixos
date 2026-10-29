@@ -5,8 +5,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Coloured glyphs for whatever is being captured or cast right now (macOS colours: orange
-// microphone, green camera, purple screen); hidden when nothing is. Click lists the apps.
+// Alert glyphs for whatever is being captured or cast right now: anything leaving the machine is
+// worth noticing, so every kind takes the same colour. Hidden when nothing is. Click lists the apps.
 Item {
     id: root
 
@@ -14,32 +14,27 @@ Item {
         {
             key: "camera",
             label: "Camera",
-            icon: Icons.webcam,
-            color: Theme.green
+            icon: Icons.webcam
         },
         {
             key: "microphone",
             label: "Microphone",
-            icon: Icons.microphone,
-            color: Theme.peach
+            icon: Icons.microphone
         },
         {
             key: "screen",
             label: "Screen sharing",
-            icon: Icons.monitorShare,
-            color: Theme.mauve
+            icon: Icons.monitorShare
         },
         {
             key: "systemAudio",
             label: "System audio",
-            icon: Icons.waveform,
-            color: Theme.red
+            icon: Icons.waveform
         },
         {
             key: "cast",
             label: "AirPlay",
             icon: Icons.castConnected,
-            color: Theme.teal,
             // Its entries are speakers, not apps.
             entryIcon: Icons.speakerWireless
         }
@@ -81,18 +76,18 @@ Item {
                 opacity: shown ? 1 : 0
                 scale: shown ? 1 : 0.6
                 text: modelData.icon
-                color: modelData.color
+                color: Theme.alert
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
                 Behavior on scale {
                     NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
             }
@@ -120,16 +115,12 @@ Item {
         implicitWidth: 260
         implicitHeight: frame.implicitHeight + gap
 
-        Rectangle {
+        Plate {
             id: frame
             anchors.fill: parent
             anchors.topMargin: popup.topInset
             anchors.bottomMargin: popup.bottomInset
             implicitHeight: content.implicitHeight + 24
-            radius: 12
-            color: Theme.mantle
-            border.color: Theme.surface0
-            border.width: 1
 
             ColumnLayout {
                 id: content
@@ -147,8 +138,8 @@ Item {
 
                         Layout.fillWidth: true
                         implicitHeight: apps.implicitHeight + 16
-                        radius: 8
-                        color: Theme.base
+                        radius: Theme.radiusInset
+                        color: Theme.inset
 
                         ColumnLayout {
                             id: apps
@@ -164,7 +155,7 @@ Item {
                                 Icon {
                                     Layout.preferredWidth: 20
                                     text: card.modelData.icon
-                                    color: card.modelData.color
+                                    color: Theme.alert
                                 }
 
                                 BarText {
@@ -201,7 +192,7 @@ Item {
                                             anchors.centerIn: parent
                                             visible: app.modelData.icon === ""
                                             text: card.modelData.entryIcon ?? Icons.application
-                                            color: Theme.overlay0
+                                            color: Theme.muted
                                         }
                                     }
 

@@ -18,8 +18,8 @@ RowLayout {
         visible: (root.player?.trackArtUrl ?? "") !== ""
         implicitWidth: 20
         implicitHeight: 20
-        radius: 10
-        color: Theme.surface0
+        radius: 4
+        color: Theme.inset
 
         Image {
             anchors.fill: parent

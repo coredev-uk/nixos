@@ -44,7 +44,6 @@ let
     { flakeInputs, stateVersion }:
     {
       imports = [
-        flakeInputs.catppuccin.homeModules.catppuccin
         flakeInputs.nixvim.homeModules.nixvim
         ../home # This path is relative to where this function is defined and used
       ];

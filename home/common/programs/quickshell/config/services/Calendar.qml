@@ -103,7 +103,7 @@ Singleton {
             const end = event.allDay ? localDay(event.end) : new Date(event.end);
             if (start < first && end <= first)
                 continue;
-            const color = event.color || (event.source === "sonarr" ? Theme.sapphire : event.source === "radarr" ? Theme.yellow : Theme.mauve);
+            const color = event.color || (event.source === "sonarr" ? Theme.series1 : event.source === "radarr" ? Theme.series3 : Theme.series4);
             // Every day the event touches; a timed one ending at midnight stays on its last day.
             let day = new Date(start.getFullYear(), start.getMonth(), start.getDate());
             if (day < first)
@@ -147,6 +147,7 @@ Singleton {
     }
 
     Component.onCompleted: ensure()
+
 
     // Keeps the loaded months fresh while the bar runs; ensure() does nothing if they are.
     Timer {

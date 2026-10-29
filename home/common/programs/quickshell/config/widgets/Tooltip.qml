@@ -34,14 +34,11 @@ BarPopup {
         onTriggered: root.visible = root.text !== ""
     }
 
-    Rectangle {
+    Plate {
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
-        radius: 6
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
+        radius: Theme.radiusRow
 
         BarText {
             id: label

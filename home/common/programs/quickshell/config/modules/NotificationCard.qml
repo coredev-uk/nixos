@@ -11,7 +11,7 @@ import qs.widgets
 
 // One notification, as a popup (`floating`) or a card in the centre's list. Clicking it runs the
 // default action (NotificationService.activate); the cross dismisses it everywhere.
-Rectangle {
+Plate {
     id: root
 
     // A NotificationService entry. Null for a moment once dismissed, before the delegate goes.
@@ -35,9 +35,10 @@ Rectangle {
     readonly property string imageSource: source(notification?.image ?? "")
     readonly property DesktopEntry desktopEntry: DesktopEntries.byId(notification?.desktopEntry ?? "")
     readonly property string iconSource: source(notification?.appIcon ?? "") || source(desktopEntry?.icon ?? "")
-    // Groups inside the card sit a tone step away from its background.
-    readonly property color inner: floating ? Theme.base : Theme.surface0
-    readonly property color innerHover: floating ? Theme.surface0 : Theme.surface1
+    // Groups inside the card sit a tone step away from its background: inset on a popup's plate,
+    // plate on a centre card's inset.
+    readonly property color inner: floating ? Theme.inset : Theme.plate
+    readonly property color innerHover: floating ? Theme.rule : Theme.hover
 
     // Paths, URLs (file://, image:// for pixel data) or icon theme names.
     function source(image: string): string {
@@ -61,10 +62,10 @@ Rectangle {
     }
 
     implicitHeight: column.implicitHeight + 24
-    radius: floating ? 12 : 8
-    color: floating ? Theme.mantle : Theme.base
+    radius: floating ? Theme.radiusPlate : Theme.radiusInset
+    color: floating ? Theme.plate : Theme.inset
     border.width: floating || critical ? 1 : 0
-    border.color: critical ? Qt.alpha(Theme.red, 0.6) : Theme.surface0
+    border.color: critical ? Theme.alert : Theme.rule
 
     HoverHandler {
         id: hover
@@ -97,7 +98,7 @@ Rectangle {
                 visible: root.imageSource !== "" || root.iconSource !== ""
                 implicitWidth: 64
                 implicitHeight: 64
-                radius: 8
+                radius: Theme.radiusInset
                 color: "transparent"
 
                 Image {
@@ -131,7 +132,7 @@ Rectangle {
                     BarText {
                         Layout.fillWidth: true
                         text: `${NotificationService.appName(root.notification)} · ${root.relativeTime(root.now - (root.entry?.time ?? root.now))}`
-                        color: root.critical ? Theme.red : Theme.subtext0
+                        color: root.critical ? Theme.alert : Theme.muted
                         font.pixelSize: 11
                         elide: Text.ElideRight
                     }
@@ -140,7 +141,7 @@ Rectangle {
                         visible: root.stacked > 0
                         implicitWidth: moreText.implicitWidth + 12
                         implicitHeight: 18
-                        radius: 6
+                        radius: Theme.radiusRow
                         color: root.inner
 
                         BarText {
@@ -148,7 +149,7 @@ Rectangle {
 
                             anchors.centerIn: parent
                             text: `${root.stacked} more`
-                            color: Theme.subtext0
+                            color: Theme.text2
                             font.pixelSize: 11
                         }
                     }
@@ -156,13 +157,13 @@ Rectangle {
                     Rectangle {
                         implicitWidth: 20
                         implicitHeight: 20
-                        radius: 6
+                        radius: Theme.radiusRow
                         color: closeArea.containsMouse ? root.innerHover : "transparent"
 
                         Icon {
                             anchors.centerIn: parent
                             text: Icons.close
-                            color: closeArea.containsMouse ? Theme.text : Theme.overlay0
+                            color: closeArea.containsMouse ? Theme.text : Theme.muted
                             font.pixelSize: 13
                         }
 
@@ -192,8 +193,8 @@ Rectangle {
                     visible: text !== ""
                     text: root.notification?.body ?? ""
                     textFormat: Text.StyledText
-                    color: Theme.subtext1
-                    linkColor: Theme.blue
+                    color: Theme.text2
+                    linkColor: Theme.link
                     font.pixelSize: 12
                     wrapMode: Text.Wrap
                     maximumLineCount: root.bodyLines
@@ -222,7 +223,7 @@ Rectangle {
 
                     Layout.fillWidth: true
                     implicitHeight: 28
-                    radius: 6
+                    radius: Theme.radiusRow
                     color: buttonArea.containsMouse ? root.innerHover : root.inner
 
                     // With action icons the identifier is an icon name and the text only a label.
@@ -263,10 +264,17 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 28
-                radius: 6
+                radius: Theme.radiusRow
                 color: root.inner
-                border.color: reply.activeFocus ? Theme.blue : "transparent"
+                border.color: reply.activeFocus ? Theme.gilt : Theme.rule
                 border.width: 1
+
+                Behavior on border.color {
+                    ColorAnimation {
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
+                    }
+                }
 
                 TextInput {
                     id: reply
@@ -283,7 +291,7 @@ Rectangle {
                     anchors.rightMargin: 8
                     verticalAlignment: TextInput.AlignVCenter
                     color: Theme.text
-                    selectionColor: Theme.surface2
+                    selectionColor: Theme.selection
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     clip: true
@@ -293,7 +301,7 @@ Rectangle {
                         anchors.fill: parent
                         visible: reply.text === ""
                         text: root.notification?.inlineReplyPlaceholder || "Reply"
-                        color: Theme.overlay0
+                        color: Theme.muted
                         font.pixelSize: 12
                     }
                 }
@@ -302,22 +310,22 @@ Rectangle {
             Rectangle {
                 implicitWidth: 28
                 implicitHeight: 28
-                radius: 6
+                radius: Theme.radiusRow
                 color: sendArea.containsMouse ? root.innerHover : root.inner
                 // Nothing to send yet.
                 opacity: reply.text === "" ? 0.5 : 1
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 150
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
 
                 Icon {
                     anchors.centerIn: parent
                     text: Icons.send
-                    color: Theme.blue
+                    color: Theme.gilt
                     font.pixelSize: 14
                 }
 

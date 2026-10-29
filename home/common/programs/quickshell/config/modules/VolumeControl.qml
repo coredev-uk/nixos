@@ -28,7 +28,8 @@ ColumnLayout {
         Layout.fillWidth: true
         value: (root.sink?.audio?.volume ?? 0) * 100
         icon: muted ? Icons.volumeOff : value > 66 ? Icons.volumeHigh : value > 33 ? Icons.volumeMedium : Icons.volumeLow
-        color: muted ? Theme.overlay0 : Theme.blue
+        color: muted ? Theme.muted : Theme.fill
+        iconColor: muted ? Theme.muted : Theme.text2
         expandable: true
         expanded: root.expanded
         onExpandToggled: root.expandToggled()
@@ -47,8 +48,8 @@ ColumnLayout {
         Layout.fillWidth: true
         Layout.bottomMargin: 4
         implicitHeight: mixer.implicitHeight + 8
-        radius: 8
-        color: Theme.base
+        radius: Theme.radiusInset
+        color: Theme.inset
 
         AudioMixer {
             id: mixer

@@ -4,7 +4,7 @@
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
+  m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
   stripHash = str: builtins.substring 1 (-1) str;
 in
 {
@@ -19,19 +19,19 @@ in
       ## Background
       round_corners = 5;
       background_alpha = 0.4;
-      background_color = stripHash theme.colours.mantle;
+      background_color = stripHash m.plate;
 
       ## Text
       font_size = 20;
       text_outline = true;
-      text_outline_color = stripHash theme.colours.crust;
+      text_outline_color = stripHash m.ground;
       text_outline_thickness = 1.5;
-      text_color = stripHash theme.colours.text;
+      text_color = stripHash m.text;
 
       fps = true;
       fps_color_change = true;
       fps_value = "60,144";
-      fps_color = "${stripHash theme.colours.red},${stripHash theme.colours.yellow},${stripHash theme.colours.green}";
+      fps_color = "${stripHash m.alert},${stripHash m.caution},${stripHash m.ok}";
       fps_sampling_period = 500;
       fps_metrics = "avg,0.01";
 

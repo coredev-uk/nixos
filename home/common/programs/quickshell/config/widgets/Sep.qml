@@ -1,15 +1,15 @@
 import QtQuick
 import qs.common
 
+// 1px rule between groups of bar items, in a 21px slot (10px either side).
 Item {
-    implicitWidth: 9
+    implicitWidth: 1
     implicitHeight: 14
 
     Rectangle {
         anchors.centerIn: parent
         width: 1
         height: 14
-        radius: 1
-        color: Theme.surface1
+        color: Theme.rule
     }
 }

@@ -126,8 +126,8 @@ let
       # The desktop's wallpaper (home/common/programs/hypr/paper.nix).
       export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.jpg"}
       # wlsunset's location (home/common/programs/hypr/sunset.nix), for the next sunrise or sunset.
-      export QS_LOCK_LATITUDE=${lib.escapeShellArg config.services.wlsunset.latitude}
-      export QS_LOCK_LONGITUDE=${lib.escapeShellArg config.services.wlsunset.longitude}
+      export QS_LATITUDE=${lib.escapeShellArg config.services.wlsunset.latitude}
+      export QS_LONGITUDE=${lib.escapeShellArg config.services.wlsunset.longitude}
       # The aerial clip of the wallpaper, made by wallpaper-video (home/common/programs/hypr/paper.nix);
       # the still shows until it exists.
       export QS_LOCK_VIDEO=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.mp4"}
@@ -203,17 +203,22 @@ in
   # instance never sees either change; restart it on switch instead.
   systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
     "${./config}"
+    "${theme.fonts.shell.package}"
     "${theme.fonts.iconFont.package}"
   ];
 
-  # Electron tray items (Discord, 1Password) expose IconPixmap but no IconName, so every
-  # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
   systemd.user.services.quickshell.Service.Environment = [
+    # Electron tray items (Discord, 1Password) expose IconPixmap but no IconName, so every
+    # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
     "QT_LOGGING_RULES=quickshell.dbus.properties.warning=false"
+    # wlsunset's location (home/common/programs/hypr/sunset.nix), for the bar's day arc.
+    "QS_LATITUDE=${config.services.wlsunset.latitude}"
+    "QS_LONGITUDE=${config.services.wlsunset.longitude}"
   ];
 
   home.packages = [
-    # The bar's glyphs; installed here so it doesn't depend on the system font set.
+    # The shell's face and glyphs; installed here so they don't depend on the system font set.
+    theme.fonts.shell.package
     theme.fonts.iconFont.package
     pkgs.iproute2
     # Holds the night light's session temperature (config/services/NightLight.qml).

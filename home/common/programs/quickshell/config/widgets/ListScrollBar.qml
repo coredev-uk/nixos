@@ -15,6 +15,6 @@ ScrollBar {
     contentItem: Rectangle {
         implicitWidth: 4
         radius: 2
-        color: root.pressed ? Theme.overlay0 : Theme.surface1
+        color: root.pressed ? Theme.muted : Theme.rule
     }
 }

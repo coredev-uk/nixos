@@ -8,7 +8,7 @@ import qs.widgets
 // time the panel's main view opens).
 SliderRow {
     icon: Icons.brightness
-    color: Theme.yellow
+    color: Theme.fill
     value: Brightness.percent
     // 0% would read as a real value before the first read answers.
     valueText: Brightness.known ? `${Math.round(value)}%` : "…"

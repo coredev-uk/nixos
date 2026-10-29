@@ -13,7 +13,9 @@ Item {
     // App icon path; replaces the glyph when set.
     property string iconSource: ""
     property string label: ""
-    property color color: Theme.blue
+    // The fill; muted when the thing it sets is off (a muted output).
+    property color color: Theme.fill
+    property color iconColor: Theme.text2
     property real value: 0 // 0-100
     property string valueText: `${Math.round(value)}%`
     property bool expandable: false
@@ -28,8 +30,8 @@ Item {
     RowLayout {
         id: row
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
         spacing: 10
 
         Item {
@@ -41,7 +43,7 @@ Item {
                 anchors.centerIn: parent
                 visible: root.iconSource === ""
                 text: root.icon
-                color: root.color
+                color: root.iconColor
             }
 
             IconImage {
@@ -61,8 +63,8 @@ Item {
             visible: root.label !== ""
             Layout.preferredWidth: 80
             text: root.label
-            color: Theme.subtext1
-            font.pixelSize: 11
+            color: Theme.text2
+            font.pixelSize: 12
             elide: Text.ElideRight
         }
 
@@ -77,21 +79,21 @@ Item {
             Layout.preferredWidth: 38
             horizontalAlignment: Text.AlignRight
             text: root.valueText
-            color: Theme.subtext0
+            color: Theme.text2
             font.pixelSize: 11
         }
 
         Rectangle {
             implicitWidth: 22
             implicitHeight: 22
-            radius: 6
-            color: root.expandable && expandArea.containsMouse ? Theme.surface0 : "transparent"
+            radius: Theme.radiusRow
+            color: root.expandable && expandArea.containsMouse ? Theme.hover : "transparent"
 
             Icon {
                 anchors.centerIn: parent
                 visible: root.expandable
                 text: root.expanded ? Icons.chevronUp : Icons.chevronDown
-                color: Theme.overlay0
+                color: Theme.muted
                 font.pixelSize: 14
             }
 

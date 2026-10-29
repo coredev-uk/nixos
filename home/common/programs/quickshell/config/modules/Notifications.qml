@@ -9,7 +9,8 @@ Item {
 
     readonly property int count: NotificationService.count
     readonly property bool dnd: NotificationService.dnd
-    readonly property color tint: dnd ? Theme.overlay0 : count > 0 ? Theme.peach : Theme.subtext0
+    // Gilt while the centre is open or something is unread; muted under Do Not Disturb.
+    readonly property color tint: center.visible || (count > 0 && !dnd) ? Theme.gilt : dnd ? Theme.muted : area.containsMouse ? Theme.text : Theme.text2
 
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight

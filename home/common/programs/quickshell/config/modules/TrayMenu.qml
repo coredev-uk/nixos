@@ -25,16 +25,12 @@ BarPopup {
         menu: root.current
     }
 
-    Rectangle {
+    Plate {
         id: frame
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: column.implicitHeight + 12
-        radius: 10
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         ColumnLayout {
             id: column
@@ -67,14 +63,14 @@ BarPopup {
                         anchors.centerIn: parent
                         width: parent.width - 16
                         height: 1
-                        color: Theme.surface0
+                        color: Theme.rule
                     }
 
                     Rectangle {
                         visible: !entry.modelData.isSeparator
                         anchors.fill: parent
-                        radius: 6
-                        color: area.containsMouse && entry.modelData.enabled ? Theme.surface0 : "transparent"
+                        radius: Theme.radiusRow
+                        color: area.containsMouse && entry.modelData.enabled ? Theme.hover : "transparent"
                         opacity: entry.modelData.enabled ? 1 : 0.5
 
                         RowLayout {
@@ -87,7 +83,7 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.buttonType !== QsMenuButtonType.None
                                 text: entry.radio ? (entry.checked ? Icons.radioOn : Icons.radioOff) : (entry.checked ? Icons.checkboxOn : Icons.checkboxOff)
-                                color: entry.checked ? Theme.blue : Theme.overlay0
+                                color: entry.checked ? Theme.gilt : Theme.muted
                                 font.pixelSize: 14
                             }
 
@@ -100,6 +96,7 @@ BarPopup {
                             BarText {
                                 Layout.fillWidth: true
                                 text: entry.modelData.text
+                                color: entry.modelData.enabled ? Theme.text : Theme.muted
                                 font.pixelSize: 12
                                 elide: Text.ElideRight
                             }
@@ -107,7 +104,7 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.hasChildren
                                 text: Icons.chevronRight
-                                color: Theme.overlay0
+                                color: Theme.muted
                                 font.pixelSize: 14
                             }
                         }

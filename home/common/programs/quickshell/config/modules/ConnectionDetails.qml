@@ -154,7 +154,7 @@ ColumnLayout {
 
         Icon {
             text: root.device?.connected ? Icons.ethernet : Icons.disconnected
-            color: root.device?.connected ? Theme.green : Theme.overlay0
+            color: root.device?.connected ? Theme.gilt : Theme.muted
             font.pixelSize: 22
         }
 
@@ -173,7 +173,7 @@ ColumnLayout {
             BarText {
                 Layout.fillWidth: true
                 text: root.status
-                color: Theme.subtext0
+                color: Theme.text2
                 font.pixelSize: 11
                 elide: Text.ElideRight
             }
@@ -190,8 +190,8 @@ ColumnLayout {
 
             Layout.fillWidth: true
             implicitHeight: sectionColumn.implicitHeight + 12
-            radius: 8
-            color: Theme.base
+            radius: Theme.radiusInset
+            color: Theme.inset
 
             ColumnLayout {
                 id: sectionColumn
@@ -203,7 +203,7 @@ ColumnLayout {
                     Layout.leftMargin: 6
                     Layout.bottomMargin: 2
                     text: section.modelData.title
-                    color: Theme.subtext0
+                    color: Theme.text2
                     font.pixelSize: 11
                 }
 
@@ -218,8 +218,8 @@ ColumnLayout {
 
                         Layout.fillWidth: true
                         implicitHeight: lineRow.implicitHeight + 8
-                        radius: 6
-                        color: lineArea.containsMouse ? Theme.surface0 : "transparent"
+                        radius: Theme.radiusRow
+                        color: lineArea.containsMouse ? Theme.rule : "transparent"
 
                         RowLayout {
                             id: lineRow
@@ -232,7 +232,7 @@ ColumnLayout {
                                 Layout.preferredWidth: 64
                                 Layout.alignment: Qt.AlignTop
                                 text: line.modelData.key
-                                color: Theme.subtext0
+                                color: Theme.text2
                                 font.pixelSize: 12
                             }
 
@@ -241,7 +241,7 @@ ColumnLayout {
                                 Layout.alignment: Qt.AlignTop
                                 // Long IPv6 addresses break between groups, not inside one.
                                 text: line.copied ? "Copied" : line.modelData.value.replace(/:/g, ":\u200B")
-                                color: line.copied ? Theme.green : Theme.text
+                                color: line.copied ? Theme.ok : Theme.text
                                 font.pixelSize: 12
                                 font.features: {
                                     "tnum": 1

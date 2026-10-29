@@ -71,17 +71,13 @@ BarPopup {
         precision: SystemClock.Minutes
     }
 
-    Rectangle {
+    Plate {
         id: frame
 
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: content.implicitHeight + 24
-        radius: 12
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         ColumnLayout {
             id: content
@@ -129,14 +125,14 @@ BarPopup {
                     Icon {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: Icons.bellOutline
-                        color: Theme.overlay0
+                        color: Theme.muted
                         font.pixelSize: 32
                     }
 
                     BarText {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "No notifications"
-                        color: Theme.subtext0
+                        color: Theme.text2
                         font.pixelSize: 12
                     }
                 }
@@ -180,8 +176,8 @@ BarPopup {
                         enabled: group.animating
 
                         NumberAnimation {
-                            duration: 200
-                            easing.type: Easing.OutCubic
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
                         }
                     }
 
@@ -204,9 +200,9 @@ BarPopup {
                             z: -index
                             width: group.width - 2 * x
                             height: 24
-                            radius: 8
-                            color: Qt.tint(Theme.base, Qt.alpha(Theme.mantle, 0.4 + 0.3 * index))
-                            border.color: Qt.alpha(Theme.surface0, 0.8 - 0.3 * index)
+                            radius: Theme.radiusInset
+                            color: Qt.tint(Theme.inset, Qt.alpha(Theme.plate, 0.4 + 0.3 * index))
+                            border.color: Qt.alpha(Theme.rule, 0.8 - 0.3 * index)
                             border.width: 1
                         }
                     }
@@ -226,7 +222,7 @@ BarPopup {
                                 Layout.fillWidth: true
                                 Layout.leftMargin: 4
                                 text: group.modelData
-                                color: Theme.subtext0
+                                color: Theme.text2
                                 font.pixelSize: 12
                                 font.bold: true
                                 elide: Text.ElideRight
@@ -273,15 +269,15 @@ BarPopup {
                                 property: "opacity"
                                 from: 0
                                 to: 1
-                                duration: 200
-                                easing.type: Easing.OutCubic
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
                             }
                         }
                         move: Transition {
                             NumberAnimation {
                                 property: "y"
-                                duration: 200
-                                easing.type: Easing.OutCubic
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
                             }
                         }
                     }
@@ -292,15 +288,15 @@ BarPopup {
                         property: "opacity"
                         from: 0
                         to: 1
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
                 displaced: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
             }
@@ -318,8 +314,8 @@ BarPopup {
 
         implicitWidth: buttonRow.implicitWidth + 16
         implicitHeight: 28
-        radius: 6
-        color: active ? Qt.alpha(Theme.peach, 0.1) : buttonArea.containsMouse ? Theme.surface0 : "transparent"
+        radius: Theme.radiusRow
+        color: active ? Theme.tint(Theme.gilt, 0.1) : buttonArea.containsMouse ? Theme.hover : "transparent"
 
         Row {
             id: buttonRow
@@ -330,14 +326,14 @@ BarPopup {
             Icon {
                 anchors.verticalCenter: parent.verticalCenter
                 text: button.icon
-                color: button.active ? Theme.peach : Theme.overlay0
+                color: button.active ? Theme.gilt : Theme.muted
                 font.pixelSize: 14
             }
 
             BarText {
                 anchors.verticalCenter: parent.verticalCenter
                 text: button.label
-                color: button.active ? Theme.peach : Theme.text
+                color: button.active ? Theme.gilt : Theme.text
                 font.pixelSize: 12
             }
         }

@@ -3,9 +3,10 @@ import Quickshell
 import qs.common
 import qs.widgets
 
-// Suspend, restart and shut down as flat round buttons, shown with the password. Each runs only
-// after being held for a moment, so a stray click can't power the machine off: a disc of its
-// colour grows from the centre while held. Hovering names the button in a tooltip above it.
+// Suspend, restart and shut down as plate-toned buttons, shown with the password. Each runs only
+// after being held for a moment, so a stray click can't power the machine off: its armed hue
+// (caution for restart, alert for shut down, as in the bar's power menu) grows from the centre
+// while held. Hovering names the button in a tooltip above it.
 Row {
     id: root
 
@@ -22,13 +23,14 @@ Row {
     HoldButton {
         icon: Icons.restart
         label: "Restart"
+        accent: Theme.caution
         command: ["systemctl", "reboot"]
     }
 
     HoldButton {
         icon: Icons.power
         label: "Shut down"
-        accent: Theme.red
+        accent: Theme.alert
         command: ["systemctl", "poweroff"]
     }
 
@@ -43,21 +45,23 @@ Row {
 
         width: Math.round(52 * root.s)
         height: width
-        radius: width / 2
-        color: Qt.rgba(1, 1, 1, area.containsMouse ? 0.24 : 0.14)
+        radius: Math.round(Theme.radiusInset * root.s)
+        color: area.containsMouse ? Theme.tint(Theme.hover, 0.9) : Theme.tint(Theme.plate, 0.85)
+        border.width: 1
+        border.color: Theme.rule
         scale: area.pressed ? 0.94 : 1
 
         Behavior on color {
             ColorAnimation {
-                duration: 120
-                easing.type: Easing.OutCubic
+                duration: Theme.durationState
+                easing.type: Theme.easing
             }
         }
 
         Behavior on scale {
             NumberAnimation {
-                duration: 160
-                easing.type: Easing.OutCubic
+                duration: Theme.durationState
+                easing.type: Theme.easing
             }
         }
 
@@ -65,7 +69,7 @@ Row {
             anchors.centerIn: parent
             width: parent.width
             height: width
-            radius: width / 2
+            radius: button.radius
             color: button.accent
             opacity: 0.5
             scale: button.progress
@@ -79,7 +83,7 @@ Row {
         }
 
         // Above the button: its name on hover, the instruction while pressed.
-        Rectangle {
+        Plate {
             id: tooltip
 
             readonly property bool shown: area.pressed || hoverDelay.passed
@@ -89,8 +93,7 @@ Row {
             anchors.bottomMargin: Math.round(12 * root.s)
             width: tip.implicitWidth + Math.round(28 * root.s)
             height: Math.round(36 * root.s)
-            radius: height / 2
-            color: Theme.base
+            radius: Math.round(Theme.radiusRow * root.s)
             opacity: shown ? 1 : 0
             visible: opacity > 0
 
@@ -99,16 +102,16 @@ Row {
 
                 Behavior on y {
                     NumberAnimation {
-                        duration: 160
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
             }
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 140
-                    easing.type: Easing.OutCubic
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
                 }
             }
 
@@ -156,7 +159,7 @@ Row {
             property: "progress"
             to: 0
             duration: 250
-            easing.type: Easing.OutCubic
+            easing.type: Theme.easing
         }
 
         MouseArea {

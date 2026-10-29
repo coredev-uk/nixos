@@ -82,14 +82,14 @@ PanelWindow {
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
                 Behavior on slide {
                     NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
 

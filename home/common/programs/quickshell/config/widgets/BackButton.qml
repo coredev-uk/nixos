@@ -2,6 +2,7 @@ import QtQuick
 import QtQuick.Layouts
 import qs.common
 
+// Heads every sub-view: chevron back, then the view's title.
 Rectangle {
     id: root
 
@@ -12,27 +13,27 @@ Rectangle {
     Layout.fillWidth: true
     Layout.bottomMargin: 4
     implicitHeight: row.implicitHeight + 16
-    radius: 8
-    color: area.containsMouse ? Theme.surface0 : "transparent"
+    radius: Theme.radiusRow
+    color: area.containsMouse ? Theme.hover : "transparent"
 
     RowLayout {
         id: row
         anchors.fill: parent
-        anchors.leftMargin: 12
+        anchors.leftMargin: 8
         anchors.rightMargin: 12
         spacing: 8
 
         Icon {
+            Layout.preferredWidth: 16
             text: Icons.chevronLeft
-            color: Theme.overlay0
+            color: Theme.muted
             font.pixelSize: 14
         }
 
         BarText {
             Layout.fillWidth: true
             text: root.title
-            color: Theme.subtext1
-            font.pixelSize: 12
+            font.pixelSize: 13
             font.bold: true
         }
     }
