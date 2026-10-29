@@ -5,9 +5,9 @@ import Quickshell
 import Quickshell.Io
 
 // Peripheral batteries (OpenRazer + HeadsetControl) via the quickshell-batteries helper.
-// Polled only while a panel shows them: reading the headset is a HID round trip of
-// ~1.5 s, so it shouldn't run in the background. Each visible panel (one per screen)
-// holds a reference through acquire()/release().
+// Reading the headset is a HID round trip of ~1.5 s, so the background check that feeds the
+// bar's low-battery glyph runs every 5 minutes; each visible panel (one per screen) holds a
+// reference through acquire()/release() and reads every minute while open.
 Singleton {
     id: root
 
@@ -15,6 +15,9 @@ Singleton {
     property var devices: []
     property int users: 0
     readonly property bool active: users > 0
+    // At or below the bar's threshold and not charging; a switched-off headset reports no level.
+    readonly property int lowLevel: 15
+    readonly property var low: devices.filter(device => device.level !== null && device.level <= lowLevel && !device.charging)
 
     function acquire() {
         users++;
@@ -33,6 +36,7 @@ Singleton {
         if (active)
             refresh();
     }
+    Component.onCompleted: refresh()
 
     Process {
         id: proc
@@ -50,9 +54,9 @@ Singleton {
     }
 
     Timer {
-        interval: 60000
+        interval: root.active ? 60000 : 300000
         repeat: true
-        running: root.active
+        running: true
         onTriggered: root.refresh()
     }
 }

@@ -51,8 +51,8 @@ let
     export QS_GREETER_USER=${lib.escapeShellArg meta.username}
     export QS_GREETER_SESSION=${lib.escapeShellArg (builtins.toJSON session)}
     export QS_LOCK_WALLPAPER=${wallpaperDir}/wallpaper.jpg
-    export QS_LOCK_LATITUDE=${lib.escapeShellArg location.latitude}
-    export QS_LOCK_LONGITUDE=${lib.escapeShellArg location.longitude}
+    export QS_LATITUDE=${lib.escapeShellArg location.latitude}
+    export QS_LONGITUDE=${lib.escapeShellArg location.longitude}
     ${lib.getExe unstable.quickshell} --path ${quickshellConfig}/greeter.qml
     ${hyprland}/bin/hyprctl dispatch 'hl.dsp.exit()'
   '';
@@ -78,7 +78,7 @@ let
           disable_watchdog_warning = true;
           force_default_wallpaper = 0;
           # Shown for the moment before the greeter's first frame.
-          background_color = "rgb(${lib.removePrefix "#" theme.colours.crust})";
+          background_color = "rgb(${lib.removePrefix "#" theme.meridian.ground})";
         };
       }
     })
@@ -102,6 +102,11 @@ in
 {
   # If the greeter can't start, log in on another TTY (Ctrl+Alt+F2).
   services.greetd.settings.default_session.command = "${greeterSession}";
+
+  # The greeter runs as `greeter` without a home-manager profile, so the shell's face comes from the
+  # system font set (Symbols Nerd Font is already there, hosts/common/desktop/default.nix). This
+  # also covers the session: the shell, Hyprland's group tabs and Vicinae use the same face.
+  fonts.packages = [ theme.fonts.shell.package ];
 
   systemd.tmpfiles.rules = [ "d ${wallpaperDir} 0755 ${meta.username} users -" ];
 }

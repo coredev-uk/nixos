@@ -20,8 +20,8 @@ Rectangle {
     }
 
     implicitHeight: column.implicitHeight + 16
-    radius: 8
-    color: Theme.base
+    radius: Theme.radiusInset
+    color: Theme.inset
 
     onVisibleChanged: {
         input.text = "";
@@ -38,7 +38,7 @@ Rectangle {
         BarText {
             Layout.fillWidth: true
             text: root.title
-            color: Theme.subtext1
+            color: Theme.text2
             font.pixelSize: 12
             elide: Text.ElideRight
         }
@@ -50,10 +50,17 @@ Rectangle {
             Rectangle {
                 Layout.fillWidth: true
                 implicitHeight: 28
-                radius: 6
-                color: Theme.surface0
-                border.color: input.activeFocus ? Theme.blue : "transparent"
+                radius: Theme.radiusRow
+                color: Theme.plate
+                border.color: input.activeFocus ? Theme.gilt : Theme.rule
                 border.width: 1
+
+                Behavior on border.color {
+                    ColorAnimation {
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
+                    }
+                }
 
                 TextInput {
                     id: input
@@ -63,7 +70,8 @@ Rectangle {
                     verticalAlignment: TextInput.AlignVCenter
                     echoMode: TextInput.Password
                     color: Theme.text
-                    selectionColor: Theme.surface2
+                    selectionColor: Theme.selection
+                    selectedTextColor: Theme.text
                     font.family: Theme.fontFamily
                     font.pixelSize: 12
                     clip: true
@@ -75,12 +83,12 @@ Rectangle {
                 model: [
                     {
                         icon: Icons.check,
-                        color: Theme.green,
+                        color: Theme.ok,
                         action: () => root.submit()
                     },
                     {
                         icon: Icons.close,
-                        color: Theme.red,
+                        color: Theme.alert,
                         action: () => {
                             input.text = "";
                             root.cancelled();
@@ -93,8 +101,17 @@ Rectangle {
 
                     implicitWidth: 28
                     implicitHeight: 28
-                    radius: 6
-                    color: buttonArea.containsMouse ? Theme.surface1 : Theme.surface0
+                    radius: Theme.radiusRow
+                    color: buttonArea.containsMouse ? Theme.hover : Theme.plate
+                    border.color: Theme.rule
+                    border.width: 1
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
 
                     Icon {
                         anchors.centerIn: parent

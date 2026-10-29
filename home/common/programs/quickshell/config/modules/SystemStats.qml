@@ -4,13 +4,49 @@ import qs.common
 import qs.services
 import qs.widgets
 
+// Readouts, not gauges: a text2 label and its value, the value in a fixed-width cell (its slack
+// trailing) so the bar never shifts as digits change. A value near its limit turns caution and
+// takes an underline, so it doesn't rest on a hue alone (caution and gilt are close in luminance,
+// closer still under night light); the underline costs no width.
 Row {
-    spacing: 6
+    spacing: 8
 
-    component Stat: CircularProgress {
+    component Stat: Row {
         id: stat
 
+        property string label
+        property real value
+        // The value as shown; percent unless set.
+        property string valueText: `${Math.round(value)}%`
+        property string widest: "100%"
+        property bool high: value >= 90
         property string tooltip
+        // Said in the tooltip too, beside the colour and the underline.
+        property string highText: "high"
+
+        spacing: 4
+
+        BarText {
+            visible: stat.label !== ""
+            text: stat.label
+            color: Theme.text2
+        }
+
+        BarText {
+            width: widestMetrics.advanceWidth
+            horizontalAlignment: Text.AlignLeft
+            text: stat.valueText
+            color: stat.high ? Theme.caution : Theme.text
+            font.underline: stat.high
+
+            TextMetrics {
+                id: widestMetrics
+                font.family: Theme.fontFamily
+                font.pixelSize: Theme.fontSize
+                font.features: Theme.fontFeatures
+                text: stat.widest
+            }
+        }
 
         HoverHandler {
             id: hover
@@ -18,38 +54,43 @@ Row {
 
         Tooltip {
             anchorItem: stat
-            text: stat.tooltip
+            text: stat.high ? `${stat.tooltip} · ${stat.highText}` : stat.tooltip
             active: hover.hovered
         }
     }
 
     Stat {
+        label: "CPU"
         value: SystemUsage.cpu
-        color: Theme.sky
-        icon: Icons.cpu
         tooltip: `CPU ${SystemUsage.cpu.toFixed(1)}%`
     }
 
     Stat {
+        label: "RAM"
         value: SystemUsage.memory
-        color: Theme.mauve
-        icon: Icons.memory
         tooltip: `RAM ${SystemUsage.memory.toFixed(1)}%`
     }
 
     Stat {
+        label: "Disk"
         value: SystemUsage.disk
-        color: Theme.sapphire
-        icon: Icons.disk
         tooltip: `Disk ${SystemUsage.disk.toFixed(1)}%`
     }
 
     Stat {
         visible: Gpu.available
+        label: "GPU"
         value: Gpu.usage
-        color: Theme.teal
-        icon: Icons.gpu
         tooltip: `GPU ${Math.round(Gpu.usage)}% · ${Math.round(Gpu.temperature)}°C`
+    }
+
+    Stat {
+        visible: Gpu.available
+        value: Gpu.temperature
+        valueText: `${Math.round(value)}°C`
+        widest: "100°C"
+        high: value >= 85
+        tooltip: "GPU temperature"
     }
 
     Stat {
@@ -57,9 +98,10 @@ Row {
         readonly property bool charging: battery?.state === UPowerDeviceState.Charging
 
         visible: battery?.isLaptopBattery ?? false
+        label: charging ? "Charging" : "Battery"
         value: (battery?.percentage ?? 0) * 100
-        color: value > 50 ? Theme.green : value > 25 ? Theme.yellow : Theme.red
-        icon: charging ? Icons.batteryCharging : value > 75 ? Icons.battery : value > 50 ? Icons.battery70 : value > 25 ? Icons.battery50 : Icons.battery20
+        high: !charging && value <= 20
+        highText: "low"
         tooltip: `Battery ${Math.round(value)}% (${UPowerDeviceState.toString(battery?.state ?? UPowerDeviceState.Unknown)})`
     }
 }

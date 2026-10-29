@@ -7,13 +7,22 @@
 }:
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
+  term = theme.meridian.terminal;
+  ansi = [
+    "black"
+    "red"
+    "green"
+    "yellow"
+    "blue"
+    "magenta"
+    "cyan"
+    "white"
+  ];
 in
 {
   # Fira Code comes from hosts/common/desktop on NixOS; darwin hosts have no
   # desktop module, so install it here (HM copies it into ~/Library/Fonts).
   home.packages = lib.optional meta.isDarwin theme.fonts.monospace.package;
-
-  catppuccin.ghostty.enable = true;
 
   # Each Ghostty surface runs in a transient systemd scope; this prefix drop-in applies to
   # all of them. Interactive zsh (e.g. zellij panes, whose pty zellij keeps open) ignores
@@ -32,11 +41,24 @@ in
   programs.ghostty = {
     enable = true;
 
+    themes.meridian = {
+      inherit (term) background foreground;
+      cursor-color = term.cursor;
+      # The cell under the gilt block cursor reads in ground, like text on any gilt fill.
+      cursor-text = term.background;
+      selection-background = term.selectionBackground;
+      selection-foreground = term.selectionForeground;
+      palette =
+        lib.imap0 (i: name: "${toString i}=${term.normal.${name}}") ansi
+        ++ lib.imap0 (i: name: "${toString (i + 8)}=${term.bright.${name}}") ansi;
+    };
+
     package = if meta.isDarwin then pkgs.ghostty-bin else pkgs.ghostty;
 
     enableZshIntegration = true;
 
     settings = {
+      theme = "meridian";
       font-family = theme.fonts.monospace.name;
       # window-decoration = false;
       clipboard-paste-protection = false;

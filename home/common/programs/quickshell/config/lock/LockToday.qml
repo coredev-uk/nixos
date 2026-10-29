@@ -5,9 +5,10 @@ import qs.services
 import qs.widgets
 
 // Bottom-right, from the user session: a day view of what's left of today in the calendar
-// (services/Calendar) on a dark card, its foot level with the time's baseline; and in the date
-// line under it, what's playing. The power buttons (LockPower) take the music's place while the
-// password is up.
+// (services/Calendar) on a translucent plate, its foot level with the time's baseline; and in
+// the date line under it, what's playing. The power buttons (LockPower) take the music's place
+// while the password is up. While the screen is shared the events show only their times, and
+// the music stays hidden.
 Item {
     id: root
 
@@ -17,6 +18,7 @@ Item {
     property real lineHeight: 56
 
     readonly property bool engaged: context.active && !context.unlocking
+    readonly property bool onAir: captures.onAir
     readonly property int maxEvents: 4
     readonly property real now: clock.date.getTime()
     // Today's events that aren't over, all-day ones first as Calendar sorts them; done
@@ -49,7 +51,12 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    Rectangle {
+    // Its own, not Privacy's: that one brings AirPlay into this instance (services/Captures.qml).
+    Captures {
+        id: captures
+    }
+
+    Plate {
         id: card
 
         // Rows sit closer to the edge than the header so the next event's tint has room.
@@ -63,22 +70,22 @@ Item {
         anchors.bottomMargin: root.margin + root.lineHeight + Math.round(40 * root.s)
         width: Math.round(500 * root.s)
         height: list.implicitHeight + Math.round(22 * root.s) + inset
-        radius: Math.round(26 * root.s)
-        color: Qt.rgba(Theme.crust.r, Theme.crust.g, Theme.crust.b, 0.8)
+        radius: Math.round(Theme.radiusPlate * root.s)
+        color: Theme.tint(Theme.plate, 0.85)
         opacity: root.events.length > 0 ? 1 : 0
         visible: opacity > 0
 
         Behavior on opacity {
             NumberAnimation {
                 duration: 400
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
 
         Behavior on height {
             NumberAnimation {
                 duration: 300
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
 
@@ -113,7 +120,7 @@ Item {
                     anchors.rightMargin: card.rowPadding
                     anchors.baseline: heading.baseline
                     text: root.events.length === 1 ? "1 event" : `${root.events.length} events`
-                    color: Theme.subtext0
+                    color: Theme.text2
                     font.family: Theme.fontFamily
                     font.pixelSize: Math.round(16 * root.s)
                 }
@@ -122,8 +129,8 @@ Item {
             Repeater {
                 model: root.shownEvents
 
-                // One event: the calendar's colour as a bar down its left, as in a day view; the
-                // next one tinted, with how long until it starts.
+                // One event: its calendar's colour as a bar down its left, as in a day view; the
+                // next one set in an inset slot, with how long until it starts.
                 Rectangle {
                     id: event
 
@@ -133,8 +140,8 @@ Item {
 
                     width: list.width
                     height: details.implicitHeight + 2 * Math.round(12 * root.s)
-                    radius: Math.round(14 * root.s)
-                    color: next ? Qt.rgba(1, 1, 1, 0.07) : "transparent"
+                    radius: Math.round(Theme.radiusRow * root.s)
+                    color: next ? Theme.inset : "transparent"
 
                     Rectangle {
                         x: card.rowPadding
@@ -166,7 +173,8 @@ Item {
                                 anchors.right: parent.right
                                 anchors.rightMargin: event.next ? countdown.implicitWidth + Math.round(16 * root.s) : 0
                                 elide: Text.ElideRight
-                                text: event.modelData.title
+                                // On air, its time stands in for the title.
+                                text: root.onAir ? root.span(event.modelData) : event.modelData.title
                                 color: Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Math.round(22 * root.s)
@@ -189,9 +197,10 @@ Item {
 
                         Text {
                             width: parent.width
+                            visible: !root.onAir
                             elide: Text.ElideRight
                             text: [root.span(event.modelData), event.modelData.calendar].filter(part => part).join("  ·  ")
-                            color: Theme.subtext0
+                            color: Theme.text2
                             font.family: Theme.fontFamily
                             font.pixelSize: Math.round(17 * root.s)
                         }
@@ -204,7 +213,7 @@ Item {
                 leftPadding: card.rowPadding + Math.round(20 * root.s)
                 topPadding: Math.round(4 * root.s)
                 text: `${root.events.length - root.maxEvents} more today`
-                color: Theme.subtext0
+                color: Theme.text2
                 font.family: Theme.fontFamily
                 font.pixelSize: Math.round(17 * root.s)
             }
@@ -216,20 +225,20 @@ Item {
         anchors.rightMargin: root.margin
         y: parent.height - root.margin - (root.lineHeight + height) / 2
         spacing: Math.round(12 * root.s)
-        opacity: !root.engaged && Media.active ? 1 : 0
+        opacity: !root.engaged && Media.active && !root.onAir ? 1 : 0
         visible: opacity > 0
 
         Behavior on opacity {
             NumberAnimation {
                 duration: 220
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
             }
         }
 
         Icon {
             anchors.verticalCenter: parent.verticalCenter
             text: Icons.music
-            color: Theme.text
+            color: Theme.text2
             font.pixelSize: Math.round(22 * root.s)
         }
 

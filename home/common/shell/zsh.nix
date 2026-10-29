@@ -5,8 +5,6 @@
   ...
 }:
 {
-  catppuccin.zsh-syntax-highlighting.enable = true;
-
   programs = {
     zoxide = {
       enable = true;
@@ -35,7 +33,7 @@
         zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
         zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
         zstyle ':completion:*' menu no
-        # fzf-tab: take fzf's (catppuccin) colours from FZF_DEFAULT_OPTS, preview directories
+        # fzf-tab: take fzf's colours from FZF_DEFAULT_OPTS, preview directories
         zstyle ':fzf-tab:*' use-fzf-default-opts yes
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'

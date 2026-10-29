@@ -43,8 +43,11 @@ BarPopup {
     implicitHeight: frame.implicitHeight + gap
     dismissible: !fromIpc
 
+    // Open, it shows everything: nothing in it is new any more.
     onVisibleChanged: {
-        if (!visible)
+        if (visible)
+            NotificationService.markAllRead();
+        else
             fromIpc = false;
     }
 
@@ -58,6 +61,9 @@ BarPopup {
         target: NotificationService
 
         function onEntriesChanged() {
+            // One arriving while the centre is open is seen as it lands.
+            if (root.visible)
+                NotificationService.markAllRead();
             const kept = root.expandedApps.filter(app => root.entriesOf(app).length > 1);
             if (kept.length !== root.expandedApps.length)
                 root.expandedApps = kept;
@@ -71,17 +77,13 @@ BarPopup {
         precision: SystemClock.Minutes
     }
 
-    Rectangle {
+    Plate {
         id: frame
 
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: content.implicitHeight + 24
-        radius: 12
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         ColumnLayout {
             id: content
@@ -129,14 +131,14 @@ BarPopup {
                     Icon {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: Icons.bellOutline
-                        color: Theme.overlay0
+                        color: Theme.muted
                         font.pixelSize: 32
                     }
 
                     BarText {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "No notifications"
-                        color: Theme.subtext0
+                        color: Theme.text2
                         font.pixelSize: 12
                     }
                 }
@@ -163,34 +165,11 @@ BarPopup {
                     // Cards peeking out below a collapsed stack, at most two. Kept off the empty
                     // group a delegate briefly holds on its way out.
                     readonly property int layers: expanded ? 0 : Math.max(0, Math.min(entries.length - 1, 2))
-                    // Only expanding and collapsing animate the height, not cards coming and going.
-                    property bool animating: false
-
-                    function setExpanded(expanded: bool) {
-                        animating = true;
-                        settle.restart();
-                        root.setExpanded(modelData, expanded);
-                    }
 
                     width: list.width - (list.ScrollBar.vertical.visible ? 10 : 0)
+                    // No height animation: this is a popup, and Hyprland drops one that resizes
+                    // every frame. The revealed cards fade in instead (the column's add transition).
                     implicitHeight: cards.implicitHeight + 5 * layers
-                    clip: animating
-
-                    Behavior on implicitHeight {
-                        enabled: group.animating
-
-                        NumberAnimation {
-                            duration: 200
-                            easing.type: Easing.OutCubic
-                        }
-                    }
-
-                    Timer {
-                        id: settle
-
-                        interval: 250
-                        onTriggered: group.animating = false
-                    }
 
                     // Behind the newest card, which is the only one shown while collapsed.
                     Repeater {
@@ -204,9 +183,9 @@ BarPopup {
                             z: -index
                             width: group.width - 2 * x
                             height: 24
-                            radius: 8
-                            color: Qt.tint(Theme.base, Qt.alpha(Theme.mantle, 0.4 + 0.3 * index))
-                            border.color: Qt.alpha(Theme.surface0, 0.8 - 0.3 * index)
+                            radius: Theme.radiusInset
+                            color: Qt.tint(Theme.inset, Qt.alpha(Theme.plate, 0.4 + 0.3 * index))
+                            border.color: Qt.alpha(Theme.rule, 0.8 - 0.3 * index)
                             border.width: 1
                         }
                     }
@@ -226,7 +205,7 @@ BarPopup {
                                 Layout.fillWidth: true
                                 Layout.leftMargin: 4
                                 text: group.modelData
-                                color: Theme.subtext0
+                                color: Theme.text2
                                 font.pixelSize: 12
                                 font.bold: true
                                 elide: Text.ElideRight
@@ -235,7 +214,7 @@ BarPopup {
                             HeaderButton {
                                 icon: Icons.chevronUp
                                 label: "Show less"
-                                onClicked: group.setExpanded(false)
+                                onClicked: root.setExpanded(group.modelData, false)
                             }
 
                             HeaderButton {
@@ -264,7 +243,7 @@ BarPopup {
                                 }
                                 bodyLines: 8
                                 stacked: index === 0 && !group.expanded ? group.entries.length - 1 : 0
-                                onExpand: group.setExpanded(true)
+                                onExpand: root.setExpanded(group.modelData, true)
                             }
                         }
 
@@ -273,15 +252,15 @@ BarPopup {
                                 property: "opacity"
                                 from: 0
                                 to: 1
-                                duration: 200
-                                easing.type: Easing.OutCubic
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
                             }
                         }
                         move: Transition {
                             NumberAnimation {
                                 property: "y"
-                                duration: 200
-                                easing.type: Easing.OutCubic
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
                             }
                         }
                     }
@@ -292,15 +271,15 @@ BarPopup {
                         property: "opacity"
                         from: 0
                         to: 1
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
                 displaced: Transition {
                     NumberAnimation {
                         property: "y"
-                        duration: 200
-                        easing.type: Easing.OutCubic
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
             }
@@ -318,8 +297,15 @@ BarPopup {
 
         implicitWidth: buttonRow.implicitWidth + 16
         implicitHeight: 28
-        radius: 6
-        color: active ? Qt.alpha(Theme.peach, 0.1) : buttonArea.containsMouse ? Theme.surface0 : "transparent"
+        radius: Theme.radiusRow
+        color: active ? Theme.tint(Theme.gilt, 0.1) : buttonArea.containsMouse ? Theme.hover : "transparent"
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
 
         Row {
             id: buttonRow
@@ -330,14 +316,14 @@ BarPopup {
             Icon {
                 anchors.verticalCenter: parent.verticalCenter
                 text: button.icon
-                color: button.active ? Theme.peach : Theme.overlay0
+                color: button.active ? Theme.gilt : buttonArea.containsMouse ? Theme.text2 : Theme.muted
                 font.pixelSize: 14
             }
 
             BarText {
                 anchors.verticalCenter: parent.verticalCenter
                 text: button.label
-                color: button.active ? Theme.peach : Theme.text
+                color: button.active ? Theme.gilt : Theme.text
                 font.pixelSize: 12
             }
         }

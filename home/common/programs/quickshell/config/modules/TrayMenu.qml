@@ -14,7 +14,12 @@ BarPopup {
     property var path: []
     readonly property QsMenuHandle current: path.length > 0 ? path[path.length - 1] : menu
 
-    onOpening: path = []
+    onOpening: {
+        path = [];
+        // The popup itself fades in on open; only level changes while open fade the menu.
+        levelFade.complete();
+    }
+    onPathChanged: levelFade.restart()
 
     dismissible: true
     implicitWidth: Math.min(400, Math.max(200, column.implicitWidth + 12))
@@ -25,22 +30,28 @@ BarPopup {
         menu: root.current
     }
 
-    Rectangle {
+    Plate {
         id: frame
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset
         implicitHeight: column.implicitHeight + 12
-        radius: 10
-        color: Theme.mantle
-        border.color: Theme.surface0
-        border.width: 1
 
         ColumnLayout {
             id: column
             anchors.fill: parent
             anchors.margins: 6
             spacing: 2
+
+            NumberAnimation {
+                id: levelFade
+                target: column
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
 
             BackButton {
                 visible: root.path.length > 0
@@ -67,15 +78,29 @@ BarPopup {
                         anchors.centerIn: parent
                         width: parent.width - 16
                         height: 1
-                        color: Theme.surface0
+                        color: Theme.rule
                     }
 
                     Rectangle {
                         visible: !entry.modelData.isSeparator
                         anchors.fill: parent
-                        radius: 6
-                        color: area.containsMouse && entry.modelData.enabled ? Theme.surface0 : "transparent"
+                        radius: Theme.radiusRow
+                        color: area.containsMouse && entry.modelData.enabled ? Theme.hover : "transparent"
                         opacity: entry.modelData.enabled ? 1 : 0.5
+
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
 
                         RowLayout {
                             id: row
@@ -87,7 +112,8 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.buttonType !== QsMenuButtonType.None
                                 text: entry.radio ? (entry.checked ? Icons.radioOn : Icons.radioOff) : (entry.checked ? Icons.checkboxOn : Icons.checkboxOff)
-                                color: entry.checked ? Theme.blue : Theme.overlay0
+                                // Muted sinks into the hover fill, so an unchecked box lifts to text2 there.
+                                color: entry.checked ? Theme.gilt : area.containsMouse ? Theme.text2 : Theme.muted
                                 font.pixelSize: 14
                             }
 
@@ -100,6 +126,7 @@ BarPopup {
                             BarText {
                                 Layout.fillWidth: true
                                 text: entry.modelData.text
+                                color: entry.modelData.enabled ? Theme.text : Theme.muted
                                 font.pixelSize: 12
                                 elide: Text.ElideRight
                             }
@@ -107,7 +134,7 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.hasChildren
                                 text: Icons.chevronRight
-                                color: Theme.overlay0
+                                color: area.containsMouse ? Theme.text2 : Theme.muted
                                 font.pixelSize: 14
                             }
                         }

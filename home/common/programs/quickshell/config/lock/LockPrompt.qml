@@ -2,8 +2,8 @@ import QtQuick
 import qs.common
 import qs.widgets
 
-// The password, in the line under the time: a flat round field with a dot per typed character
-// and a solid round submit on its right, and beside it why the last attempt failed or that Caps
+// The password, in the line under the time: a slate field with a dot per typed character and a
+// gilt submit on its right, and beside it why the last attempt failed or that Caps
 // Lock is on. Shown while the context is active. A hidden TextInput takes the keys and keeps
 // focus while idle, so the first key typed lands.
 Item {
@@ -15,7 +15,8 @@ Item {
 
     readonly property bool shown: context.active || context.unlocking
     readonly property string message: context.statusText || (context.capsLock ? "Caps Lock is on" : "")
-    readonly property color messageColor: context.statusText ? (context.statusIsError ? Theme.red : Theme.text) : Theme.yellow
+    readonly property color messageColor: context.statusText ? (context.statusIsError ? Theme.alert : Theme.text) : Theme.caution
+    readonly property bool failed: context.statusIsError && context.statusText !== ""
 
     function focusInput() {
         input.forceActiveFocus();
@@ -103,8 +104,13 @@ Item {
         anchors.verticalCenter: parent.verticalCenter
         width: Math.round(460 * root.s)
         height: parent.height
-        radius: height / 2
-        color: Qt.rgba(1, 1, 1, 0.16)
+        radius: Math.round(Theme.radiusInset * root.s)
+        // Plate-toned, a little translucent so the softened picture reads through. The hidden
+        // input holds focus while the field is up, so its edge is gilt; alert after a wrong
+        // password, ok once accepted.
+        color: Theme.tint(Theme.plate, 0.85)
+        border.width: 1
+        border.color: root.context.unlocking ? Theme.ok : root.failed ? Theme.alert : input.activeFocus ? Theme.gilt : Theme.rule
         opacity: root.shown ? 1 : 0
         visible: opacity > 0
 
@@ -118,7 +124,7 @@ Item {
                 Behavior on y {
                     NumberAnimation {
                         duration: 300
-                        easing.type: Easing.OutCubic
+                        easing.type: Theme.easing
                     }
                 }
             }
@@ -127,7 +133,14 @@ Item {
         Behavior on opacity {
             NumberAnimation {
                 duration: 260
-                easing.type: Easing.OutCubic
+                easing.type: Theme.easing
+            }
+        }
+
+        Behavior on border.color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
             }
         }
 
@@ -136,15 +149,15 @@ Item {
             anchors.leftMargin: field.padding
             anchors.verticalCenter: parent.verticalCenter
             text: "Enter password"
-            color: Theme.subtext1
+            color: Theme.text2
             font.family: Theme.fontFamily
             font.pixelSize: Math.round(19 * root.s)
             opacity: root.context.currentText === "" ? 1 : 0
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 150
-                    easing.type: Easing.OutCubic
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
                 }
             }
         }
@@ -187,7 +200,7 @@ Item {
                         Behavior on width {
                             NumberAnimation {
                                 duration: 140
-                                easing.type: Easing.OutCubic
+                                easing.type: Theme.easing
                             }
                         }
 
@@ -195,48 +208,49 @@ Item {
                             width: dotArea.dotSize
                             height: width
                             radius: width / 2
-                            // Green once accepted, for the moment before everything sinks away.
-                            color: root.context.unlocking ? Theme.green : Theme.text
+                            // Ok once accepted, for the moment before everything sinks away.
+                            color: root.context.unlocking ? Theme.ok : Theme.text
                             opacity: slot.filled ? 1 : 0
                             scale: slot.filled ? 1 : 0.4
 
                             Behavior on color {
                                 ColorAnimation {
-                                    duration: 200
+                                    duration: Theme.durationState
                                 }
                             }
 
                             Behavior on opacity {
                                 NumberAnimation {
                                     duration: 140
-                                    easing.type: Easing.OutCubic
+                                    easing.type: Theme.easing
                                 }
                             }
 
                             Behavior on scale {
                                 NumberAnimation {
                                     duration: 140
-                                    easing.type: Easing.OutCubic
+                                    easing.type: Theme.easing
                                 }
                             }
                         }
                     }
                 }
 
-                // Pulses while the password is checked.
+                // Breathes while the password is checked: slow and shallow, so a long PAM check
+                // reads as waiting, not as something blinking for attention.
                 SequentialAnimation on opacity {
                     running: root.context.checking
                     loops: Animation.Infinite
                     onStopped: dots.opacity = 1
 
                     NumberAnimation {
-                        to: 0.35
-                        duration: 450
+                        to: 0.6
+                        duration: 900
                         easing.type: Easing.InOutSine
                     }
                     NumberAnimation {
                         to: 1
-                        duration: 450
+                        duration: 900
                         easing.type: Easing.InOutSine
                     }
                 }
@@ -254,29 +268,29 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             width: parent.height - 2 * field.inset
             height: width
-            radius: width / 2
-            color: submitArea.pressed ? Theme.subtext1 : Theme.text
+            radius: Math.round(Theme.radiusRow * root.s)
+            color: submitArea.pressed || submitArea.containsMouse ? Theme.giltHover : Theme.gilt
             opacity: shown ? 1 : 0
             scale: shown ? 1 : 0.6
 
             Behavior on opacity {
                 NumberAnimation {
-                    duration: 160
-                    easing.type: Easing.OutCubic
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
                 }
             }
 
             Behavior on scale {
                 NumberAnimation {
                     duration: 220
-                    easing.type: Easing.OutCubic
+                    easing.type: Theme.easing
                 }
             }
 
             Icon {
                 anchors.centerIn: parent
                 text: Icons.arrowRight
-                color: Theme.crust
+                color: Theme.ground
                 font.pixelSize: Math.round(20 * root.s)
             }
 
@@ -284,6 +298,7 @@ Item {
                 id: submitArea
 
                 anchors.fill: parent
+                hoverEnabled: true
                 enabled: submit.shown
                 cursorShape: Qt.PointingHandCursor
                 onClicked: root.context.tryUnlock()
@@ -307,7 +322,7 @@ Item {
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 180
+                duration: Theme.durationState
             }
         }
     }

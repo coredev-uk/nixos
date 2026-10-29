@@ -1,19 +1,32 @@
 {
+  lib,
   pkgs,
+  self,
   ...
 }:
+let
+  term = (import "${self}/lib/theme" { inherit pkgs; }).meridian.terminal;
+  order = [
+    "black"
+    "red"
+    "green"
+    "yellow"
+    "blue"
+    "magenta"
+    "cyan"
+    "white"
+  ];
+in
 {
-  boot = {
-    # Catppuccin theme
-    kernelParams = [
-      "vt.default_red=30,243,166,249,137,245,148,186,88,243,166,249,137,245,148,166"
-      "vt.default_grn=30,139,227,226,180,194,226,194,91,139,227,226,180,194,226,173"
-      "vt.default_blu=46,168,161,175,250,231,213,222,112,168,161,175,250,231,213,200"
-    ];
-  };
-
   console = {
     earlySetup = true;
+    # Meridian's terminal palette (lib/theme). Colour 0 is the VT's background, so it is the
+    # terminal background rather than the palette's black.
+    colors = map (lib.removePrefix "#") (
+      [ term.background ]
+      ++ map (name: term.normal.${name}) (lib.tail order)
+      ++ map (name: term.bright.${name}) order
+    );
     packages = with pkgs; [
       terminus_font
       powerline-fonts

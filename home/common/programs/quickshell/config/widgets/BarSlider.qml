@@ -1,11 +1,12 @@
 import QtQuick
 import qs.common
 
+// 4px inset track with an enamel fill; click, drag, or wheel in 5% steps.
 Item {
     id: root
 
     property real value: 0 // 0-100
-    property color color: Theme.blue
+    property color color: Theme.fill
     readonly property real fraction: Math.max(0, Math.min(1, value / 100))
 
     signal moved(real value)
@@ -16,15 +17,22 @@ Item {
     Rectangle {
         anchors.verticalCenter: parent.verticalCenter
         width: parent.width
-        height: 6
-        radius: 3
-        color: Theme.surface0
+        height: 4
+        radius: 2
+        color: Theme.inset
 
         Rectangle {
             width: parent.width * root.fraction
             height: parent.height
             radius: parent.radius
             color: root.color
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
+                }
+            }
         }
     }
 

@@ -7,12 +7,14 @@ Icon {
     id: root
 
     text: Caffeine.enabled ? Icons.coffee : Icons.coffeeOff
-    color: Caffeine.enabled ? Theme.peach : Theme.overlay0
+    color: Caffeine.enabled ? Theme.gilt : area.containsMouse ? Theme.text2 : Theme.muted
 
     MouseArea {
         id: area
         anchors.fill: parent
+        anchors.margins: -4
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: Caffeine.enabled = !Caffeine.enabled
     }
 

@@ -92,11 +92,11 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
+            // Hyprland fades the layer in and out (animations.nix).
             Item {
                 id: content
 
                 anchors.fill: parent
-                opacity: 0
 
                 function submitInput() {
                     if (!root.canSubmit || input.text === "")
@@ -106,17 +106,7 @@ Scope {
                     root.submit(response);
                 }
 
-                Component.onCompleted: {
-                    opacity = 1;
-                    input.forceActiveFocus();
-                }
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: 200
-                        easing.type: Easing.OutCubic
-                    }
-                }
+                Component.onCompleted: input.forceActiveFocus()
 
                 // Escape from the field or anywhere else in the dialog.
                 Keys.onEscapePressed: root.cancel()
@@ -139,20 +129,16 @@ Scope {
 
                 Rectangle {
                     anchors.fill: parent
-                    color: Qt.rgba(Theme.crust.r, Theme.crust.g, Theme.crust.b, 0.6)
+                    color: Theme.tint(Theme.ground, 0.6)
                 }
 
-                Rectangle {
+                Plate {
                     id: card
 
                     anchors.horizontalCenter: parent.horizontalCenter
                     y: Math.round((parent.height - height) / 2)
                     width: 420
                     height: column.implicitHeight + 24
-                    radius: 12
-                    color: Theme.mantle
-                    border.color: Theme.surface0
-                    border.width: 1
 
                     layer.enabled: true
                     layer.effect: MultiEffect {
@@ -163,12 +149,22 @@ Scope {
                         shadowVerticalOffset: 8
                     }
 
-                    // Rises into place as it fades in; x shakes on a wrong password.
+                    // Rises the last few pixels into place as Hyprland fades the layer in; x
+                    // shakes on a wrong password.
                     transform: Translate {
                         id: shake
 
-                        y: 8 * (1 - content.opacity)
+                        y: 8
+
+                        Behavior on y {
+                            NumberAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
                     }
+
+                    Component.onCompleted: shake.y = 0
 
                     SequentialAnimation {
                         id: shakeAnimation
@@ -209,16 +205,17 @@ Scope {
 
                             Rectangle {
                                 Layout.alignment: Qt.AlignTop
-                                implicitWidth: 40
-                                implicitHeight: 40
-                                radius: 8
-                                color: Theme.base
+                                implicitWidth: 32
+                                implicitHeight: 32
+                                radius: Theme.radiusRow
+                                color: Theme.inset
 
                                 Icon {
                                     anchors.centerIn: parent
                                     text: Icons.shieldLock
-                                    color: Theme.blue
-                                    font.pixelSize: 20
+                                    // A badge for the dialog, not a state: gilt is kept for here and on.
+                                    color: Theme.text2
+                                    font.pixelSize: 16
                                 }
                             }
 
@@ -238,7 +235,7 @@ Scope {
                                 BarText {
                                     Layout.fillWidth: true
                                     text: root.flow?.actionId ?? ""
-                                    color: Theme.subtext0
+                                    color: Theme.text2
                                     font.pixelSize: 11
                                     elide: Text.ElideMiddle
                                 }
@@ -250,8 +247,8 @@ Scope {
                             visible: identities.count > 1
                             Layout.fillWidth: true
                             implicitHeight: identityColumn.implicitHeight + 8
-                            radius: 8
-                            color: Theme.base
+                            radius: Theme.radiusInset
+                            color: Theme.inset
 
                             ColumnLayout {
                                 id: identityColumn
@@ -275,7 +272,6 @@ Scope {
                                         label: modelData.displayName
                                         sublabel: modelData.isGroup ? "Group" : ""
                                         active: root.flow?.selectedIdentity === modelData
-                                        accent: Theme.blue
                                         onClicked: {
                                             if (root.flow && !identityRow.active) {
                                                 // Restarts PAM for the new identity; drop what was typed for the old one.
@@ -298,14 +294,15 @@ Scope {
                             Rectangle {
                                 Layout.fillWidth: true
                                 implicitHeight: 36
-                                radius: 8
-                                color: Theme.base
+                                radius: Theme.radiusRow
+                                color: Theme.inset
                                 border.width: 1
-                                border.color: root.wrongPassword ? Theme.red : input.activeFocus ? Theme.blue : "transparent"
+                                border.color: root.wrongPassword ? Theme.alert : input.activeFocus ? Theme.gilt : Theme.rule
 
                                 Behavior on border.color {
                                     ColorAnimation {
-                                        duration: 150
+                                        duration: Theme.durationState
+                                        easing.type: Theme.easing
                                     }
                                 }
 
@@ -316,7 +313,8 @@ Scope {
                                     anchors.leftMargin: 12
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: Icons.lock
-                                    color: root.wrongPassword ? Theme.red : Theme.overlay0
+                                    // Lifts out of idle while PAM checks, with the "Checking…" beside it.
+                                    color: root.wrongPassword ? Theme.alert : root.checking ? Theme.text2 : Theme.muted
                                     font.pixelSize: 14
                                 }
 
@@ -334,7 +332,7 @@ Scope {
                                     // Read-only rather than disabled: a disabled item drops keyboard focus.
                                     readOnly: root.checking
                                     color: Theme.text
-                                    selectionColor: Theme.surface2
+                                    selectionColor: Theme.selection
                                     font.family: Theme.fontFamily
                                     font.pixelSize: 12
                                     clip: true
@@ -346,7 +344,8 @@ Scope {
                                         // PAM prompts end in a colon ("Password: "). The field is emptied on submit,
                                         // so this also shows the wait for PAM's answer.
                                         text: root.checking ? "Checking…" : (root.flow?.inputPrompt ?? "").replace(/:\s*$/, "") || "Password"
-                                        color: Theme.overlay0
+                                        // text2: the field has no label of its own, and "Checking…" is a status.
+                                        color: Theme.text2
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
@@ -358,7 +357,7 @@ Scope {
                                 Layout.fillWidth: true
                                 Layout.leftMargin: 4
                                 text: root.statusText
-                                color: root.statusIsError ? Theme.red : Theme.subtext0
+                                color: root.statusIsError ? Theme.alert : Theme.text2
                                 font.pixelSize: 11
                                 wrapMode: Text.Wrap
                             }
@@ -400,13 +399,23 @@ Scope {
 
         implicitWidth: Math.max(88, buttonLabel.implicitWidth + 28)
         implicitHeight: 32
-        radius: 8
-        color: primary ? (buttonArea.containsMouse ? Qt.lighter(Theme.blue, 1.1) : Theme.blue) : buttonArea.containsMouse ? Theme.surface1 : Theme.surface0
+        radius: Theme.radiusInset
+        color: primary ? (buttonArea.containsMouse ? Theme.giltHover : Theme.gilt) : buttonArea.containsMouse ? Theme.hover : "transparent"
+        border.width: primary ? 0 : 1
+        border.color: Theme.rule
         opacity: enabled ? 1 : 0.5
 
         Behavior on opacity {
             NumberAnimation {
-                duration: 150
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
             }
         }
 
@@ -415,7 +424,7 @@ Scope {
 
             anchors.centerIn: parent
             text: button.label
-            color: button.primary ? Theme.crust : Theme.text
+            color: button.primary ? Theme.ground : Theme.text
             font.pixelSize: 12
             font.bold: button.primary
         }

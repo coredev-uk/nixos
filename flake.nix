@@ -2,9 +2,6 @@
   description = "coredev-uk flake";
 
   inputs = {
-    catppuccin.url = "github:catppuccin/nix";
-    catppuccin.inputs.nixpkgs.follows = "unstable";
-
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
 

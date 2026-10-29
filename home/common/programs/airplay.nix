@@ -5,7 +5,7 @@
   ...
 }:
 
-# AirPlay 2 audio out (the bar's Cast view, quickshell/config/services/AirPlay.qml).
+# AirPlay 2 audio out (the outputs under the panel's volume row, quickshell/config/services/AirPlay.qml).
 # PipeWire's own AirPlay sender only speaks AirPlay 1, which the HomePod and the TV refuse
 # (403 Forbidden), so OwnTone does the AirPlay 2 side: a PipeWire sink writes into a named pipe
 # in OwnTone's library, OwnTone starts playing as soon as data arrives and streams it to the
@@ -65,7 +65,7 @@ in
 {
   systemd.user.services.owntone = {
     Unit = {
-      Description = "OwnTone, AirPlay 2 sender for the Cast view";
+      Description = "OwnTone, AirPlay 2 sender for the shell's sound outputs";
       After = [ "pipewire.service" ];
     };
     Service = {
@@ -84,7 +84,7 @@ in
 
   home.packages = [ airplayMetadata ];
 
-  # The sink the Cast view switches to. PipeWire reads this at startup: after changing it,
+  # The sink the shell switches to for AirPlay. PipeWire reads this at startup: after changing it,
   # `systemctl --user restart pipewire` (or log in again).
   xdg.configFile."pipewire/pipewire.conf.d/60-airplay-sink.conf".text = builtins.toJSON {
     "context.modules" = [

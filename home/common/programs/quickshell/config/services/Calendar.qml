@@ -23,6 +23,9 @@ Singleton {
     property var days: ({})
     // [{ source, message }] of the last fetch.
     property var errors: []
+    // Proton Pass has no session, so the sources whose secrets live there weren't read. Signing in
+    // (Pass.signIn) fetches again.
+    property bool passSignedOut: false
     // Whether calendars.json exists; known once a fetch finished.
     property bool configured: false
     property bool loaded: false
@@ -103,7 +106,7 @@ Singleton {
             const end = event.allDay ? localDay(event.end) : new Date(event.end);
             if (start < first && end <= first)
                 continue;
-            const color = event.color || (event.source === "sonarr" ? Theme.sapphire : event.source === "radarr" ? Theme.yellow : Theme.mauve);
+            const color = event.color || (event.source === "sonarr" ? Theme.series1 : event.source === "radarr" ? Theme.series3 : Theme.series4);
             // Every day the event touches; a timed one ending at midnight stays on its last day.
             let day = new Date(start.getFullYear(), start.getMonth(), start.getDate());
             if (day < first)
@@ -142,11 +145,25 @@ Singleton {
             grouped[key].sort((a, b) => (b.allDay - a.allDay) || (a.start - b.start) || a.title.localeCompare(b.title));
         days = grouped;
         errors = result.errors;
+        passSignedOut = result.passSignedOut === true;
         configured = result.configured;
         loaded = true;
     }
 
     Component.onCompleted: ensure()
+
+    // A sign-in from anywhere (the calendar's own button or Pass quick access) brings the
+    // Pass-backed sources back at once.
+    Connections {
+        target: Pass
+
+        function onSignedInNow() {
+            if (!root.passSignedOut)
+                return;
+            root.fetched = {};
+            root.ensure();
+        }
+    }
 
     // Keeps the loaded months fresh while the bar runs; ensure() does nothing if they are.
     Timer {
@@ -177,7 +194,7 @@ Singleton {
                 const result = JSON.parse(out.text);
                 root.apply(proc.first, proc.last, result);
                 // With errors the next ensure() tries again, as it may well work then.
-                if (result.errors.length === 0) {
+                if (result.errors.length === 0 && !result.passSignedOut) {
                     const fetched = Object.assign({}, root.fetched);
                     for (const key of proc.months)
                         fetched[key] = Date.now();

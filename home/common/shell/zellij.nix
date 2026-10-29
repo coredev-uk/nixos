@@ -1,11 +1,71 @@
-_: {
+_:
+let
+  # ANSI colour numbers, so zellij draws with the terminal's palette (Ghostty's, from
+  # lib/theme) rather than fixed colours of its own; its built-in theme uses fixed 256-colour
+  # values. 0 black (a step above the background), 2 green, 3 yellow, 6 cyan, 7 white,
+  # 8 bright black, 15 bright white.
+  component = base: background: emphasis: {
+    inherit base background;
+    emphasis_0 = builtins.elemAt emphasis 0;
+    emphasis_1 = builtins.elemAt emphasis 1;
+    emphasis_2 = builtins.elemAt emphasis 2;
+    emphasis_3 = builtins.elemAt emphasis 3;
+  };
+  # Key hints and highlighted words in yellow; the secondary slot (also the new-tab button)
+  # in bright black so it doesn't compete, then green. No magenta.
+  emphasis = [
+    3
+    8
+    2
+    3
+  ];
+in
+{
   programs.zellij = {
     enable = true;
+
+    # New-style (0.42+) component theme.
+    themes.terminal.themes.terminal = {
+      text_unselected = component 7 0 emphasis;
+      text_selected = component 15 0 emphasis;
+      # The selected tab and the active mode are "here": dark on yellow.
+      ribbon_selected = component 0 3 [
+        0
+        0
+        0
+        0
+      ];
+      ribbon_unselected = component 7 0 emphasis;
+      table_title = component 3 0 emphasis;
+      table_cell_selected = component 15 0 emphasis;
+      table_cell_unselected = component 7 0 emphasis;
+      list_selected = component 15 0 emphasis;
+      list_unselected = component 7 0 emphasis;
+      # The focused pane's frame is yellow; resting frames recede.
+      frame_selected = component 3 0 emphasis;
+      frame_unselected = component 8 0 emphasis;
+      frame_highlight = component 6 0 emphasis;
+      exit_code_success = component 2 0 emphasis;
+      exit_code_error = component 1 0 emphasis;
+      multiplayer_user_colors = {
+        player_1 = 4;
+        player_2 = 2;
+        player_3 = 6;
+        player_4 = 3;
+        player_5 = 12;
+        player_6 = 10;
+        player_7 = 14;
+        player_8 = 11;
+        player_9 = 9;
+        player_10 = 7;
+      };
+    };
 
     enableZshIntegration = true;
     exitShellOnExit = true;
 
     settings = {
+      theme = "terminal";
       default_shell = "zsh";
       show_startup_tips = false;
       show_release_notes = false;

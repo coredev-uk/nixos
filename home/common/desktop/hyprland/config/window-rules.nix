@@ -30,7 +30,7 @@ _: {
       center = true;
     }
 
-    # Screen casting (opened from the bar's Cast view): a small picker, not a tiled window.
+    # Screen casting (opened from the bar's Connections panel): a small picker, not a tiled window.
     {
       match.class = "^(org\\.gnome\\.NetworkDisplays)$";
       float = true;

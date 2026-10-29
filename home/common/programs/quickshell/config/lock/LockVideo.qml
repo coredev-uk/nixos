@@ -28,7 +28,7 @@ Item {
     Behavior on opacity {
         NumberAnimation {
             duration: 600
-            easing.type: Easing.OutCubic
+            easing.type: Theme.easing
         }
     }
 

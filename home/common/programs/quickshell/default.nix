@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   self,
@@ -56,19 +55,13 @@ let
   # Events for the calendar popup (config/services/Calendar.qml): iCloud over CalDAV and the
   # Sonarr/Radarr release calendars, from ~/.config/quickshell/calendars.json (kept out of git;
   # format in the script's header). pass:// secrets come from Proton Pass; pass-cli is not a
-  # runtime input, for the same reason as quickshell-pass above. Built from the stable nixpkgs:
-  # unstable's caldav 3 pulls in niquests and urllib3-future, which aren't in the binary cache
-  # and whose test suites hang in the offline build sandbox.
-  quickshellCalendar =
-    let
-      stable = inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-    in
-    stable.writers.writePython3Bin "quickshell-calendar" {
-      libraries = with stable.python3Packages; [
-        caldav
-        requests
-      ];
-    } (builtins.readFile ./scripts/calendar-events.py);
+  # runtime input, for the same reason as quickshell-pass above.
+  quickshellCalendar = pkgs.writers.writePython3Bin "quickshell-calendar" {
+    libraries = with pkgs.python3Packages; [
+      caldav
+      requests
+    ];
+  } (builtins.readFile ./scripts/calendar-events.py);
 
   # Video behind the lock screen (config/lock/LockVideo.qml), only in the lock's own instance.
   # Qt decodes with VA-API but copied every frame through the CPU on NVIDIA: it exports frames
@@ -123,11 +116,11 @@ let
         exit 1
       fi
 
-      # The wallpaper hyprpaper shows (home/common/programs/hypr/paper.nix).
+      # The desktop's wallpaper (home/common/programs/hypr/paper.nix).
       export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.jpg"}
       # wlsunset's location (home/common/programs/hypr/sunset.nix), for the next sunrise or sunset.
-      export QS_LOCK_LATITUDE=${lib.escapeShellArg config.services.wlsunset.latitude}
-      export QS_LOCK_LONGITUDE=${lib.escapeShellArg config.services.wlsunset.longitude}
+      export QS_LATITUDE=${lib.escapeShellArg config.services.wlsunset.latitude}
+      export QS_LONGITUDE=${lib.escapeShellArg config.services.wlsunset.longitude}
       # The aerial clip of the wallpaper, made by wallpaper-video (home/common/programs/hypr/paper.nix);
       # the still shows until it exists.
       export QS_LOCK_VIDEO=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.mp4"}
@@ -144,9 +137,9 @@ let
     '';
   };
 
-  # Screen casting to Chromecast, opened from the panel's Cast view. The TV fetches the stream
-  # over HTTP, and whenever it (re)connects GNOME Network Displays replays it from the latest
-  # keyframe; with x264's default interval of 250 frames that left the TV up to ~8 s behind the
+  # Screen casting to Chromecast, from the Connections panel's Cast screen row. The TV fetches
+  # the stream over HTTP, and whenever it (re)connects GNOME Network Displays replays it from the
+  # latest keyframe; with x264's default interval of 250 frames that left the TV up to ~8 s behind the
   # screen. Its encoder loads x264enc's "Zero Latency" preset, so a copy of the preset file with
   # a 1 s keyframe interval (and more bitrate to pay for the extra keyframes) takes over through
   # GST_PRESET_PATH, for this app only.
@@ -170,26 +163,55 @@ in
 {
   programs.quickshell = {
     enable = true;
-    configs.bar = ./config;
+    configs = {
+      bar = ./config;
+      # Run by quickshell-wallpaper below, not by the module's service.
+      wallpaper = ./wallpaper;
+    };
     activeConfig = "bar";
     systemd.enable = true;
+  };
+
+  # The desktop wallpaper (wallpaper/shell.qml), in place of hyprpaper: its own instance so the
+  # bar's restarts on switch never blank the desktop, restarted only when its own file changes.
+  # set-wallpaper (home/common/programs/hypr/paper.nix) tells it about a new image over IPC.
+  systemd.user.services.quickshell-wallpaper = {
+    Unit = {
+      Description = "Desktop wallpaper (Quickshell)";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ "${./wallpaper}" ];
+    };
+    Service = {
+      ExecStart = "${lib.getExe config.programs.quickshell.package} --config wallpaper";
+      Environment = [
+        "QS_WALLPAPER=${config.xdg.cacheHome}/wallpapers/current.jpg"
+      ];
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 
   # The config is a store symlink and fonts are only read at startup, so a running
   # instance never sees either change; restart it on switch instead.
   systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
     "${./config}"
+    "${theme.fonts.shell.package}"
     "${theme.fonts.iconFont.package}"
   ];
 
-  # Electron tray items (Discord, 1Password) expose IconPixmap but no IconName, so every
-  # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
   systemd.user.services.quickshell.Service.Environment = [
+    # Electron tray items (Discord, 1Password) expose IconPixmap but no IconName, so every
+    # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
     "QT_LOGGING_RULES=quickshell.dbus.properties.warning=false"
+    # wlsunset's location (home/common/programs/hypr/sunset.nix), for the bar's day arc.
+    "QS_LATITUDE=${config.services.wlsunset.latitude}"
+    "QS_LONGITUDE=${config.services.wlsunset.longitude}"
   ];
 
   home.packages = [
-    # The bar's glyphs; installed here so it doesn't depend on the system font set.
+    # The shell's face and glyphs; installed here so they don't depend on the system font set.
+    theme.fonts.shell.package
     theme.fonts.iconFont.package
     pkgs.iproute2
     # Holds the night light's session temperature (config/services/NightLight.qml).

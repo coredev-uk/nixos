@@ -26,6 +26,7 @@ in
     ../scripts
 
     # Standard Programs
+    ../programs/cider
     ../programs/discord.nix
     ../programs/gaming.nix
     ../programs/ghostty.nix
@@ -35,7 +36,6 @@ in
   home.packages = with pkgs; [
     brave
     desktop-file-utils
-    cider-2
     file-roller
     plexDesktop
     loupe

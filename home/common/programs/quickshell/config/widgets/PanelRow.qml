@@ -2,13 +2,15 @@ import QtQuick
 import QtQuick.Layouts
 import qs.common
 
-// Main network panel row: left icon toggles the service, the rest opens its sub-view.
-// Rows without a toggle (canToggle: false) open from the icon too.
+// Main panel row: a 32px inset glyph tile toggles the service (gilt glyph when on), the rest
+// opens its sub-view. Rows without a toggle (canToggle: false) open from the tile too.
 Rectangle {
     id: root
 
     property string icon
-    property color iconColor: Theme.green
+    property bool on: false
+    // A state colour for the glyph when it reports something other than on/off (an error).
+    property color iconColor: on ? Theme.gilt : Theme.muted
     property string label
     property string sublabel
     property bool canOpen: true
@@ -18,9 +20,16 @@ Rectangle {
     signal opened
 
     Layout.fillWidth: true
-    implicitHeight: row.implicitHeight + 20
-    radius: 8
-    color: hover.hovered ? Theme.surface0 : "transparent"
+    implicitHeight: 48
+    radius: Theme.radiusRow
+    color: hover.hovered ? Theme.hover : "transparent"
+
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationState
+            easing.type: Theme.easing
+        }
+    }
 
     HoverHandler {
         id: hover
@@ -29,21 +38,25 @@ Rectangle {
     RowLayout {
         id: row
         anchors.fill: parent
-        anchors.leftMargin: 12
-        anchors.rightMargin: 12
-        spacing: 10
+        anchors.leftMargin: 8
+        anchors.rightMargin: 8
+        spacing: 12
 
-        // Fixed width, whatever the glyph, so the titles line up down the panel.
         Rectangle {
-            implicitWidth: toggleIcon.width + 16
-            implicitHeight: toggleIcon.implicitHeight + 8
-            radius: 6
-            color: toggleArea.containsMouse && root.canToggle ? Theme.surface1 : "transparent"
+            implicitWidth: 32
+            implicitHeight: 32
+            radius: Theme.radiusRow
+            color: toggleArea.containsMouse && root.canToggle ? Theme.rule : Theme.inset
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
+                }
+            }
 
             Icon {
-                id: toggleIcon
                 anchors.centerIn: parent
-                width: 20
                 text: root.icon
                 color: root.iconColor
             }
@@ -58,12 +71,11 @@ Rectangle {
 
         MouseArea {
             Layout.fillWidth: true
-            implicitHeight: content.implicitHeight
+            Layout.fillHeight: true
             // Rows with nothing to open toggle on a click anywhere.
             onClicked: root.canOpen ? root.opened() : root.toggled()
 
             RowLayout {
-                id: content
                 anchors.fill: parent
                 spacing: 10
 
@@ -80,7 +92,7 @@ Rectangle {
                     BarText {
                         Layout.fillWidth: true
                         text: root.sublabel
-                        color: Theme.subtext0
+                        color: Theme.text2
                         font.pixelSize: 11
                         elide: Text.ElideRight
                     }
@@ -89,7 +101,7 @@ Rectangle {
                 Icon {
                     visible: root.canOpen
                     text: Icons.chevronRight
-                    color: Theme.overlay0
+                    color: Theme.muted
                     font.pixelSize: 14
                 }
             }

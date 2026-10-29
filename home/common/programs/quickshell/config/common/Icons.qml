@@ -26,6 +26,7 @@ Singleton {
     readonly property string battery50: String.fromCodePoint(0xF007E) // battery_50
     readonly property string battery20: String.fromCodePoint(0xF007B) // battery_20
     readonly property string batteryCharging: String.fromCodePoint(0xF0084) // battery_charging
+    readonly property string batteryAlert: String.fromCodePoint(0xF0083) // battery_alert
 
     readonly property string headphones: String.fromCodePoint(0xF02CB) // headphones
     readonly property string mouse: String.fromCodePoint(0xF037D) // mouse
@@ -111,7 +112,7 @@ Singleton {
     readonly property string web: String.fromCodePoint(0xF059F) // web
     readonly property string twoFactor: String.fromCodePoint(0xF09AF) // two_factor_authentication
 
-    // Cast view (monitorShare and headphones are shared with the groups above)
+    // Sound outputs and Cast screen (monitorShare and headphones are shared with the groups above)
     readonly property string cast: String.fromCodePoint(0xF0118) // cast
     readonly property string castConnected: String.fromCodePoint(0xF0119) // cast_connected
     readonly property string speaker: String.fromCodePoint(0xF04C3) // speaker

@@ -13,21 +13,23 @@ Singleton {
     id: root
 
     readonly property string api: "http://127.0.0.1:3689/api"
-    // Set by the Cast view while it's open.
-    property bool watching: false
+    // Each output list on screen (the Sound panel's, one per screen) holds a reference through
+    // watch(); speakers are polled while any does.
+    property int watchers: 0
+    readonly property bool watching: watchers > 0
     // OwnTone answered the last request.
     property bool available: false
     // Some request has answered, so `available` means something.
     property bool known: false
     // Speakers whose code prompt was cancelled; picking one again asks again.
     property var pinDismissedIds: []
-    // Speaker ids picked in the Cast view. OwnTone drops a speaker from its selection when it
+    // Speaker ids picked in the Sound panel. OwnTone drops a speaker from its selection when it
     // fails to connect, so the difference shows which ones failed. null until the first answer.
     property var chosenIds: null
     // [{ id, name, chosen, failed, needsPin }] by name.
     property var speakers: []
     readonly property var chosen: speakers.filter(speaker => speaker.chosen)
-    // The last failure, for the Cast view.
+    // The last failure, for the Sound panel's output list.
     property string error: ""
     // The sink that feeds OwnTone; casting means it is the default output.
     readonly property PwNode sink: Pipewire.nodes.values.find(node => node.name === "airplay") ?? null
@@ -48,6 +50,10 @@ Singleton {
         xhr.send(body === undefined ? null : JSON.stringify(body));
     }
 
+    function watch(on: bool) {
+        watchers = Math.max(0, watchers + (on ? 1 : -1));
+    }
+
     function refresh() {
         request("GET", "/outputs", undefined, (status, text) => {
             available = status === 200;
@@ -56,7 +62,7 @@ Singleton {
                 speakers = [];
                 return;
             }
-            // OwnTone also lists Chromecasts; the Cast view sends screens there instead.
+            // OwnTone also lists Chromecasts; screens go there through Cast screen instead.
             const outputs = JSON.parse(text).outputs.filter(output => output.type.startsWith("AirPlay"));
             // Speakers OwnTone selected itself (restored after a restart, or picked elsewhere)
             // count as chosen too.

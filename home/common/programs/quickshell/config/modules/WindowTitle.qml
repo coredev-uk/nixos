@@ -13,6 +13,6 @@ BarText {
     readonly property HyprlandMonitor monitor: Hyprland.monitorFor(screen)
 
     text: monitor !== null && Hyprland.focusedMonitor === monitor ? (Hyprland.activeToplevel?.title ?? "") : ""
-    color: Theme.subtext1
+    color: Theme.text2
     elide: Text.ElideRight
 }

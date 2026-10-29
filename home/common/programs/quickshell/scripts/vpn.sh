@@ -33,11 +33,13 @@ last_line() {
 }
 
 # Failures only: the bar calls --notify-state whenever the tunnel comes up or goes down,
-# which also covers connections made outside the bar.
+# which also covers connections made outside the bar. The reason also goes to stderr, where
+# the panel reads it.
 connect() {
 	local output
 	if ! output=$(protonvpn connect "$@" 2>&1) || ! grep -q '^Connected to ' <<<"$output"; then
 		notify --urgency=critical "VPN connection failed" "$(last_line "$output")"
+		last_line "$output" >&2
 		return 1
 	fi
 }
@@ -46,6 +48,7 @@ disconnect() {
 	local output
 	if ! output=$(protonvpn disconnect 2>&1); then
 		notify --urgency=critical "VPN disconnect failed" "$(last_line "$output")"
+		last_line "$output" >&2
 		return 1
 	fi
 }

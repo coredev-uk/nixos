@@ -1,6 +1,4 @@
 _: {
-  catppuccin.atuin.enable = true;
-
   programs.atuin = {
     enable = true;
 

@@ -1,341 +1,326 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-10-28T12:49:09+00:00",
+  "generatedAt": "2026-10-29T19:55:47+00:00",
   "title": "Design System: Quickshell (atlas)",
   "extensions": {
     "colorMeta": {
-      "crust": {
+      "ground": {
         "role": "neutral",
-        "displayName": "Crust",
-        "canonical": "#11111b",
+        "displayName": "Night Ground",
+        "canonical": "#151920",
         "tonalRamp": [
-          "#0a0a13",
-          "#24242e",
-          "#414149",
-          "#606167",
-          "#828286",
-          "#a5a5a7",
-          "#c9c9cb",
-          "#eeeef0"
+          "#22252b",
+          "#373e48",
+          "#4b5667",
+          "#5e6e88",
+          "#8190a7",
+          "#a7b0be",
+          "#ccd0d6",
+          "#ebedef"
         ]
       },
-      "mantle": {
+      "plate": {
         "role": "neutral",
-        "displayName": "Mantle",
-        "canonical": "#181825",
+        "displayName": "Slate Plate",
+        "canonical": "#222830",
         "tonalRamp": [
-          "#0a0a14",
-          "#232430",
-          "#40414c",
-          "#606069",
-          "#818288",
-          "#a4a5a8",
-          "#c9c9cb",
-          "#eeeef1"
+          "#22262a",
+          "#383e47",
+          "#4d5765",
+          "#616f84",
+          "#8491a3",
+          "#a9b0bc",
+          "#ccd0d6",
+          "#ecedee"
         ]
       },
-      "base": {
+      "inset": {
         "role": "neutral",
-        "displayName": "Base",
-        "canonical": "#1e1e2e",
+        "displayName": "Deep Inset",
+        "canonical": "#191d24",
         "tonalRamp": [
-          "#0a0a16",
-          "#232333",
-          "#40414f",
-          "#60606c",
-          "#81818a",
-          "#a4a4a9",
-          "#c8c9cc",
-          "#eeeef1"
+          "#22252a",
+          "#373e48",
+          "#4b5666",
+          "#5f6f87",
+          "#8290a6",
+          "#a8b0bd",
+          "#ccd0d7",
+          "#ecedef"
         ]
       },
-      "surface0": {
+      "hover": {
         "role": "neutral",
-        "displayName": "Surface 0",
-        "canonical": "#313244",
+        "displayName": "Hover Slate",
+        "canonical": "#2d333e",
         "tonalRamp": [
-          "#0a0a15",
-          "#232333",
-          "#3f4051",
-          "#5f606f",
-          "#80818d",
-          "#a4a4ac",
-          "#c8c9cd",
-          "#eeeef2"
+          "#22252a",
+          "#383e47",
+          "#4e5765",
+          "#616f84",
+          "#8490a4",
+          "#a9b0bc",
+          "#ccd0d6",
+          "#ecedee"
         ]
       },
-      "surface1": {
+      "rule": {
         "role": "neutral",
-        "displayName": "Surface 1",
-        "canonical": "#45475a",
+        "displayName": "Rule Line",
+        "canonical": "#363d49",
         "tonalRamp": [
-          "#0a0a13",
-          "#232431",
-          "#3f4052",
-          "#5e6071",
-          "#7f818f",
-          "#a3a4af",
-          "#c8c8d0",
-          "#eeeef2"
+          "#232629",
+          "#393e46",
+          "#4f5764",
+          "#636f83",
+          "#8691a2",
+          "#aab0bb",
+          "#cdd0d5",
+          "#ecedee"
         ]
       },
-      "surface2": {
+      "selection": {
         "role": "neutral",
-        "displayName": "Surface 2",
-        "canonical": "#585b70",
+        "displayName": "Selection Slate",
+        "canonical": "#47505e",
         "tonalRamp": [
-          "#0a0a12",
-          "#222430",
-          "#3e4151",
-          "#5d6074",
-          "#7e8193",
-          "#a2a4b2",
-          "#c7c8d3",
-          "#edeef4"
-        ]
-      },
-      "overlay0": {
-        "role": "neutral",
-        "displayName": "Overlay 0",
-        "canonical": "#6c7086",
-        "tonalRamp": [
-          "#0a0b10",
-          "#23242e",
-          "#3e4150",
-          "#5c6073",
-          "#7d8196",
-          "#a1a4b5",
-          "#c6c8d6",
-          "#eceef7"
-        ]
-      },
-      "subtext0": {
-        "role": "neutral",
-        "displayName": "Subtext 0",
-        "canonical": "#a6adc8",
-        "tonalRamp": [
-          "#0a0b0e",
-          "#242529",
-          "#3f424b",
-          "#5d616f",
-          "#7c8195",
-          "#9da4bd",
-          "#c2c8e0",
-          "#e8eeff"
-        ]
-      },
-      "subtext1": {
-        "role": "neutral",
-        "displayName": "Subtext 1",
-        "canonical": "#bac2de",
-        "tonalRamp": [
-          "#0a0b0e",
-          "#242528",
-          "#404249",
-          "#5d616d",
-          "#7d8293",
-          "#9ea4bb",
-          "#c0c8e3",
-          "#e7eeff"
+          "#242629",
+          "#393e46",
+          "#505763",
+          "#657081",
+          "#8791a1",
+          "#abb1ba",
+          "#cdd0d5",
+          "#ecedef"
         ]
       },
       "text": {
         "role": "neutral",
-        "displayName": "Text",
-        "canonical": "#cdd6f4",
+        "displayName": "Enamel",
+        "canonical": "#ece5d3",
         "tonalRamp": [
-          "#0a0b0e",
-          "#242528",
-          "#404247",
-          "#5e616b",
-          "#7d8291",
-          "#9ea4ba",
-          "#c0c8e4",
-          "#e5eeff"
+          "#2f2a1d",
+          "#51482e",
+          "#76663c",
+          "#9e8648",
+          "#baa56d",
+          "#cabd9b",
+          "#dcd6c6",
+          "#f1efea"
         ]
       },
-      "blue": {
+      "text2": {
+        "role": "neutral",
+        "displayName": "Worn Enamel",
+        "canonical": "#a9a493",
+        "tonalRamp": [
+          "#292824",
+          "#45433b",
+          "#625e51",
+          "#7f7967",
+          "#9f9a89",
+          "#b9b6ac",
+          "#d4d3ce",
+          "#eeeeec"
+        ]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Muted Pewter",
+        "canonical": "#6d717a",
+        "tonalRamp": [
+          "#252627",
+          "#3d3f42",
+          "#55585d",
+          "#6d7079",
+          "#8e9299",
+          "#afb1b6",
+          "#d0d0d3",
+          "#ededee"
+        ]
+      },
+      "gilt": {
         "role": "primary",
-        "displayName": "Blue",
-        "canonical": "#89b4fa",
+        "displayName": "Gilt",
+        "canonical": "#c9a24f",
         "tonalRamp": [
-          "#070b12",
-          "#1f2530",
-          "#354259",
-          "#4c6285",
-          "#6583b4",
-          "#7fa6e6",
-          "#a3cbff",
-          "#d0f0ff"
+          "#322a1a",
+          "#574828",
+          "#806732",
+          "#ac873a",
+          "#c7a661",
+          "#d1be94",
+          "#e0d7c2",
+          "#f2efe9"
         ]
       },
-      "lavender": {
+      "giltHover": {
         "role": "primary",
-        "displayName": "Lavender",
-        "canonical": "#b4befe",
+        "displayName": "Bright Gilt",
+        "canonical": "#d8b468",
         "tonalRamp": [
-          "#0a0b11",
-          "#23252c",
-          "#3e4151",
-          "#5b5f7a",
-          "#797fa7",
-          "#99a1d6",
-          "#bac4ff",
-          "#e2ebff"
+          "#332b19",
+          "#5a4925",
+          "#84692e",
+          "#b28933",
+          "#cda85b",
+          "#d5bf90",
+          "#e2d7c0",
+          "#f2efe8"
         ]
       },
-      "green": {
+      "fill": {
+        "role": "neutral",
+        "displayName": "Enamel Fill",
+        "canonical": "#bdb9a9",
+        "tonalRamp": [
+          "#292823",
+          "#46433a",
+          "#635f50",
+          "#817b65",
+          "#a19c87",
+          "#bab7ab",
+          "#d5d3cd",
+          "#eeeeec"
+        ]
+      },
+      "alert": {
         "role": "tertiary",
-        "displayName": "Green",
-        "canonical": "#a6e3a1",
+        "displayName": "Signal Red",
+        "canonical": "#e06c5a",
         "tonalRamp": [
-          "#070d07",
-          "#212720",
-          "#3a4639",
-          "#526850",
-          "#6c8d69",
-          "#86b382",
-          "#a1db9c",
-          "#cbffc6"
+          "#351b17",
+          "#5e2921",
+          "#8b3527",
+          "#bc3d29",
+          "#d66352",
+          "#da958b",
+          "#e4c3be",
+          "#f3e9e7"
         ]
       },
-      "red": {
+      "caution": {
         "role": "tertiary",
-        "displayName": "Red",
-        "canonical": "#f38ba8",
+        "displayName": "Amber Caution",
+        "canonical": "#e0954f",
         "tonalRamp": [
-          "#12080a",
-          "#311f24",
-          "#59363f",
-          "#854f5d",
-          "#b3687d",
-          "#e4839e",
-          "#ffaac2",
-          "#ffd6e9"
+          "#362617",
+          "#5f3f20",
+          "#8d5726",
+          "#be7027",
+          "#d89250",
+          "#dbb18a",
+          "#e5d0bd",
+          "#f3ede7"
         ]
       },
-      "peach": {
+      "ok": {
         "role": "tertiary",
-        "displayName": "Peach",
-        "canonical": "#fab387",
+        "displayName": "Verdigris",
+        "canonical": "#6fb39a",
         "tonalRamp": [
-          "#100906",
-          "#2b231e",
-          "#4f3e34",
-          "#775a48",
-          "#a3775d",
-          "#d09673",
-          "#fdb78c",
-          "#ffe0bd"
+          "#1f2d28",
+          "#324e43",
+          "#43705f",
+          "#51947c",
+          "#76b29c",
+          "#a1c4b7",
+          "#c8dad3",
+          "#eaf0ee"
         ]
       },
-      "yellow": {
+      "link": {
         "role": "tertiary",
-        "displayName": "Yellow",
-        "canonical": "#f9e2af",
+        "displayName": "Link Blue",
+        "canonical": "#8fb0d3",
         "tonalRamp": [
-          "#0d0b06",
-          "#27251f",
-          "#44423c",
-          "#676153",
-          "#8c816b",
-          "#b2a483",
-          "#dbc79c",
-          "#ffecbc"
+          "#1d2630",
+          "#2c3f53",
+          "#395879",
+          "#4471a2",
+          "#6a93be",
+          "#99b2cc",
+          "#c5d1dd",
+          "#e9edf1"
         ]
       },
-      "pink": {
-        "role": "secondary",
-        "displayName": "Pink",
-        "canonical": "#f5c2e7",
-        "tonalRamp": [
-          "#0e090d",
-          "#292327",
-          "#483f45",
-          "#6d5b68",
-          "#94798c",
-          "#bd98b3",
-          "#e8b8db",
-          "#ffdeff"
-        ]
-      },
-      "mauve": {
+      "series1": {
         "role": "tertiary",
-        "displayName": "Mauve",
-        "canonical": "#cba6f7",
+        "displayName": "Series 1 (blue)",
+        "canonical": "#8fb0d3",
         "tonalRamp": [
-          "#0d0911",
-          "#27232d",
-          "#473d54",
-          "#69587e",
-          "#8e75ab",
-          "#b494db",
-          "#d9b7ff",
-          "#fce0ff"
+          "#1d2630",
+          "#2c3f53",
+          "#395879",
+          "#4471a2",
+          "#6a93be",
+          "#99b2cc",
+          "#c5d1dd",
+          "#e9edf1"
         ]
       },
-      "teal": {
+      "series2": {
         "role": "tertiary",
-        "displayName": "Teal",
-        "canonical": "#94e2d5",
+        "displayName": "Series 2 (verdigris)",
+        "canonical": "#6fb39a",
         "tonalRamp": [
-          "#060d0c",
-          "#1f2725",
-          "#374543",
-          "#4d6863",
-          "#628c85",
-          "#79b2a8",
-          "#8fdacd",
-          "#bcfef2"
+          "#1f2d28",
+          "#324e43",
+          "#43705f",
+          "#51947c",
+          "#76b29c",
+          "#a1c4b7",
+          "#c8dad3",
+          "#eaf0ee"
         ]
       },
-      "sky": {
+      "series3": {
         "role": "tertiary",
-        "displayName": "Sky",
-        "canonical": "#89dceb",
+        "displayName": "Series 3 (rose)",
+        "canonical": "#d39a8f",
         "tonalRamp": [
-          "#060d0e",
-          "#1e2728",
-          "#354548",
-          "#49676d",
-          "#5d8b94",
-          "#72b1bc",
-          "#87d8e7",
-          "#b8fcff"
+          "#30201d",
+          "#53332c",
+          "#794439",
+          "#a25344",
+          "#be776a",
+          "#cca199",
+          "#ddc9c5",
+          "#f1ebe9"
         ]
       },
-      "sapphire": {
+      "series4": {
         "role": "tertiary",
-        "displayName": "Sapphire",
-        "canonical": "#74c7ec",
+        "displayName": "Series 4 (violet)",
+        "canonical": "#a99ad6",
         "tonalRamp": [
-          "#050c10",
-          "#1e272b",
-          "#2f4650",
-          "#426778",
-          "#558ba3",
-          "#68b0d0",
-          "#89d5f8",
-          "#bcf9ff"
+          "#221d30",
+          "#362d53",
+          "#4a3a78",
+          "#5c45a0",
+          "#7f6bbd",
+          "#a69acb",
+          "#cbc5dd",
+          "#ebe9f1"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Lock and greeter clock only; size scales with s = max(0.75, height / 1080)."
+        "purpose": "Lock and greeter clock, Light at 300px × s."
       },
       "headline": {
         "displayName": "Headline",
-        "purpose": "Window-register lines (lock date, sunrise/sunset); scaled by s."
+        "purpose": "Window-register lines: lock date, next sunrise/sunset, prompt and today panel."
       },
       "title": {
         "displayName": "Title",
-        "purpose": "Panel row and card titles, calendar month."
+        "purpose": "Panel-row, back-row, card titles; calendar month."
       },
       "body-bar": {
-        "displayName": "Bar Body",
-        "purpose": "Everything in the 24px bar (Theme.fontSize)."
+        "displayName": "Body (bar)",
+        "purpose": "Everything in the 24px bar."
       },
       "body": {
         "displayName": "Body",
@@ -346,37 +331,77 @@
         "purpose": "Sublabels, values, timestamps, section headings."
       },
       "icon": {
-        "displayName": "Glyph",
-        "purpose": "Nerd Font icons; 16px default, 14px in rows and buttons; panel-row toggles keep 16px in a fixed 20px column."
+        "displayName": "Icon",
+        "purpose": "Symbols Nerd Font glyphs; 14px in rows, 20px in the OSD."
       }
     },
     "shadows": [
       {
         "name": "float",
-        "value": "MultiEffect { shadowColor: \"black\"; shadowOpacity: 0.35; shadowBlur: 1.0; shadowVerticalOffset: 6–8 } (≈ 0 6px 24px rgba(0,0,0,0.35))",
-        "purpose": "Free-floating windows only: OSD (6px), polkit dialog and Pass quick access (8px); 24px window padding around the card."
+        "value": "MultiEffect: black, opacity 0.35, blur 1.0, vertical offset 8px, 24px window padding",
+        "purpose": "Free-floating windows only: OSD, polkit dialog, Pass quick access."
       }
     ],
     "motion": [
       {
         "name": "ease-standard",
         "value": "Easing.OutCubic",
-        "purpose": "Default for every state change and reveal."
+        "purpose": "Every arrival: state changes, moves and reveals (Theme.easing; Hyprland's `settle`, bezier 0.33 1 0.68 1)."
+      },
+      {
+        "name": "ease-exit",
+        "value": "Easing.InCubic",
+        "purpose": "Every departure (Theme.easingExit; Hyprland's `leave`, bezier 0.32 0 0.67 0)."
       },
       {
         "name": "duration-state",
-        "value": "140–220ms",
-        "purpose": "Hover, colour, opacity and border changes."
+        "value": "160ms",
+        "purpose": "Hover, colour, opacity and border changes, including every BarText/Icon colour (Theme.durationState)."
+      },
+      {
+        "name": "duration-exit",
+        "value": "120ms",
+        "purpose": "A notification popup leaving (Theme.durationExit)."
+      },
+      {
+        "name": "duration-switch",
+        "value": "150ms",
+        "purpose": "The workspace index glide, in step with Hyprland's workspace switch (Theme.durationSwitch)."
+      },
+      {
+        "name": "duration-move",
+        "value": "300ms",
+        "purpose": "The picker carousel, the calendar month (Theme.durationMove)."
+      },
+      {
+        "name": "hyprland",
+        "value": "150ms open/switch/move, 100ms focus and layer/popup fade-in, 80ms close",
+        "purpose": "Compositor motion, quicker than the shell's because it sits in every window action (animations.nix)."
       },
       {
         "name": "reveal-in",
-        "value": "650ms Easing.OutCubic, rise 28px, staggered delay",
-        "purpose": "Lock/greeter panels rising into place (Reveal.qml)."
+        "value": "650ms Easing.OutCubic, rise 28px × s, staggered 0/90/180ms",
+        "purpose": "Lock/greeter panels rising into place (Reveal.qml, Theme.durationReveal)."
       },
       {
         "name": "reveal-out",
         "value": "360ms Easing.InCubic",
         "purpose": "Unlock outro."
+      },
+      {
+        "name": "backdrop-soften",
+        "value": "600ms Easing.OutCubic",
+        "purpose": "Lock blur, desaturation and scrim when engaged."
+      },
+      {
+        "name": "wallpaper-crossfade",
+        "value": "1200ms Easing.InOutCubic",
+        "purpose": "Desktop wallpaper change (wallpaper/shell.qml)."
+      },
+      {
+        "name": "hold-to-run",
+        "value": "900ms",
+        "purpose": "Lock power buttons run only after a held press."
       },
       {
         "name": "tooltip-delay",
@@ -388,7 +413,7 @@
       {
         "name": "window-scale",
         "value": "s = max(0.75, screenHeight / 1080)",
-        "purpose": "Window-register (lock, greeter, wallpaper picker) sizes scale continuously; the Cockpit is fixed-size."
+        "purpose": "Window-register (lock, greeter, wallpaper picker) sizes scale continuously; the Instrument is fixed-size."
       }
     ]
   },
@@ -397,145 +422,151 @@
       "name": "Bar",
       "kind": "nav",
       "refersTo": "bar",
-      "description": "24px crust strip per screen; status groups split by 1px surface1 rules.",
-      "html": "<div class=\"ds-bar\"><span class=\"ds-ws ds-ws-on\">●</span><span class=\"ds-ws\">○</span><span class=\"ds-ws\">○</span><span class=\"ds-bar-gap\"></span><span class=\"ds-bar-glyph ds-peach\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.55a11 11 0 0 1 14 0\"/><path d=\"M8.5 16.1a6 6 0 0 1 7 0\"/><path d=\"M12 20h.01\"/></svg></span><span class=\"ds-sep\"></span><span>Tue 28 Oct</span><span>14:32</span><span class=\"ds-sep\"></span><span class=\"ds-bar-glyph\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M12 2v10\"/><path d=\"M18.4 6.6a9 9 0 1 1-12.8 0\"/></svg></span></div>",
-      "css": ".ds-bar{display:flex;align-items:center;gap:10px;height:24px;padding:0 10px;background:#11111b;color:#cdd6f4;font-family: Inter, sans-serif;font-size:14px;width:420px} .ds-bar-gap{flex:1} .ds-ws{color:#585b70;font-size:10px;cursor:pointer} .ds-ws-on{color:#f5c2e7} .ds-sep{width:1px;height:14px;background:#45475a;margin:0 4px} .ds-bar-glyph{display:inline-flex;color:#a6adc8} .ds-bar-glyph:hover{color:#cdd6f4} .ds-peach{color:#fab387}"
+      "description": "24px ground strip per screen with a 1px rule on its inner edge; gilt numeral for the focused workspace, the day arc between date and time.",
+      "html": "<div class=\"ds-bar\"><span class=\"ds-ws ds-here\">1</span><span class=\"ds-ws\">2</span><span class=\"ds-ws\">3</span><span class=\"ds-gap\"></span><span class=\"ds-dim\">CPU</span><span>12%</span><span class=\"ds-sep\"></span><span class=\"ds-dim\">Wed 28 Oct</span><span class=\"ds-arc\"><i class=\"ds-day\"></i><i class=\"ds-tick\" style=\"left:27%\"></i><i class=\"ds-tick\" style=\"left:71%\"></i><i class=\"ds-now\"></i></span><b>13:23</b></div>",
+      "css": ".ds-bar{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:10px;height:24px;padding:0 10px 0 6px;background:#151920;color:#ece5d3;font-size:14px;border-bottom:1px solid #363d49;} .ds-ws{position:relative;min-width:22px;text-align:center;color:#a9a493;} .ds-ws:hover{color:#ece5d3;} .ds-here{color:#c9a24f;font-weight:700;} .ds-here::after{content:'';position:absolute;left:4px;right:4px;bottom:-5px;height:2px;background:#c9a24f;} .ds-gap{flex:1;} .ds-dim{color:#a9a493;} .ds-sep{width:1px;height:14px;background:#363d49;} .ds-arc{position:relative;width:120px;height:8px;} .ds-arc i{position:absolute;top:50%;transform:translateY(-50%);} .ds-arc::before{content:'';position:absolute;left:0;right:0;top:3px;height:2px;background:#363d49;} .ds-day{left:27%;width:44%;height:2px;background:rgba(236,229,211,.42);} .ds-tick{width:1px;height:6px;background:rgba(236,229,211,.7);} .ds-now{left:55%;width:7px;height:7px;border-radius:50%;background:#c9a24f;box-shadow:0 0 0 1px #151920;margin-left:-3.5px;}"
     },
     {
-      "name": "Popup Panel",
+      "name": "Plate",
       "kind": "card",
-      "refersTo": "popup-panel",
-      "description": "Anchored popup: mantle, 12px radius, 1px surface0 border, no shadow; base inset sections inside.",
-      "html": "<div class=\"ds-popup\"><div class=\"ds-popup-title\">Network</div><div class=\"ds-inset\">Inset section on base</div></div>",
-      "css": ".ds-popup{width:296px;padding:12px;background:#181825;border:1px solid #313244;border-radius:12px;color:#cdd6f4;font-family: Inter, sans-serif;font-size:12px} .ds-popup-title{font-size:13px;font-weight:700;margin-bottom:8px} .ds-inset{background:#1e1e2e;border-radius:8px;padding:8px;color:#a6adc8;font-size:11px}"
+      "refersTo": "plate",
+      "description": "Slate plate every popup is drawn on: 10px corners, 1px rule, 12px padding, an inset section inside.",
+      "html": "<div class=\"ds-plate\"><div class=\"ds-title\">Network</div><div class=\"ds-inset\">Connected to Home</div></div>",
+      "css": ".ds-plate{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;width:320px;padding:12px;background:#222830;border:1px solid #363d49;border-radius:10px;color:#ece5d3;font-size:12px;} .ds-title{font-size:13px;font-weight:700;margin-bottom:8px;} .ds-inset{padding:8px;background:#191d24;border-radius:8px;color:#a9a493;font-size:11px;}"
     },
     {
       "name": "Panel Row",
       "kind": "custom",
       "refersTo": "panel-row",
-      "description": "Network panel row: separate toggle glyph, bold title over sublabel, chevron opens the sub-view.",
-      "html": "<div class=\"ds-prow\" tabindex=\"0\"><button class=\"ds-prow-toggle\" aria-label=\"Toggle Wi-Fi\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.55a11 11 0 0 1 14 0\"/><path d=\"M8.5 16.1a6 6 0 0 1 7 0\"/><path d=\"M12 20h.01\"/></svg></button><div class=\"ds-prow-text\"><div class=\"ds-prow-title\">Wi-Fi</div><div class=\"ds-prow-sub\">Connected · Home</div></div><span class=\"ds-prow-chev\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"m9 18 6-6-6-6\"/></svg></span></div>",
-      "css": ".ds-prow{display:flex;align-items:center;gap:10px;width:296px;padding:10px 12px;border-radius:8px;background:transparent;font-family: Inter, sans-serif;color:#cdd6f4;transition:background 150ms cubic-bezier(0.33,1,0.68,1);cursor:pointer} .ds-prow:hover,.ds-prow:focus-visible{background:#313244;outline:none} .ds-prow-toggle{display:inline-flex;padding:4px 8px;border:0;border-radius:6px;background:transparent;color:#a6e3a1;cursor:pointer} .ds-prow-toggle:hover{background:#45475a} .ds-prow-text{flex:1;min-width:0} .ds-prow-title{font-size:13px;font-weight:700} .ds-prow-sub{font-size:11px;color:#a6adc8} .ds-prow-chev{display:inline-flex;color:#6c7086}"
+      "description": "48px row: a 32px inset glyph tile toggles (gilt when on), the rest opens a sub-view.",
+      "html": "<div class=\"ds-prow\"><span class=\"ds-tile ds-on\"><svg width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\"><path d=\"M5 12.55a11 11 0 0 1 14 0\"/><path d=\"M8.5 16.1a6 6 0 0 1 7 0\"/><path d=\"M12 20h.01\"/></svg></span><span class=\"ds-txt\"><b>Wi-Fi</b><small>Home</small></span><span class=\"ds-chev\">›</span></div>",
+      "css": ".ds-prow{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:12px;height:48px;padding:0 8px;border-radius:6px;color:#ece5d3;transition:background .16s;} .ds-prow:hover{background:#2d333e;} .ds-tile{display:grid;place-items:center;width:32px;height:32px;border-radius:6px;background:#191d24;color:#6d717a;} .ds-tile:hover{background:#363d49;} .ds-tile.ds-on{color:#c9a24f;} .ds-txt{flex:1;display:flex;flex-direction:column;} .ds-txt b{font-size:13px;} .ds-txt small{font-size:11px;color:#a9a493;} .ds-chev{color:#6d717a;font-size:14px;}"
     },
     {
       "name": "List Row",
       "kind": "custom",
       "refersTo": "list-row",
-      "description": "Selectable row: transparent at rest, surface0 on hover, 10% accent tint with accent text when active.",
-      "html": "<div class=\"ds-lrow\" tabindex=\"0\"><span class=\"ds-lrow-ico\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.55a11 11 0 0 1 14 0\"/><path d=\"M8.5 16.1a6 6 0 0 1 7 0\"/><path d=\"M12 20h.01\"/></svg></span><span class=\"ds-lrow-label\">Neighbour 5G</span><span class=\"ds-lrow-sub\">62%</span></div><div class=\"ds-lrow ds-lrow-active\" tabindex=\"0\"><span class=\"ds-lrow-ico\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M5 12.55a11 11 0 0 1 14 0\"/><path d=\"M8.5 16.1a6 6 0 0 1 7 0\"/><path d=\"M12 20h.01\"/></svg></span><span class=\"ds-lrow-label\">Home</span><span class=\"ds-lrow-sub\">Connected</span></div>",
-      "css": ".ds-lrow{display:flex;align-items:center;gap:8px;width:296px;padding:8px 12px;border-radius:6px;font-family: Inter, sans-serif;font-size:12px;color:#cdd6f4;transition:background 150ms cubic-bezier(0.33,1,0.68,1);cursor:pointer} .ds-lrow:hover,.ds-lrow:focus-visible{background:#313244;outline:none} .ds-lrow-ico{display:inline-flex;width:16px;justify-content:center;color:#6c7086} .ds-lrow-label{flex:1} .ds-lrow-sub{font-size:11px;color:#a6adc8} .ds-lrow-active{background:rgba(166,227,161,0.1);color:#a6e3a1} .ds-lrow-active .ds-lrow-ico{color:#a6e3a1}"
+      "description": "Transparent at rest, hover fill under the pointer, gilt tint at 10% with gilt glyph and label when active.",
+      "html": "<div class=\"ds-lrow ds-active\"><span class=\"ds-g\">●</span><span class=\"ds-l\">Home</span><span class=\"ds-s\">Connected</span></div><div class=\"ds-lrow\"><span class=\"ds-g\">●</span><span class=\"ds-l\">Neighbour</span><span class=\"ds-s\">62%</span></div>",
+      "css": ".ds-lrow{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:10px;padding:8px 12px 8px 8px;border-radius:6px;color:#ece5d3;font-size:12px;transition:background .16s;} .ds-lrow:hover{background:#2d333e;} .ds-g{width:20px;text-align:center;color:#6d717a;font-size:14px;} .ds-l{flex:1;} .ds-s{font-size:11px;color:#a9a493;} .ds-active{background:rgba(201,162,79,.10);} .ds-active:hover{background:rgba(201,162,79,.16);} .ds-active .ds-g,.ds-active .ds-l{color:#c9a24f;}"
     },
     {
       "name": "Primary Button",
       "kind": "button",
       "refersTo": "button-primary",
-      "description": "The one filled button in a dialog: blue, crust label; hover lifts to lavender.",
+      "description": "Gilt fill, ground label; one per dialog.",
       "html": "<button class=\"ds-btn-primary\">Authenticate</button>",
-      "css": ".ds-btn-primary{min-width:88px;height:32px;padding:0 14px;border:0;border-radius:8px;background:#89b4fa;color:#11111b;font-family: Inter, sans-serif;font-size:12px;cursor:pointer;transition:background 150ms cubic-bezier(0.33,1,0.68,1)} .ds-btn-primary:hover{background:#b4befe} .ds-btn-primary:focus-visible{outline:1px solid #b4befe;outline-offset:2px} .ds-btn-primary:disabled{opacity:0.5}"
+      "css": ".ds-btn-primary{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;height:32px;padding:0 14px;background:#c9a24f;color:#151920;border:1px solid #363d49;border-radius:8px;font-size:12px;cursor:pointer;transition:background .16s;} .ds-btn-primary:hover{background:#d8b468;} .ds-btn-primary:focus-visible{outline:1px solid #c9a24f;outline-offset:2px;}"
     },
     {
       "name": "Secondary Button",
       "kind": "button",
       "refersTo": "button-secondary",
-      "description": "Surface0 fill, text label; hover surface1.",
+      "description": "Transparent with a 1px rule border; hover fill.",
       "html": "<button class=\"ds-btn-secondary\">Cancel</button>",
-      "css": ".ds-btn-secondary{min-width:88px;height:32px;padding:0 14px;border:0;border-radius:8px;background:#313244;color:#cdd6f4;font-family: Inter, sans-serif;font-size:12px;cursor:pointer;transition:background 150ms cubic-bezier(0.33,1,0.68,1)} .ds-btn-secondary:hover{background:#45475a} .ds-btn-secondary:focus-visible{outline:1px solid #89b4fa;outline-offset:2px}"
+      "css": ".ds-btn-secondary{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;height:32px;padding:0 14px;background:transparent;color:#ece5d3;border:1px solid #363d49;border-radius:8px;font-size:12px;cursor:pointer;transition:background .16s;} .ds-btn-secondary:hover{background:#2d333e;} .ds-btn-secondary:focus-visible{border-color:#c9a24f;}"
     },
     {
       "name": "Input Field",
       "kind": "input",
       "refersTo": "input-field",
-      "description": "Surface0 field, no border at rest, 1px blue border on focus, red on error.",
-      "html": "<input class=\"ds-input\" type=\"password\" placeholder=\"Password\" aria-label=\"Password\">",
-      "css": ".ds-input{width:240px;height:28px;padding:0 8px;border:1px solid transparent;border-radius:6px;background:#313244;color:#cdd6f4;font-family: Inter, sans-serif;font-size:12px;transition:border-color 150ms} .ds-input::placeholder{color:#6c7086} .ds-input:focus,.ds-input:focus-visible{outline:none;border-color:#89b4fa} .ds-input[aria-invalid=true]{border-color:#f38ba8}"
+      "description": "28px field with a 1px rule border that turns gilt on focus, alert on error.",
+      "html": "<input class=\"ds-input\" type=\"password\" placeholder=\"Password\">",
+      "css": ".ds-input{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;height:28px;padding:0 8px;background:#222830;color:#ece5d3;border:1px solid #363d49;border-radius:6px;font-size:12px;outline:none;transition:border-color .16s;} .ds-input::placeholder{color:#6d717a;} .ds-input:focus-visible{border-color:#c9a24f;} .ds-input::selection{background:#47505e;}"
     },
     {
       "name": "Slider Row",
       "kind": "custom",
       "refersTo": "slider-track",
-      "description": "Glyph column, 6px surface0 track with accent fill, right-aligned 11px value.",
-      "html": "<div class=\"ds-srow\"><span class=\"ds-srow-ico\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M11 5 6 9H2v6h4l5 4z\"/><path d=\"M15.5 8.5a5 5 0 0 1 0 7\"/></svg></span><div class=\"ds-track\" role=\"slider\" aria-valuenow=\"64\" aria-valuemin=\"0\" aria-valuemax=\"100\" tabindex=\"0\"><div class=\"ds-fill\" style=\"width:64%\"></div></div><span class=\"ds-srow-val\">64%</span></div>",
-      "css": ".ds-srow{display:flex;align-items:center;gap:10px;width:296px;padding:8px 12px;font-family: Inter, sans-serif;} .ds-srow-ico{display:inline-flex;width:28px;justify-content:center;color:#89b4fa} .ds-track{flex:1;height:6px;border-radius:3px;background:#313244;cursor:pointer} .ds-track:focus-visible{outline:1px solid #89b4fa;outline-offset:3px} .ds-fill{height:100%;border-radius:3px;background:#89b4fa;transition:width 150ms cubic-bezier(0.33,1,0.68,1)} .ds-srow-val{width:38px;text-align:right;font-size:11px;color:#a6adc8}"
+      "description": "28px glyph column, 4px inset track with an enamel fill, 38px value, 22px chevron slot.",
+      "html": "<div class=\"ds-srow\"><span class=\"ds-g\">♪</span><span class=\"ds-track\"><span class=\"ds-fill\" style=\"width:64%\"></span></span><span class=\"ds-v\">64%</span><span class=\"ds-slot\"></span></div>",
+      "css": ".ds-srow{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;display:flex;align-items:center;gap:10px;padding:8px;color:#a9a493;width:300px;} .ds-g{width:28px;text-align:center;} .ds-track{flex:1;height:4px;border-radius:2px;background:#191d24;} .ds-fill{display:block;height:100%;border-radius:2px;background:#bdb9a9;} .ds-v{width:38px;text-align:right;font-size:11px;} .ds-slot{width:22px;}"
     },
     {
       "name": "Tooltip",
       "kind": "custom",
       "refersTo": "tooltip",
-      "description": "Mantle, 1px surface0 border, 6px radius, 12px text; 400ms hover delay.",
-      "html": "<span class=\"ds-tip\">Caffeine: on</span>",
-      "css": ".ds-tip{display:inline-block;padding:5px 8px;border:1px solid #313244;border-radius:6px;background:#181825;color:#cdd6f4;font-family: Inter, sans-serif;font-size:12px}"
+      "description": "6px plate with a 1px rule, 12px text, after a 400ms hover.",
+      "html": "<span class=\"ds-tip\">Sunrise 07:02 · Sunset 16:48</span>",
+      "css": ".ds-tip{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;display:inline-block;padding:5px 8px;background:#222830;border:1px solid #363d49;border-radius:6px;color:#ece5d3;font-size:12px;}"
     },
     {
-      "name": "OSD",
-      "kind": "card",
-      "refersTo": "popup-panel",
-      "description": "Free-floating 300px card with the Float shadow: glyph, progress bar, value.",
-      "html": "<div class=\"ds-osd\"><span class=\"ds-osd-ico\"><svg width=\"14\" height=\"14\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\" aria-hidden=\"true\"><path d=\"M11 5 6 9H2v6h4l5 4z\"/><path d=\"M15.5 8.5a5 5 0 0 1 0 7\"/></svg></span><div class=\"ds-osd-track\"><div class=\"ds-osd-fill\"></div></div><span class=\"ds-osd-val\">45</span></div>",
-      "css": ".ds-osd{display:flex;align-items:center;gap:12px;width:300px;padding:12px 16px;background:#181825;border:1px solid #313244;border-radius:12px;box-shadow:0 6px 24px rgba(0,0,0,0.35);font-family: Inter, sans-serif;color:#cdd6f4} .ds-osd-ico{display:inline-flex;color:#89b4fa} .ds-osd-track{flex:1;height:6px;border-radius:3px;background:#313244} .ds-osd-fill{width:45%;height:100%;border-radius:3px;background:#89b4fa} .ds-osd-val{width:28px;text-align:right;font-size:12px;color:#a6adc8}"
+      "name": "Day Arc (lock)",
+      "kind": "custom",
+      "refersTo": "day-arc",
+      "description": "The signature at lock scale: 360px track under the clock, daylight lit, ticks with sunrise and sunset times, gilt dot at now.",
+      "html": "<div class=\"ds-lock\"><div class=\"ds-clock\">13:23</div><div class=\"ds-line\"><span>Wednesday 28 October</span><span class=\"ds-larc\"><i class=\"ds-ld\"></i><i class=\"ds-lt\" style=\"left:29%\"><em>07:02</em></i><i class=\"ds-lt\" style=\"left:70%\"><em>16:48</em></i><i class=\"ds-ln\"></i></span><span class=\"ds-dim\">Sunset 16:48</span></div></div>",
+      "css": ".ds-lock{font-family:'Atkinson Hyperlegible Next',sans-serif;font-variant-numeric:tabular-nums;padding:24px;background:#151920;color:#ece5d3;} .ds-clock{font-size:120px;font-weight:300;letter-spacing:-.03em;line-height:1;} .ds-line{display:flex;align-items:center;gap:20px;font-size:18px;font-weight:500;} .ds-dim{color:#a9a493;} .ds-larc{position:relative;width:240px;height:12px;} .ds-larc::before{content:'';position:absolute;left:0;right:0;top:4.5px;height:3px;background:#363d49;} .ds-larc i{position:absolute;top:50%;transform:translateY(-50%);} .ds-ld{left:29%;width:41%;height:3px;background:rgba(236,229,211,.42);} .ds-lt{width:1.5px;height:10px;background:rgba(236,229,211,.7);} .ds-lt em{position:absolute;top:16px;left:-16px;font-style:normal;font-size:11px;font-weight:400;color:#a9a493;} .ds-ln{left:55%;width:11px;height:11px;margin-left:-5.5px;border-radius:50%;background:#c9a24f;box-shadow:0 0 0 2px #151920;}"
     }
   ],
   "narrative": {
-    "northStar": "The Cockpit and the Window",
-    "overview": "**Creative North Star: \"The Cockpit and the Window\"**\n\nThe shell has two registers. **The Cockpit** is where the work happens: the 24px bar, its popups, the OSD, notifications, the polkit dialog and Pass quick access. It is a dense, quiet instrument strip. Everything sits on near-black tonal layers, type runs 11–14px, rows line up on icon columns, and nothing is coloured unless the colour reports something. **The Window** is for arriving and leaving: the lock screen, the greeter and the wallpaper picker. They go full-bleed over the aerial wallpaper and its video, with a 300px clock and slow, rising reveals. The Cockpit is felt rather than looked at; the Window is meant to be looked at.\n\nBoth registers use the same Catppuccin Mocha palette, Inter, and the same flat, tonal way of building depth. What changes between them is scale and pacing, not materials. Inside the Cockpit, density is a feature. Popups are a fixed 220–560px wide, the controls you use most sit one click from the bar, and resting states stay neutral, so a single green, peach or red glyph reads straight away.\n\nRejected outright: translucent glass on every surface, gamer RGB and neon glows, big-tile dashboards, and imitating macOS chrome. The aerial wallpapers are content, not a licence to borrow macOS UI.",
+    "northStar": "Meridian",
+    "overview": "**Creative North Star: \"Meridian\"**\n\nThe shell keeps time like the Royal Observatory at Greenwich: night-slate grounds, enamel-cream legends, and gilt kept for \"here\" and \"on\", the way the Shepherd Gate clock keeps its gold for the hands. It is a quiet instrument of the day the wallpaper already follows. The person at it glances up, reads state in under a second, and nothing moved that didn't change. Nothing may create a sense of unease: no jitter, no flashes, no colour that isn't reporting something.\n\nThere are two registers. **The Instrument** is where the work happens: the 24px bar, its plates (panels, menus, tooltips, notifications), the OSD, the polkit dialog and Pass quick access. It is dense and settled; type runs 11–14px, rows line up on fixed glyph columns, and resting states are enamel and muted so a single gilt or alert glyph reads at once. **The Window** is for arriving and leaving: the lock screen, the greeter and the wallpaper picker. They go full-bleed over the wallpaper (and on the lock, its aerial clip), with a 300px light clock and slow, rising reveals. Both registers use the same palette, the same family and the same flat, tonal depth; only scale and pacing change.\n\nThe same palette is the system palette (`meridian` in `lib/theme/default.nix`), which Hyprland, Vicinae, Ghostty, zellij and the CLI tools, Neovim, GTK, Qt and Discord all read, so everything around the windows reads as one. `Theme.qml` and `lib/theme` hold the same values; a change goes in both.\n\nRejected outright: the pastel unixporn bar, the macOS glass menubar, glows, gradients and animated accent colour, and big-tile dashboards.",
     "keyCharacteristics": [
-      "Quiet, dense, precise in the Cockpit; cinematic only at the edges (lock, greeter, wallpaper picker).",
-      "Depth comes from tone (crust → mantle → base → surface0) plus a 1px border; shadow only on free-floating windows.",
-      "Colour means state. Idle glyphs are overlay0; accents mark on, active, attention or error.",
-      "Controls are quiet until touched: transparent at rest, surface0 on hover, an accent tint when active or armed.",
-      "One easing family (OutCubic). Short state changes, long reveals."
+      "Night-slate grounds stepped by tone (ground → plate → inset, hover and rule above), every edge a 1px rule.",
+      "Gilt means \"you are here\" or \"this is on\", and the one primary button. Nothing else is gold.",
+      "Atkinson Hyperlegible Next everywhere, with tabular figures so readouts never shift.",
+      "The day arc: the day as a 24-hour track with the daylight lit and a gilt dot at now, in the bar and on the lock.",
+      "One easing family, OutCubic in and InCubic out: 160ms state changes, 120ms exits, 300ms spatial moves, 650ms Window reveals. Hyprland uses the same curves but runs quicker (150ms to open, switch or move, 100ms for focus, 80ms to close)."
     ],
     "rules": [
       {
-        "name": "The Colour Is a Readout Rule",
-        "body": "An accent appears only when it reports something (on, active, attention, error, here). Idle is overlay0. If you can't say what a coloured glyph is reporting, it should be neutral.",
+        "name": "The Here-or-On Rule",
+        "body": "Gilt appears only where you are (focused workspace, open panel's bar item, selection, focus ring, now on the arc) or where something is on (an enabled service, Caffeine, night light, DND, unread), plus the one primary button per dialog. If a gilt element is neither, it is wrong.",
         "section": "colors"
       },
       {
-        "name": "The One Meaning Rule",
-        "body": "Each accent keeps its single role across every surface. Green never warns, peach never confirms, and the categorical hues never stand in for state.",
+        "name": "The Roles, Not Hues Rule",
+        "body": "Every surface takes colour by what it means. Alert never decorates, ok never means \"on\", and a series colour never stands in for state.",
         "section": "colors"
       },
       {
         "name": "The Tint, Don't Fill Rule",
-        "body": "An active or armed row gets its accent at 10% alpha behind accent-coloured text and glyph (15% for hover on the media card's accent buttons). A solid accent fill is only for the one primary button in a dialog.",
+        "body": "An active or selected row gets its accent at 10% alpha (16% under the pointer) behind accent-coloured glyph and label. A solid accent fill is only for the primary button.",
         "section": "colors"
       },
       {
         "name": "The Three Steps Rule",
-        "body": "Popup text uses 13 bold / 12 / 11 and nothing else. Hierarchy within a popup comes from those steps plus the text → subtext1 → subtext0 colour ramp, not from new sizes.",
+        "body": "Popup text uses 13 bold / 12 / 11 and nothing else; hierarchy comes from those steps and the text → text2 → muted ramp.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every text item carries `Theme.fontFeatures` (`tnum`). Figures never change width.",
         "section": "typography"
       },
       {
         "name": "The Scaled Window Rule",
-        "body": "Window-register sizes are always written as `Math.round(n × s)` against a 1080px reference height, never as fixed px.",
+        "body": "Window-register sizes are `Math.round(n × s)` with `s = max(0.75, height / 1080)`, never fixed px.",
         "section": "typography"
       },
       {
         "name": "The Anchored Stays Flat Rule",
-        "body": "Anything attached to the bar (panels, menus, tooltips, notification popups) has no shadow. A shadow means the window floats on its own.",
+        "body": "Anything hanging from the bar (panels, menus, tooltips, notification popups) has no shadow. A shadow means the window floats on its own.",
         "section": "elevation"
       },
       {
         "name": "The Blur Is Backdrop Rule",
-        "body": "Blur never sits behind a panel's content. It only softens a full-screen picture so type can sit on it.",
+        "body": "Blur never sits behind a plate's content; it only softens a full-screen picture so type can sit on it.",
         "section": "elevation"
       }
     ],
     "dos": [
-      "Do take every colour, font and size from `Theme` (`qs.common`) and the scales above. No new hex values, and no sizes outside 11 / 12 / 13 / 14 in the Cockpit.",
-      "Do keep resting states neutral (overlay0 glyphs, transparent rows) and let accents report state with the roles in Colors.",
-      "Do build depth with crust → mantle → base → surface0 plus a 1px surface0 border; add the Float shadow only to windows that aren't anchored to the bar.",
-      "Do animate state changes in 140–220ms with `Easing.OutCubic`, and Window-register reveals in about 650ms in / 360ms out.",
-      "Do scale Window-register measurements with `s = max(0.75, height / 1080)`.",
-      "Do keep icon columns fixed-width so labels line up down a list."
+      "Do take every colour, font and size from `Theme` (`qs.common`); change a palette value in `Theme.qml` and `lib/theme/default.nix` together.",
+      "Do keep gilt to \"here\", \"on\" and the one primary button (The Here-or-On Rule).",
+      "Do keep resting states enamel and muted, and let alert, caution and ok report state only.",
+      "Do build depth with ground → plate → inset plus a 1px rule; add Float only to windows not anchored to the bar.",
+      "Do animate with the `Theme` tokens (`durationState`, `durationExit`, `durationSwitch`, `durationMove`, `durationReveal`, `easing`, `easingExit`), and keep Hyprland's `animations.nix` quick: `durationSwitch` is its workspace time. The lock's own timings (the 600ms soften, the 900ms hold, the engage steps) and the 1200ms wallpaper crossfade are the authored exceptions.",
+      "Do set every readout with tabular figures and fixed-width cells so nothing shifts as digits change.",
+      "Do scale Window-register measurements with `s = max(0.75, height / 1080)`."
     ],
     "donts": [
-      "Don't put translucent, blurred glass behind panels or bar content; blur is for full-screen backdrops only.",
-      "Don't add glows, gradients, neon or animated accent colour (no gamer RGB).",
+      "Don't add anything that unsettles: jitter, flashes, pulsing accents, or motion for a change that didn't happen.",
+      "Don't put blurred glass behind plates or bar content; blur is for full-screen backdrops only.",
+      "Don't add glows, gradients or animated accent colour.",
       "Don't build big-tile dashboards or oversized toggle cards; controls are rows in a list.",
-      "Don't imitate macOS chrome (traffic lights, menu-bar styling); the aerial wallpapers are the only borrowing.",
-      "Don't use a categorical hue (mauve, teal, sky, sapphire) to signal state, or give an accent a second meaning.",
-      "Don't add a shadow to anchored popups, or a solid accent fill to anything but a dialog's one primary button."
+      "Don't use a series colour for state, or give a state colour a second meaning.",
+      "Don't shadow an anchored plate, or fill anything solid gilt but the primary button."
     ]
   }
 }

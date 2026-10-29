@@ -25,8 +25,9 @@ The shell is built for one machine and one person, so it can use atlas specifics
 ## Operating Context
 
 - Entry points: always-on bar per screen; Hyprland keybinds call the bar over IPC: media/volume/brightness keys → `osd`, Super+Shift+P → wallpaper picker, Ctrl+Shift+Space → Pass quick access, Super+L → lock.
-- Bar contents: workspaces, window title, now playing, privacy indicators, tray, system stats, caffeine, network, date/calendar, clock, notification centre, power menu.
-- Panels and views: audio mixer, brightness, night light (hyprsunset, per-session temperature), network/VPN (ProtonVPN CLI), connection details, Cast (AirPlay 2 audio, Chromecast screen casting via GNOME Network Displays), device batteries (upower, openrazer, headsetcontrol), calendar (iCloud CalDAV and Sonarr/Radarr from `~/.config/quickshell/calendars.json`, kept out of git), power menu (including restart to Windows and the Windows VM).
+- Bar contents: workspaces, window title, now playing (opens its media card), privacy indicators, tray, system stats, caffeine, low peripheral battery, network (the control panel), date/calendar, clock, notification centre, power menu.
+- Panels and views: the control panel behind the network glyph (volume named by its output with outputs including AirPlay 2 and the per-app mixer under it, brightness, night light via hyprsunset with a per-session temperature, Ethernet, WiFi, VPN via the ProtonVPN CLI, connection details, Bluetooth, Cast screen to Chromecast via GNOME Network Displays, device batteries from upower, openrazer and headsetcontrol, media), calendar (iCloud CalDAV and Sonarr/Radarr from `~/.config/quickshell/calendars.json`, kept out of git), power menu (including restart to Windows and the Windows VM).
+- On air: while an app captures the screen, Pass quick access, notification popups and the lock's today panel keep personal detail off it.
 - Lock and greeter: wallpaper still with its aerial video behind it (macOS aerial clips, `home/common/programs/hypr/paper.nix`), the clock, today's events, and the next sunrise or sunset from wlsunset's location.
 
 ## Capabilities and Constraints
@@ -37,7 +38,7 @@ The shell is built for one machine and one person, so it can use atlas specifics
 - The lock refuses to start without `/etc/pam.d/quickshell-lock`. Authentication is password only, with no U2F prompt. Hyprland's `allow_session_lock_restore` lets `quickshell-lock` take a session over again from a TTY if the lock crashes.
 - The greeter runs as `greeter` and can't read the user's home, so the wallpaper is copied to a system path. Location comes from the wlsunset module, read as-is.
 - On NVIDIA, the lock's video depends on a patched Qt Multimedia and nvidia-vaapi-driver from master (`default.nix`). The cost was measured: roughly 75% → 45% of a core for two 1440p120 players.
-- Terminology: "Cast view", "Pass quick access", "notification centre", "power menu", "OSD", "Horizon" lock screen.
+- Terminology: "control panel", "on air", "Pass quick access", "notification centre", "power menu", "OSD", "Horizon" lock screen.
 - Undecided: none recorded.
 
 ## Brand Commitments

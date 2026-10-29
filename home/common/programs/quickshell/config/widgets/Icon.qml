@@ -7,4 +7,11 @@ Text {
     font.pixelSize: 16
     horizontalAlignment: Text.AlignHCenter
     verticalAlignment: Text.AlignVCenter
+
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationState
+            easing.type: Theme.easing
+        }
+    }
 }

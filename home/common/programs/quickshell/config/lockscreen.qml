@@ -1,6 +1,7 @@
 import QtQuick
 import Quickshell
 import Quickshell.Wayland
+import qs.common
 import qs.lock
 
 // Session lock, run as its own one-shot instance by `quickshell-lock` (hypridle's lock_cmd):
@@ -31,7 +32,7 @@ ShellRoot {
         }
 
         WlSessionLockSurface {
-            color: "black"
+            color: Theme.ground
 
             LockSurface {
                 anchors.fill: parent
