@@ -42,7 +42,9 @@ in
     mpv
     nautilus
     papers
-    # unstable.proton-drive-cli # TODO: needs to be merged into unstable... @SEE https://github.com/NixOS/nixpkgs/pull/557198
+    # `proton-drive auth login` signs in through the browser; the session goes to the Secret
+    # Service (gnome-keyring), like pass-cli's.
+    proton-drive-cli
     protonmail-desktop
     proton-pass
     proton-pass-cli
