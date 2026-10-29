@@ -81,7 +81,12 @@ PanelWindow {
         SystemStats {}
         Sep {}
         CaffeineButton {}
-        NetworkButton {}
+        LowBattery {
+            onActivated: network.openPanel()
+        }
+        NetworkButton {
+            id: network
+        }
         Sep {}
         Clock {}
         Sep {}

@@ -16,6 +16,13 @@ Rectangle {
     radius: Theme.radiusRow
     color: area.containsMouse ? Theme.hover : "transparent"
 
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationState
+            easing.type: Theme.easing
+        }
+    }
+
     RowLayout {
         id: row
         anchors.fill: parent
@@ -26,7 +33,8 @@ Rectangle {
         Icon {
             Layout.preferredWidth: 16
             text: Icons.chevronLeft
-            color: Theme.muted
+            // Lifts to text2 on the hover fill, where muted sinks in.
+            color: area.containsMouse ? Theme.text2 : Theme.muted
             font.pixelSize: 14
         }
 

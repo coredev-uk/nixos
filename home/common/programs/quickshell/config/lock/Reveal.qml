@@ -21,7 +21,7 @@ Item {
                 }
                 NumberAnimation {
                     duration: reveal.shown ? Theme.durationReveal : 360
-                    easing.type: reveal.shown ? Theme.easing : Easing.InCubic
+                    easing.type: reveal.shown ? Theme.easing : Theme.easingExit
                 }
             }
         }
@@ -34,7 +34,7 @@ Item {
             }
             NumberAnimation {
                 duration: reveal.shown ? Theme.durationReveal : 360
-                easing.type: reveal.shown ? Theme.easing : Easing.InCubic
+                easing.type: reveal.shown ? Theme.easing : Theme.easingExit
             }
         }
     }

@@ -7,7 +7,8 @@ import qs.widgets
 // Bottom-right, from the user session: a day view of what's left of today in the calendar
 // (services/Calendar) on a translucent plate, its foot level with the time's baseline; and in
 // the date line under it, what's playing. The power buttons (LockPower) take the music's place
-// while the password is up.
+// while the password is up. While the screen is shared the events show only their times, and
+// the music stays hidden.
 Item {
     id: root
 
@@ -17,6 +18,7 @@ Item {
     property real lineHeight: 56
 
     readonly property bool engaged: context.active && !context.unlocking
+    readonly property bool onAir: captures.onAir
     readonly property int maxEvents: 4
     readonly property real now: clock.date.getTime()
     // Today's events that aren't over, all-day ones first as Calendar sorts them; done
@@ -47,6 +49,11 @@ Item {
         id: clock
 
         precision: SystemClock.Minutes
+    }
+
+    // Its own, not Privacy's: that one brings AirPlay into this instance (services/Captures.qml).
+    Captures {
+        id: captures
     }
 
     Plate {
@@ -166,7 +173,8 @@ Item {
                                 anchors.right: parent.right
                                 anchors.rightMargin: event.next ? countdown.implicitWidth + Math.round(16 * root.s) : 0
                                 elide: Text.ElideRight
-                                text: event.modelData.title
+                                // On air, its time stands in for the title.
+                                text: root.onAir ? root.span(event.modelData) : event.modelData.title
                                 color: Theme.text
                                 font.family: Theme.fontFamily
                                 font.pixelSize: Math.round(22 * root.s)
@@ -189,6 +197,7 @@ Item {
 
                         Text {
                             width: parent.width
+                            visible: !root.onAir
                             elide: Text.ElideRight
                             text: [root.span(event.modelData), event.modelData.calendar].filter(part => part).join("  ·  ")
                             color: Theme.text2
@@ -216,7 +225,7 @@ Item {
         anchors.rightMargin: root.margin
         y: parent.height - root.margin - (root.lineHeight + height) / 2
         spacing: Math.round(12 * root.s)
-        opacity: !root.engaged && Media.active ? 1 : 0
+        opacity: !root.engaged && Media.active && !root.onAir ? 1 : 0
         visible: opacity > 0
 
         Behavior on opacity {

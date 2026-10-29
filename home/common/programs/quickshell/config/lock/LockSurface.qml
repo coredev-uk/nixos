@@ -189,6 +189,7 @@ Rectangle {
             Behavior on opacity {
                 NumberAnimation {
                     duration: 260
+                    easing.type: Theme.easing
                 }
             }
         }

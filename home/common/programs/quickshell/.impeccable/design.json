@@ -346,12 +346,37 @@
       {
         "name": "ease-standard",
         "value": "Easing.OutCubic",
-        "purpose": "Every state change and reveal (Theme.easing)."
+        "purpose": "Every arrival: state changes, moves and reveals (Theme.easing; Hyprland's `settle`, bezier 0.33 1 0.68 1)."
+      },
+      {
+        "name": "ease-exit",
+        "value": "Easing.InCubic",
+        "purpose": "Every departure (Theme.easingExit; Hyprland's `leave`, bezier 0.32 0 0.67 0)."
       },
       {
         "name": "duration-state",
         "value": "160ms",
-        "purpose": "Hover, colour, opacity and border changes (Theme.durationState)."
+        "purpose": "Hover, colour, opacity and border changes, including every BarText/Icon colour (Theme.durationState)."
+      },
+      {
+        "name": "duration-exit",
+        "value": "120ms",
+        "purpose": "A notification popup leaving (Theme.durationExit)."
+      },
+      {
+        "name": "duration-switch",
+        "value": "150ms",
+        "purpose": "The workspace index glide, in step with Hyprland's workspace switch (Theme.durationSwitch)."
+      },
+      {
+        "name": "duration-move",
+        "value": "300ms",
+        "purpose": "The picker carousel, the calendar month (Theme.durationMove)."
+      },
+      {
+        "name": "hyprland",
+        "value": "150ms open/switch/move, 100ms focus and layer/popup fade-in, 80ms close",
+        "purpose": "Compositor motion, quicker than the shell's because it sits in every window action (animations.nix)."
       },
       {
         "name": "reveal-in",
@@ -482,7 +507,7 @@
       "Gilt means \"you are here\" or \"this is on\", and the one primary button. Nothing else is gold.",
       "Atkinson Hyperlegible Next everywhere, with tabular figures so readouts never shift.",
       "The day arc: the day as a 24-hour track with the daylight lit and a gilt dot at now, in the bar and on the lock.",
-      "One easing family (OutCubic): 160ms state changes, 650ms Window reveals."
+      "One easing family, OutCubic in and InCubic out: 160ms state changes, 120ms exits, 300ms spatial moves, 650ms Window reveals. Hyprland uses the same curves but runs quicker (150ms to open, switch or move, 100ms for focus, 80ms to close)."
     ],
     "rules": [
       {
@@ -531,7 +556,7 @@
       "Do keep gilt to \"here\", \"on\" and the one primary button (The Here-or-On Rule).",
       "Do keep resting states enamel and muted, and let alert, caution and ok report state only.",
       "Do build depth with ground → plate → inset plus a 1px rule; add Float only to windows not anchored to the bar.",
-      "Do animate state changes in `Theme.durationState` (160ms) with `Easing.OutCubic`, and Window reveals in `Theme.durationReveal` (650ms) in / 360ms out.",
+      "Do animate with the `Theme` tokens (`durationState`, `durationExit`, `durationSwitch`, `durationMove`, `durationReveal`, `easing`, `easingExit`), and keep Hyprland's `animations.nix` quick: `durationSwitch` is its workspace time. The lock's own timings (the 600ms soften, the 900ms hold, the engage steps) and the 1200ms wallpaper crossfade are the authored exceptions.",
       "Do set every readout with tabular figures and fixed-width cells so nothing shifts as digits change.",
       "Do scale Window-register measurements with `s = max(0.75, height / 1080)`."
     ],

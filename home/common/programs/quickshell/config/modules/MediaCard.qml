@@ -143,6 +143,20 @@ ClippingRectangle {
         color: Theme.tint(accent, area.containsMouse ? 0.16 : 0.1)
         opacity: enabled ? 1 : 0.5
 
+        Behavior on opacity {
+            NumberAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
+
         Icon {
             id: label
             anchors.centerIn: parent

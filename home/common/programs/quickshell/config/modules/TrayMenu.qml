@@ -14,7 +14,12 @@ BarPopup {
     property var path: []
     readonly property QsMenuHandle current: path.length > 0 ? path[path.length - 1] : menu
 
-    onOpening: path = []
+    onOpening: {
+        path = [];
+        // The popup itself fades in on open; only level changes while open fade the menu.
+        levelFade.complete();
+    }
+    onPathChanged: levelFade.restart()
 
     dismissible: true
     implicitWidth: Math.min(400, Math.max(200, column.implicitWidth + 12))
@@ -37,6 +42,16 @@ BarPopup {
             anchors.fill: parent
             anchors.margins: 6
             spacing: 2
+
+            NumberAnimation {
+                id: levelFade
+                target: column
+                property: "opacity"
+                from: 0
+                to: 1
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
 
             BackButton {
                 visible: root.path.length > 0
@@ -73,6 +88,20 @@ BarPopup {
                         color: area.containsMouse && entry.modelData.enabled ? Theme.hover : "transparent"
                         opacity: entry.modelData.enabled ? 1 : 0.5
 
+                        Behavior on opacity {
+                            NumberAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
+
                         RowLayout {
                             id: row
                             anchors.fill: parent
@@ -83,7 +112,8 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.buttonType !== QsMenuButtonType.None
                                 text: entry.radio ? (entry.checked ? Icons.radioOn : Icons.radioOff) : (entry.checked ? Icons.checkboxOn : Icons.checkboxOff)
-                                color: entry.checked ? Theme.gilt : Theme.muted
+                                // Muted sinks into the hover fill, so an unchecked box lifts to text2 there.
+                                color: entry.checked ? Theme.gilt : area.containsMouse ? Theme.text2 : Theme.muted
                                 font.pixelSize: 14
                             }
 
@@ -104,7 +134,7 @@ BarPopup {
                             Icon {
                                 visible: entry.modelData.hasChildren
                                 text: Icons.chevronRight
-                                color: Theme.muted
+                                color: area.containsMouse ? Theme.text2 : Theme.muted
                                 font.pixelSize: 14
                             }
                         }

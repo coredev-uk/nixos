@@ -214,7 +214,8 @@ Scope {
 
         readonly property bool muted: root.kind === "volume" ? root.sink?.audio?.muted ?? false : root.kind === "mic" ? root.source?.audio?.muted ?? false : false
         readonly property real value: root.kind === "volume" ? (root.sink?.audio?.volume ?? 0) * 100 : root.brightness
-        // Glyph in the legend colour, level in the enamel fill; both drop to muted when muted.
+        // Glyph in the legend colour, level in the enamel fill; both drop to muted when muted. The
+        // value stays text2 either way: it's still the level that unmuting returns to.
         readonly property color glyph: muted ? Theme.muted : Theme.text
         readonly property color accent: muted ? Theme.muted : Theme.fill
 
@@ -262,7 +263,7 @@ Scope {
             Layout.preferredWidth: 34
             horizontalAlignment: Text.AlignRight
             text: `${Math.round(level.value)}%`
-            color: level.muted ? Theme.muted : Theme.text2
+            color: Theme.text2
             font.pixelSize: 12
         }
 

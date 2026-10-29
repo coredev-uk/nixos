@@ -9,16 +9,21 @@ import Quickshell.Services.Notifications
 
 // The notification daemon: keeps every notification until it is dismissed (the centre's history)
 // and decides which of them show as popups. Do Not Disturb survives restarts in the state dir;
-// the count and DnD are also published for the lock screen, a separate instance
-// (services/NotificationCount.qml).
+// while the screen is shared (Privacy.onAir) popups hold off the same way, and critical ones show
+// redacted (NotificationCard). The counts and DnD are also published for the lock screen, a
+// separate instance (services/NotificationCount.qml).
 Singleton {
     id: root
 
-    // Entries, newest first: { notification, time, popup }. Plain arrays, as ScriptModel wants.
+    // Entries, newest first: { notification, time, popup, unread }. Plain arrays, as ScriptModel wants.
     property var entries: []
     readonly property var popups: entries.filter(entry => entry.popup)
     readonly property int count: entries.length
+    // Not seen yet: the centre hasn't been open while it was there, and its popup wasn't handled.
+    readonly property int unread: entries.filter(entry => entry.unread).length
     readonly property bool dnd: state.dnd
+    // Popups hold off under DnD and while the screen is shared; critical ones still show.
+    readonly property bool quiet: dnd || Privacy.onAir
     // Older popups beyond this only stay in the centre.
     readonly property int maxPopups: 5
     readonly property string statusPath: `${Quickshell.env("XDG_RUNTIME_DIR")}/quickshell-notifications.json`
@@ -56,8 +61,19 @@ Singleton {
             entry.notification.expire();
     }
 
+    function markRead(entry: Entry) {
+        entry.unread = false;
+    }
+
+    // The centre is showing everything.
+    function markAllRead() {
+        for (const entry of entries)
+            entry.unread = false;
+    }
+
     // Clicking a notification: its default action if it has one, else it just leaves the popups.
     function activate(entry: Entry) {
+        markRead(entry);
         const action = entry.notification.actions.find(action => action.identifier === "default");
         if (action)
             action.invoke();
@@ -68,14 +84,16 @@ Singleton {
     function add(notification: Notification) {
         // After a config reload the server announces the notifications it kept again; those
         // have already been seen.
-        const popup = !notification.lastGeneration && (!dnd || notification.urgency === NotificationUrgency.Critical);
+        const seen = notification.lastGeneration;
+        const popup = !seen && (!quiet || notification.urgency === NotificationUrgency.Critical);
         // Transient ones are only meant to be seen: untracked, one that can't show now is dropped.
         if (notification.transient && !popup)
             return;
         notification.tracked = true;
         entries = [entryComponent.createObject(root, {
                 notification,
-                popup
+                popup,
+                unread: !seen
             }), ...entries];
         trimPopups();
     }
@@ -95,7 +113,8 @@ Singleton {
     // show it again, like a new one.
     function refresh(entry: Entry) {
         entry.time = Date.now();
-        entry.popup = !dnd || entry.notification.urgency === NotificationUrgency.Critical;
+        entry.popup = !quiet || entry.notification.urgency === NotificationUrgency.Critical;
+        entry.unread = true;
         entries = [entry, ...entries.filter(other => other !== entry)];
         trimPopups();
     }
@@ -103,7 +122,23 @@ Singleton {
     // Replaces whatever a previous run left behind, even when nothing changes.
     Component.onCompleted: publish.restart()
     onCountChanged: publish.restart()
+    onUnreadChanged: publish.restart()
     onDndChanged: publish.restart()
+
+    // Once the screen is shared, what's up goes back to the centre; critical ones stay, redacted.
+    // Nothing pops back when the share ends: it's all in the centre.
+    Connections {
+        target: Privacy
+
+        function onOnAirChanged() {
+            if (!Privacy.onAir)
+                return;
+            for (const entry of root.popups) {
+                if (entry.notification.urgency !== NotificationUrgency.Critical)
+                    root.hidePopup(entry);
+            }
+        }
+    }
 
     component Entry: QtObject {
         id: entry
@@ -111,6 +146,7 @@ Singleton {
         required property Notification notification
         property double time: Date.now()
         property bool popup: false
+        property bool unread: true
 
         readonly property Connections connections: Connections {
             target: entry.notification
@@ -168,6 +204,7 @@ Singleton {
         interval: 100
         onTriggered: status.setText(JSON.stringify({
             count: root.count,
+            unread: root.unread,
             dnd: root.dnd
         }))
     }

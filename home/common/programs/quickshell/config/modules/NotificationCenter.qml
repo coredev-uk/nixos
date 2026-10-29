@@ -43,8 +43,11 @@ BarPopup {
     implicitHeight: frame.implicitHeight + gap
     dismissible: !fromIpc
 
+    // Open, it shows everything: nothing in it is new any more.
     onVisibleChanged: {
-        if (!visible)
+        if (visible)
+            NotificationService.markAllRead();
+        else
             fromIpc = false;
     }
 
@@ -58,6 +61,9 @@ BarPopup {
         target: NotificationService
 
         function onEntriesChanged() {
+            // One arriving while the centre is open is seen as it lands.
+            if (root.visible)
+                NotificationService.markAllRead();
             const kept = root.expandedApps.filter(app => root.entriesOf(app).length > 1);
             if (kept.length !== root.expandedApps.length)
                 root.expandedApps = kept;
@@ -159,34 +165,11 @@ BarPopup {
                     // Cards peeking out below a collapsed stack, at most two. Kept off the empty
                     // group a delegate briefly holds on its way out.
                     readonly property int layers: expanded ? 0 : Math.max(0, Math.min(entries.length - 1, 2))
-                    // Only expanding and collapsing animate the height, not cards coming and going.
-                    property bool animating: false
-
-                    function setExpanded(expanded: bool) {
-                        animating = true;
-                        settle.restart();
-                        root.setExpanded(modelData, expanded);
-                    }
 
                     width: list.width - (list.ScrollBar.vertical.visible ? 10 : 0)
+                    // No height animation: this is a popup, and Hyprland drops one that resizes
+                    // every frame. The revealed cards fade in instead (the column's add transition).
                     implicitHeight: cards.implicitHeight + 5 * layers
-                    clip: animating
-
-                    Behavior on implicitHeight {
-                        enabled: group.animating
-
-                        NumberAnimation {
-                            duration: Theme.durationState
-                            easing.type: Theme.easing
-                        }
-                    }
-
-                    Timer {
-                        id: settle
-
-                        interval: 250
-                        onTriggered: group.animating = false
-                    }
 
                     // Behind the newest card, which is the only one shown while collapsed.
                     Repeater {
@@ -231,7 +214,7 @@ BarPopup {
                             HeaderButton {
                                 icon: Icons.chevronUp
                                 label: "Show less"
-                                onClicked: group.setExpanded(false)
+                                onClicked: root.setExpanded(group.modelData, false)
                             }
 
                             HeaderButton {
@@ -260,7 +243,7 @@ BarPopup {
                                 }
                                 bodyLines: 8
                                 stacked: index === 0 && !group.expanded ? group.entries.length - 1 : 0
-                                onExpand: group.setExpanded(true)
+                                onExpand: root.setExpanded(group.modelData, true)
                             }
                         }
 
@@ -317,6 +300,13 @@ BarPopup {
         radius: Theme.radiusRow
         color: active ? Theme.tint(Theme.gilt, 0.1) : buttonArea.containsMouse ? Theme.hover : "transparent"
 
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
+
         Row {
             id: buttonRow
 
@@ -326,7 +316,7 @@ BarPopup {
             Icon {
                 anchors.verticalCenter: parent.verticalCenter
                 text: button.icon
-                color: button.active ? Theme.gilt : Theme.muted
+                color: button.active ? Theme.gilt : buttonArea.containsMouse ? Theme.text2 : Theme.muted
                 font.pixelSize: 14
             }
 

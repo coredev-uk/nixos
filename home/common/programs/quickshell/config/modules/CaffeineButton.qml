@@ -14,6 +14,7 @@ Icon {
         anchors.fill: parent
         anchors.margins: -4
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: Caffeine.enabled = !Caffeine.enabled
     }
 

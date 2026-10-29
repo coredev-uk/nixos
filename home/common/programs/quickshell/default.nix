@@ -137,9 +137,9 @@ let
     '';
   };
 
-  # Screen casting to Chromecast, opened from the panel's Cast view. The TV fetches the stream
-  # over HTTP, and whenever it (re)connects GNOME Network Displays replays it from the latest
-  # keyframe; with x264's default interval of 250 frames that left the TV up to ~8 s behind the
+  # Screen casting to Chromecast, from the Connections panel's Cast screen row. The TV fetches
+  # the stream over HTTP, and whenever it (re)connects GNOME Network Displays replays it from the
+  # latest keyframe; with x264's default interval of 250 frames that left the TV up to ~8 s behind the
   # screen. Its encoder loads x264enc's "Zero Latency" preset, so a copy of the preset file with
   # a 1 s keyframe interval (and more bitrate to pay for the extra keyframes) takes over through
   # GST_PRESET_PATH, for this app only.

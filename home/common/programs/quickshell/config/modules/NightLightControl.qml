@@ -5,7 +5,7 @@ import qs.widgets
 
 // Night light slider: drag to pick a colour temperature for this session (further right is
 // warmer, like macOS's Night Shift); the icon turns the night light off, and back onto the
-// sunset schedule. "Auto" means following the schedule.
+// sunset schedule. "Auto" means following the schedule. The panel re-reads it on opening.
 SliderRow {
     id: root
 
@@ -21,7 +21,6 @@ SliderRow {
     value: NightLight.custom > 0 ? position(NightLight.custom) : NightLight.scheduled ? position(NightLight.nightTemperature) : 0
     valueText: NightLight.custom > 0 ? `${NightLight.custom}K` : NightLight.scheduled ? "Auto" : "Off"
 
-    Component.onCompleted: NightLight.refresh()
     onMoved: value => NightLight.setTemperature(NightLight.neutral - value / 100 * span)
     onIconClicked: NightLight.toggle()
 }

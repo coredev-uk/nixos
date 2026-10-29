@@ -18,6 +18,8 @@ import qs.widgets
 // in every time.
 // Secrets go from pass-cli to the clipboard inside the quickshell-pass helper (scripts/pass.sh),
 // which clears them again after 45s; services/Pass.qml holds only titles and non-secret details.
+// While the screen is shared (Privacy.onAir) the list shows titles only, without usernames,
+// vaults or the account; an item shows its details once opened.
 Scope {
     id: root
 
@@ -383,6 +385,16 @@ Scope {
         }
     }
 
+    // A share starting with an item open takes it back to the list, titles only.
+    Connections {
+        target: Privacy
+
+        function onOnAirChanged() {
+            if (Privacy.onAir)
+                root.closeItem();
+        }
+    }
+
     // Arrowing through the list shouldn't start a pass-cli call per row passed.
     Timer {
         id: detailsDelay
@@ -435,7 +447,8 @@ Scope {
                     y: Math.round(parent.height * 0.2)
                     width: 560
                     height: body.implicitHeight + 24
-                    opacity: 0
+                    // Hyprland fades the layer in and out (animations.nix); the card settles
+                    // the last few pixels on top of that.
                     transform: Translate {
                         id: slide
                         y: -8
@@ -457,17 +470,7 @@ Scope {
                         shadowVerticalOffset: 8
                     }
 
-                    Component.onCompleted: {
-                        opacity = 1;
-                        slide.y = 0;
-                    }
-
-                    Behavior on opacity {
-                        NumberAnimation {
-                            duration: Theme.durationState
-                            easing.type: Theme.easing
-                        }
-                    }
+                    Component.onCompleted: slide.y = 0
 
                     // Clicks inside the card don't count as outside.
                     MouseArea {
@@ -480,6 +483,37 @@ Scope {
                         anchors.fill: parent
                         anchors.margins: 12
                         spacing: 8
+
+                        // On air: the list keeps usernames, vaults and the account off the shared
+                        // screen; an opened item shows its own. Copying works as ever.
+                        Rectangle {
+                            Layout.fillWidth: true
+                            visible: Privacy.onAir && Pass.signedIn
+                            implicitHeight: 28
+                            radius: Theme.radiusRow
+                            color: Theme.inset
+
+                            RowLayout {
+                                anchors.fill: parent
+                                anchors.leftMargin: 12
+                                anchors.rightMargin: 12
+                                spacing: 10
+
+                                Icon {
+                                    text: Icons.monitorShare
+                                    color: Theme.alert
+                                    font.pixelSize: 14
+                                }
+
+                                BarText {
+                                    Layout.fillWidth: true
+                                    text: "Sharing your screen: usernames and vaults stay hidden until you open an item"
+                                    color: Theme.text2
+                                    font.pixelSize: 11
+                                    elide: Text.ElideRight
+                                }
+                            }
+                        }
 
                         // Signed in: search, results, the selection's details.
                         Rectangle {
@@ -534,7 +568,7 @@ Scope {
                                         anchors.fill: parent
                                         visible: input.text === ""
                                         text: "Search Proton Pass"
-                                        color: Theme.muted
+                                        color: Theme.text2
                                         font.pixelSize: 12
                                     }
                                 }
@@ -586,7 +620,7 @@ Scope {
                                     Icon {
                                         Layout.preferredWidth: 18
                                         text: root.typeIcon(row.modelData.type)
-                                        color: row.isCurrent ? Theme.gilt : Theme.muted
+                                        color: row.isCurrent ? Theme.gilt : rowArea.containsMouse ? Theme.text2 : Theme.muted
                                     }
 
                                     ColumnLayout {
@@ -601,10 +635,11 @@ Scope {
                                             elide: Text.ElideRight
                                         }
 
-                                        // The username once its details have been loaded, as 1Password shows it.
+                                        // The username once its details have been loaded, as 1Password
+                                        // shows it; only the type while on air.
                                         BarText {
                                             Layout.fillWidth: true
-                                            text: root.userOf(row.modelData) || root.typeName(row.modelData.type)
+                                            text: (Privacy.onAir ? "" : root.userOf(row.modelData)) || root.typeName(row.modelData.type)
                                             color: Theme.text2
                                             font.pixelSize: 11
                                             elide: Text.ElideRight
@@ -613,6 +648,7 @@ Scope {
 
                                     BarText {
                                         Layout.maximumWidth: 160
+                                        visible: !Privacy.onAir
                                         text: row.modelData.vault
                                         color: Theme.text2
                                         font.pixelSize: 11
@@ -706,7 +742,7 @@ Scope {
                                 Icon {
                                     anchors.centerIn: parent
                                     text: Icons.close
-                                    color: Theme.muted
+                                    color: backArea.containsMouse ? Theme.text2 : Theme.muted
                                     font.pixelSize: 14
                                 }
 
@@ -824,6 +860,7 @@ Scope {
                             }
 
                             BarText {
+                                visible: !Privacy.onAir
                                 text: Pass.account
                                 color: Theme.text2
                                 font.pixelSize: 11
@@ -897,7 +934,7 @@ Scope {
 
             BarText {
                 text: action.shortcut
-                color: action.highlighted ? Theme.text2 : Theme.muted
+                color: Theme.text2
                 font.pixelSize: 11
             }
         }

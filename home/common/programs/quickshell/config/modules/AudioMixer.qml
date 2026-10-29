@@ -58,7 +58,8 @@ ColumnLayout {
             color: muted ? Theme.muted : Theme.fill
             iconColor: muted ? Theme.muted : Theme.text2
             value: (modelData.audio?.volume ?? 0) * 100
-            opacity: muted ? 0.6 : 1
+            // Said in the value too: an app icon replaces the muted glyph.
+            valueText: muted ? "Muted" : `${Math.round(value)}%`
             onMoved: value => {
                 if (modelData.audio)
                     modelData.audio.volume = value / 100;

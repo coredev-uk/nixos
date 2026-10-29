@@ -4,11 +4,13 @@ import QtQuick.Controls
 import Quickshell
 import Quickshell.Bluetooth
 import Quickshell.Networking
-import Quickshell.Services.Pipewire
 import qs.common
 import qs.services
 import qs.widgets
 
+// The control panel behind the network glyph: volume (its chevron opens the outputs and per-app
+// volumes), brightness and night light, then Ethernet, WiFi and VPN, then Bluetooth, casting the
+// screen and the peripherals' batteries, then what's playing.
 BarPopup {
     id: root
 
@@ -17,25 +19,51 @@ BarPopup {
         Wifi,
         Ethernet,
         Vpn,
-        Bluetooth,
-        Cast
+        Bluetooth
     }
 
     property int view: NetworkPanel.View.Main
+    // Outputs and per-app volumes under the volume slider; kept while the panel is reopened.
+    property bool expanded: false
     readonly property var wifiDevice: NetworkStatus.wifiDevice
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
     // Secured network waiting for a password, and the last connection error.
     property WifiNetwork passwordNetwork: null
     property string wifiError: ""
-    // Per-app volume list under the volume slider; kept while the panel is reopened.
-    property bool mixerExpanded: false
-    // This computer's outputs for the Cast view; AirPlay's sink feeds OwnTone, whose speakers are
-    // listed separately.
-    readonly property var localOutputs: Pipewire.nodes.values.filter(node => node.isSink && !node.isStream && node.audio && node !== AirPlay.sink).sort((a, b) => outputName(a).localeCompare(outputName(b)))
-    readonly property PwNode output: Pipewire.defaultAudioSink
 
-    function outputName(node: PwNode): string {
-        return node.description || node.nickname || node.name;
+    // NetworkManager's reasons, in plain words.
+    function failReason(reason: int): string {
+        switch (reason) {
+        case ConnectionFailReason.NoSecrets:
+            return "it needs the password";
+        case ConnectionFailReason.WifiClientFailed:
+            return "the password was rejected";
+        case ConnectionFailReason.WifiAuthTimeout:
+            return "the network took too long to answer";
+        case ConnectionFailReason.WifiClientDisconnected:
+            return "the network dropped the connection";
+        case ConnectionFailReason.WifiNetworkLost:
+            return "the network went out of range";
+        default:
+            return "";
+        }
+    }
+
+    function vpnStatus(): string {
+        if (Vpn.connecting)
+            return `Connecting to ${Vpn.target === "" ? "the fastest server" : Vpn.countryName(Vpn.target)}…`;
+        if (Vpn.disconnecting)
+            return "Disconnecting…";
+        if (!Vpn.connected)
+            return "Disconnected";
+        if (Vpn.country === "")
+            return Vpn.server === "" ? "Connected" : `Connected - ${Vpn.server}`;
+        return `Connected - ${Vpn.countryName(Vpn.country)}${Vpn.server === "" ? "" : ` (${Vpn.server})`}`;
+    }
+
+    function castScreen() {
+        Quickshell.execDetached(["gnome-network-displays"]);
+        root.visible = false;
     }
 
     function updateScanner() {
@@ -54,7 +82,8 @@ BarPopup {
     }
 
     function wifiFailed(network: WifiNetwork, reason: int) {
-        wifiError = `Couldn't connect to ${network.name}: ${ConnectionFailReason.toString(reason)}`;
+        const why = failReason(reason);
+        wifiError = why === "" ? `Couldn't connect to ${network.name}.` : `Couldn't connect to ${network.name}: ${why}.`;
         // Missing or rejected secrets: ask for the password again.
         if (network.security !== WifiSecurityType.Open && (reason === ConnectionFailReason.NoSecrets || reason === ConnectionFailReason.WifiClientFailed))
             passwordNetwork = network;
@@ -62,6 +91,11 @@ BarPopup {
 
     onOpening: {
         view = NetworkPanel.View.Main;
+        // The popup itself fades in on open; only switches while open fade the view.
+        viewFade.complete();
+        // Both can be changed outside the shell (monitor buttons, hyprsunset's schedule).
+        Brightness.refresh();
+        NightLight.refresh();
         AirPlay.refresh();
     }
     onVisibleChanged: updateScanner()
@@ -95,7 +129,18 @@ BarPopup {
             id: content
             anchors.fill: parent
             anchors.margins: 12
-            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView, castView][root.view]
+            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView][root.view]
+            onLoaded: viewFade.restart()
+        }
+
+        NumberAnimation {
+            id: viewFade
+            target: content
+            property: "opacity"
+            from: 0
+            to: 1
+            duration: Theme.durationState
+            easing.type: Theme.easing
         }
     }
 
@@ -105,10 +150,20 @@ BarPopup {
         ColumnLayout {
             spacing: 4
 
+            SectionLabel {
+                text: "Sound"
+            }
+
             VolumeControl {
                 Layout.fillWidth: true
-                expanded: root.mixerExpanded
-                onExpandToggled: root.mixerExpanded = !root.mixerExpanded
+                shown: root.visible
+                expanded: root.expanded
+                onExpandToggled: root.expanded = !root.expanded
+            }
+
+            SectionLabel {
+                Layout.topMargin: 8
+                text: "Display"
             }
 
             BrightnessControl {
@@ -117,7 +172,11 @@ BarPopup {
 
             NightLightControl {
                 Layout.fillWidth: true
-                Layout.bottomMargin: 4
+            }
+
+            SectionLabel {
+                Layout.topMargin: 8
+                text: "Network"
             }
 
             // Shown for any wired device, and in place of WiFi when there is no network hardware at all.
@@ -154,12 +213,28 @@ BarPopup {
                 icon: Icons.vpn
                 on: Vpn.connected
                 label: "VPN"
-                sublabel: Vpn.connected ? `Connected - ${Vpn.server}` : "Disconnected"
+                sublabel: root.vpnStatus()
                 onToggled: Vpn.toggle()
                 onOpened: {
                     Vpn.loadCountries();
                     root.view = NetworkPanel.View.Vpn;
                 }
+            }
+
+            BarText {
+                visible: Vpn.error !== ""
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                text: Vpn.error
+                color: Theme.alert
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
+
+            SectionLabel {
+                Layout.topMargin: 8
+                text: "Devices"
             }
 
             PanelRow {
@@ -176,15 +251,16 @@ BarPopup {
                 onOpened: root.view = NetworkPanel.View.Bluetooth
             }
 
-            // The icon stops casting; the row opens the speaker list and screen casting.
+            // Screens go to a Chromecast through GNOME Network Displays (there is no open-source
+            // AirPlay video sender); audio outputs, AirPlay included, are under the volume row.
             PanelRow {
-                icon: AirPlay.casting ? Icons.castConnected : Icons.cast
-                on: AirPlay.casting
-                label: "Cast"
-                sublabel: AirPlay.casting && AirPlay.chosen.length > 0 ? `AirPlay - ${AirPlay.chosen.map(speaker => speaker.name).join(", ")}` : "AirPlay speakers and screen"
-                canToggle: AirPlay.casting
-                onToggled: AirPlay.stop()
-                onOpened: root.view = NetworkPanel.View.Cast
+                icon: Icons.cast
+                label: "Cast screen"
+                sublabel: "Chromecast, through GNOME Network Displays"
+                canOpen: false
+                canToggle: false
+                onToggled: root.castScreen()
+                onOpened: root.castScreen()
             }
 
             DeviceBatteries {
@@ -195,7 +271,7 @@ BarPopup {
 
             MediaCard {
                 Layout.fillWidth: true
-                Layout.topMargin: 4
+                Layout.topMargin: 8
                 visible: Media.active
                 onPlayerFocused: root.visible = false
             }
@@ -311,9 +387,22 @@ BarPopup {
             BarText {
                 visible: Vpn.countries.length === 0
                 Layout.leftMargin: 12
-                text: Vpn.loadingCountries ? "Loading…" : "No countries available (signed in to protonvpn?)"
+                text: Vpn.loadingCountries ? "Loading…" : "No countries available. Signed out? Run protonvpn signin."
                 color: Theme.text2
                 font.pixelSize: 11
+            }
+
+            // The panel stays open while connecting, so the outcome lands where it was asked for.
+            BarText {
+                visible: text !== ""
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                Layout.bottomMargin: 2
+                text: Vpn.error !== "" ? Vpn.error : Vpn.connecting || Vpn.disconnecting ? root.vpnStatus() : ""
+                color: Vpn.error !== "" ? Theme.alert : Theme.text2
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
             }
 
             ListView {
@@ -331,11 +420,10 @@ BarPopup {
                     emoji: true
                     icon: modelData.flag
                     label: modelData.name
-                    sublabel: modelData.code
-                    onClicked: {
-                        Vpn.connect(modelData.code);
-                        root.visible = false;
-                    }
+                    sublabel: Vpn.connecting && Vpn.target === modelData.code ? "Connecting…" : modelData.code
+                    // Gilt: the country the tunnel comes out in.
+                    active: Vpn.connected && Vpn.country === modelData.code
+                    onClicked: Vpn.connect(modelData.code)
                 }
             }
         }
@@ -402,129 +490,6 @@ BarPopup {
                             modelData.connect();
                         }
                     }
-                }
-            }
-        }
-    }
-
-    Component {
-        id: castView
-
-        ColumnLayout {
-            spacing: 4
-
-            Component.onCompleted: AirPlay.watching = true
-            Component.onDestruction: AirPlay.watching = false
-
-            BackButton {
-                title: "Cast"
-                onClicked: root.view = NetworkPanel.View.Main
-            }
-
-            BarText {
-                Layout.leftMargin: 12
-                text: "This computer"
-                color: Theme.text2
-                font.pixelSize: 11
-            }
-
-            Repeater {
-                model: ScriptModel {
-                    values: root.localOutputs
-                }
-
-                ListRow {
-                    required property PwNode modelData
-                    // GNOME Network Displays leaves its sink behind; picking it sends audio along
-                    // with a screen cast.
-                    readonly property bool screenCast: modelData.name.startsWith("gnome_network_displays")
-
-                    Layout.fillWidth: true
-                    icon: screenCast ? Icons.monitorShare : Icons.speaker
-                    label: screenCast ? "Screen cast" : root.outputName(modelData)
-                    sublabel: screenCast ? "With Cast screen" : ""
-                    active: modelData === root.output
-                    onClicked: {
-                        if (AirPlay.casting)
-                            AirPlay.select([]);
-                        AirPlay.playOn(modelData);
-                    }
-                }
-            }
-
-            BarText {
-                Layout.leftMargin: 12
-                Layout.topMargin: 6
-                text: "AirPlay"
-                color: Theme.text2
-                font.pixelSize: 11
-            }
-
-            // Several can play at once (multi-room); they play about a second late, so it suits music.
-            Repeater {
-                model: ScriptModel {
-                    values: AirPlay.speakers
-                    objectProp: "id"
-                }
-
-                ListRow {
-                    required property var modelData
-
-                    Layout.fillWidth: true
-                    icon: Icons.speakerWireless
-                    label: modelData.name
-                    sublabel: modelData.failed ? "Couldn't connect" : modelData.chosen ? (AirPlay.casting ? "Playing" : "Selected") : ""
-                    active: modelData.chosen && AirPlay.casting
-                    onClicked: AirPlay.toggleSpeaker(modelData)
-                }
-            }
-
-            // The first connection to a TV shows a code on its screen.
-            Repeater {
-                model: ScriptModel {
-                    values: AirPlay.speakers.filter(speaker => speaker.needsPin)
-                    objectProp: "id"
-                }
-
-                PasswordField {
-                    required property var modelData
-
-                    Layout.fillWidth: true
-                    title: `Code shown on ${modelData.name}, if any`
-                    onSubmitted: pin => AirPlay.submitPin(modelData, pin)
-                    onCancelled: AirPlay.dismissPin(modelData)
-                }
-            }
-
-            BarText {
-                visible: text !== ""
-                Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                text: {
-                    if (!AirPlay.known)
-                        return "";
-                    if (!AirPlay.available)
-                        return "AirPlay isn't running (the owntone user service)";
-                    if (AirPlay.error !== "")
-                        return AirPlay.error;
-                    return AirPlay.speakers.length === 0 ? "No AirPlay speakers found on the network" : "";
-                }
-                color: AirPlay.available && AirPlay.error === "" ? Theme.muted : Theme.alert
-                font.pixelSize: 11
-                wrapMode: Text.Wrap
-            }
-
-            // Screen mirroring goes over Chromecast: there is no open-source AirPlay video sender.
-            ListRow {
-                Layout.fillWidth: true
-                Layout.topMargin: 6
-                icon: Icons.monitorShare
-                label: "Cast screen"
-                sublabel: "Chromecast"
-                onClicked: {
-                    Quickshell.execDetached(["gnome-network-displays"]);
-                    root.visible = false;
                 }
             }
         }

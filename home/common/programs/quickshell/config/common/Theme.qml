@@ -65,10 +65,17 @@ Singleton {
     readonly property int radiusInset: 8
     readonly property int radiusRow: 6
 
-    // Motion: state changes are short, Window-register reveals long; one easing family.
+    // Motion: state changes are short, spatial moves (carousels, the calendar's month) a little
+    // longer, Window-register reveals long; one easing family, OutCubic in and InCubic out, and
+    // leaving quicker than arriving. `durationSwitch` is Hyprland's quick workspace switch, which
+    // the bar's workspace index keeps pace with (home/common/desktop/hyprland/config/animations.nix).
     readonly property int durationState: 160
+    readonly property int durationExit: 120
+    readonly property int durationSwitch: 150
+    readonly property int durationMove: 300
     readonly property int durationReveal: 650
     readonly property int easing: Easing.OutCubic
+    readonly property int easingExit: Easing.InCubic
 
     readonly property int barHeight: 24
     // Screen edge the bar sits on; popups and menus open away from it.

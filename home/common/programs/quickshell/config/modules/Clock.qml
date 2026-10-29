@@ -30,6 +30,15 @@ Item {
         precision: SystemClock.Minutes
     }
 
+    // Under the row, so the arc's hover (its tooltip) still reaches it; clicks fall through to here.
+    MouseArea {
+        id: area
+        anchors.fill: parent
+        hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
+        onClicked: calendar.toggle()
+    }
+
     RowLayout {
         id: row
         anchors.fill: parent
@@ -37,7 +46,7 @@ Item {
 
     BarText {
         text: Qt.formatDateTime(clock.date, "ddd d MMM")
-        color: root.open ? Theme.gilt : Theme.text2
+        color: root.open ? Theme.gilt : area.containsMouse ? Theme.text : Theme.text2
     }
 
     Item {
@@ -108,11 +117,6 @@ Item {
         font.bold: true
     }
 
-    }
-
-    MouseArea {
-        anchors.fill: parent
-        onClicked: calendar.toggle()
     }
 
     CalendarPanel {

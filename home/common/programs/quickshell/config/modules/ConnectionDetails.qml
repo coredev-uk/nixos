@@ -44,7 +44,14 @@ ColumnLayout {
             return ["Connected", speed, internet].filter(s => s !== "").join(" · ");
         if (!hasLink)
             return "Cable unplugged";
-        return ConnectionState.toString(device.state);
+        switch (device.state) {
+        case ConnectionState.Connecting:
+            return "Connecting…";
+        case ConnectionState.Disconnecting:
+            return "Disconnecting…";
+        default:
+            return "Not connected";
+        }
     }
     readonly property var sections: [
         {
@@ -220,6 +227,13 @@ ColumnLayout {
                         implicitHeight: lineRow.implicitHeight + 8
                         radius: Theme.radiusRow
                         color: lineArea.containsMouse ? Theme.rule : "transparent"
+
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
 
                         RowLayout {
                             id: lineRow

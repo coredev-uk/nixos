@@ -7,4 +7,11 @@ Text {
     font.pixelSize: Theme.fontSize
     font.features: Theme.fontFeatures
     verticalAlignment: Text.AlignVCenter
+
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationState
+            easing.type: Theme.easing
+        }
+    }
 }

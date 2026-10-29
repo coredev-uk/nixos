@@ -106,6 +106,13 @@ Rectangle {
                     border.color: Theme.rule
                     border.width: 1
 
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
+
                     Icon {
                         anchors.centerIn: parent
                         text: parent.modelData.icon

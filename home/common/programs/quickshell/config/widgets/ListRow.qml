@@ -22,6 +22,13 @@ Rectangle {
     color: active ? Theme.tint(accent, area.containsMouse ? 0.16 : 0.1) : area.containsMouse ? Theme.hover : "transparent"
     opacity: enabled ? 1 : 0.5
 
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationState
+            easing.type: Theme.easing
+        }
+    }
+
     Behavior on opacity {
         NumberAnimation {
             duration: Theme.durationState
@@ -39,10 +46,18 @@ Rectangle {
         Text {
             Layout.preferredWidth: 20
             text: root.icon
-            color: root.active ? root.accent : Theme.muted
+            // Muted only on a clear row; it sinks into the hover fill, so it lifts to text2 there.
+            color: root.active ? root.accent : area.containsMouse ? Theme.text2 : Theme.muted
             font.family: root.emoji ? Theme.emojiFont : Theme.iconFont
             font.pixelSize: 14
             horizontalAlignment: Text.AlignHCenter
+
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
+                }
+            }
         }
 
         BarText {

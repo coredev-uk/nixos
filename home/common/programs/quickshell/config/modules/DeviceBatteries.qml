@@ -5,7 +5,7 @@ import qs.services
 import qs.widgets
 
 // Small battery chips for wireless peripherals, two per row. Hidden when there are none.
-// `shown`: whether the containing panel is open; polling only runs while one is.
+// `shown`: whether the containing panel is open; the levels are read every minute while one is.
 GridLayout {
     id: root
 
@@ -41,8 +41,10 @@ GridLayout {
             required property var modelData
             readonly property bool known: modelData.level !== null
             readonly property real level: known ? modelData.level : 0
-            // Level reports only when it needs attention; charging is "on" and reads gilt.
-            readonly property color levelColor: !known ? Theme.muted : level <= 10 ? Theme.alert : level <= 25 ? Theme.caution : Theme.text
+            // Level reports only when it needs attention; charging is "on" and reads gilt. A low
+            // level also gets the battery-alert glyph, so caution never rests on colour alone.
+            readonly property bool low: known && !modelData.charging && level <= 25
+            readonly property color levelColor: !known ? Theme.text2 : level <= 10 ? Theme.alert : level <= 25 ? Theme.caution : Theme.text
             readonly property color accent: !known ? Theme.muted : modelData.charging ? Theme.gilt : level <= 25 ? levelColor : Theme.fill
 
             Layout.fillWidth: true
@@ -102,13 +104,25 @@ GridLayout {
                         elide: Text.ElideRight
                     }
 
-                    BarText {
+                    RowLayout {
                         Layout.fillWidth: true
-                        text: !chip.known ? "Off" : `${chip.level}%${chip.modelData.charging ? " · Charging" : ""}`
-                        font.pixelSize: 12
-                        font.bold: true
-                        color: chip.levelColor
-                        elide: Text.ElideRight
+                        spacing: 2
+
+                        Icon {
+                            visible: chip.low
+                            text: Icons.batteryAlert
+                            color: chip.levelColor
+                            font.pixelSize: 12
+                        }
+
+                        BarText {
+                            Layout.fillWidth: true
+                            text: !chip.known ? "Off" : `${chip.level}%${chip.modelData.charging ? " · Charging" : ""}`
+                            font.pixelSize: 12
+                            font.bold: true
+                            color: chip.levelColor
+                            elide: Text.ElideRight
+                        }
                     }
                 }
             }

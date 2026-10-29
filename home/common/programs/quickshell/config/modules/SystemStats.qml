@@ -4,8 +4,10 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Readouts, not gauges: a muted label and its value, the value in a fixed-width cell (its slack
-// trailing) so the bar never shifts as digits change. A value turns caution near its limit.
+// Readouts, not gauges: a text2 label and its value, the value in a fixed-width cell (its slack
+// trailing) so the bar never shifts as digits change. A value near its limit turns caution and
+// takes an underline, so it doesn't rest on a hue alone (caution and gilt are close in luminance,
+// closer still under night light); the underline costs no width.
 Row {
     spacing: 8
 
@@ -19,6 +21,8 @@ Row {
         property string widest: "100%"
         property bool high: value >= 90
         property string tooltip
+        // Said in the tooltip too, beside the colour and the underline.
+        property string highText: "high"
 
         spacing: 4
 
@@ -33,6 +37,7 @@ Row {
             horizontalAlignment: Text.AlignLeft
             text: stat.valueText
             color: stat.high ? Theme.caution : Theme.text
+            font.underline: stat.high
 
             TextMetrics {
                 id: widestMetrics
@@ -49,7 +54,7 @@ Row {
 
         Tooltip {
             anchorItem: stat
-            text: stat.tooltip
+            text: stat.high ? `${stat.tooltip} · ${stat.highText}` : stat.tooltip
             active: hover.hovered
         }
     }
@@ -96,6 +101,7 @@ Row {
         label: charging ? "Charging" : "Battery"
         value: (battery?.percentage ?? 0) * 100
         high: !charging && value <= 20
+        highText: "low"
         tooltip: `Battery ${Math.round(value)}% (${UPowerDeviceState.toString(battery?.state ?? UPowerDeviceState.Unknown)})`
     }
 }

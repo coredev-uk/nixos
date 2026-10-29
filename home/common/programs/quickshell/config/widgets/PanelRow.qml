@@ -24,6 +24,13 @@ Rectangle {
     radius: Theme.radiusRow
     color: hover.hovered ? Theme.hover : "transparent"
 
+    Behavior on color {
+        ColorAnimation {
+            duration: Theme.durationState
+            easing.type: Theme.easing
+        }
+    }
+
     HoverHandler {
         id: hover
     }
@@ -41,17 +48,17 @@ Rectangle {
             radius: Theme.radiusRow
             color: toggleArea.containsMouse && root.canToggle ? Theme.rule : Theme.inset
 
+            Behavior on color {
+                ColorAnimation {
+                    duration: Theme.durationState
+                    easing.type: Theme.easing
+                }
+            }
+
             Icon {
                 anchors.centerIn: parent
                 text: root.icon
                 color: root.iconColor
-
-                Behavior on color {
-                    ColorAnimation {
-                        duration: Theme.durationState
-                        easing.type: Theme.easing
-                    }
-                }
             }
 
             MouseArea {

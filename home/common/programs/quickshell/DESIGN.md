@@ -170,19 +170,19 @@ Rejected outright: the pastel unixporn bar, the macOS glass menubar, glows, grad
 - Gilt means "you are here" or "this is on", and the one primary button. Nothing else is gold.
 - Atkinson Hyperlegible Next everywhere, with tabular figures so readouts never shift.
 - The day arc: the day as a 24-hour track with the daylight lit and a gilt dot at now, in the bar and on the lock.
-- One easing family (OutCubic): 160ms state changes, 650ms Window reveals.
+- One easing family, OutCubic in and InCubic out: 160ms state changes, 120ms exits, 300ms spatial moves, 650ms Window reveals. Hyprland uses the same curves but runs quicker (150ms to open, switch or move, 100ms for focus, 80ms to close), because it sits between every keystroke and its window.
 
 ## Colors
 
 Night slate and enamel, with one warm metal and a short list of state colours (`config/common/Theme.qml`, the same values as `meridian` in `lib/theme`). Surfaces take colours by role, never by hue.
 
 ### Primary
-- **Gilt** (#c9a24f): "here" and "on". The focused monitor's active workspace numeral and its 2px rule, the bar item whose plate is open (date and time, network, power), focus rings on fields, the selected row in Pass, the picker's outline and today in the calendar; enabled services in the network panel, Caffeine, night light, Do Not Disturb and unread notifications, a charging battery, the now-dot on the day arc. Also the fill of the one primary button in a dialog and the lock's submit.
+- **Gilt** (#c9a24f): "here" and "on". The focused monitor's active workspace numeral and its 2px rule, the bar item whose plate is open (now playing, date and time, network, power), focus rings on fields, the selected row in Pass, the picker's outline and today in the calendar; enabled services in the control panel, the VPN's dot on the network glyph and its connected country, Caffeine, night light, Do Not Disturb, the bell while something is unread (new since the centre was last open, or not handled from its popup), a charging battery, the now-dot on the day arc. Also the fill of the one primary button in a dialog and the lock's submit. The kept-notification count, the polkit shield and a reply's send glyph are enamel, never gilt.
 - **Gilt Hover** (#d8b468): the primary button and the lock's submit under the pointer.
 
 ### Tertiary (state)
 - **Alert** (#e06c5a): errors, destructive actions, critical notifications (their 1px border), recording, a disconnected network, a wrong password, Shut down.
-- **Caution** (#e0954f): a value near its limit (system stats, low-ish battery), Caps Lock on the lock, Log out and Reboot while armed, a signed-out Pass in the calendar.
+- **Caution** (#e0954f): a value near its limit (system stats, low-ish battery), Caps Lock on the lock, Log out and Reboot while armed, a signed-out Pass in the calendar, a peripheral at 15% or below in the bar (the battery-alert glyph) and on its chip at 25% or below (the same glyph). Caution and gilt are almost equally bright, so caution never reports by hue alone: a stat near its limit is also underlined and its tooltip says "high" or "low"; a low battery adds the battery-alert glyph; Caps Lock and the armed power rows say their state in words.
 - **Ok** (#6fb39a): a success that just happened: copied, accepted on the lock (the field edge and dots turn ok before everything sinks), the confirm check.
 - **Link** (#8fb0d3): links in notification bodies.
 - **Series 1–4** (#8fb0d3, #6fb39a, #d39a8f, #a99ad6): categorical only. System-stat series, network categories, calendar sources (Sonarr series1 by default). In the power menu, series1 and series2 tell the two Windows actions apart while armed. They never report state.
@@ -196,7 +196,7 @@ Night slate and enamel, with one warm metal and a short list of state colours (`
 - **Selection** (#47505e): text selection.
 - **Text** (#ece5d3): primary legends and the bar's readouts; the day arc's lit span (42%) and ticks (70%).
 - **Text2** (#a9a493): secondary: sublabels, values, timestamps, section headings, the bar's date and inactive workspaces.
-- **Muted** (#6d717a): idle glyphs, chevrons, empty or disabled things, days outside the month.
+- **Muted** (#6d717a): idle glyphs, chevrons, disabled and decorative things, days outside the month. Never text that carries information (that is text2), and never on a hover, selection or tint fill: an idle glyph, chevron or out-of-month day steps up to text2 while its row is hovered.
 - **Fill** (#bdb9a9): slider and OSD level fills, enamel toned down so the fill never outshines its label.
 
 ### Named Rules
@@ -232,9 +232,9 @@ Night slate and enamel, with one warm metal and a short list of state colours (`
 
 ## Layout
 
-The bar is one 24px ground row per screen at the top edge (`Theme.barAtTop`) with a 1px rule along its inner edge. Left: workspace numerals (6px margin) and the window title (capped at 400px). Centre: now playing. Right, 10px margin and spacing: privacy | tray | stats | caffeine + network | date, day arc, time | notifications | power, split by 1px × 14px rule separators that hide with the item they separate. The clock group reads "Wed 28 Oct ─●─ 13:23".
+The bar is one 24px ground row per screen at the top edge (`Theme.barAtTop`) with a 1px rule along its inner edge. Left: workspace numerals (6px margin) and the window title (capped at 400px). Centre: now playing. Right, 10px margin and spacing: privacy | tray | stats | caffeine + low battery + network | date, day arc, time | notifications | power, split by 1px × 14px rule separators that hide with the item they separate. The clock group reads "Wed 28 Oct ─●─ 13:23". Every bar target is at least 24px wide and the full bar height, and every clickable bar item shows a pointing cursor; tray icons stay 15px inside a 25 × 24 target with a tooltip naming the app.
 
-Plates hang from their bar item and open away from the bar edge with an 8px gap (6px for tooltips). Widths are fixed per surface: power menu 220, network 320, calendar 350, polkit and notification popups 420, Pass 560; the OSD is 300. Inner padding 12px; rows pad 8px vertically, 8px left and 12px right; panel rows are 48px. Glyph columns are fixed (20px in list rows, 28px in slider rows, 32px tiles in panel rows) so labels line up down a list. 24px is reserved for the room around a floating window's shadow.
+Plates hang from their bar item and open away from the bar edge with an 8px gap (6px for tooltips). Widths are fixed per surface: power menu 220, control panel 320, now playing 320, calendar 350, polkit and notification popups 420, Pass 560; the OSD is 300. Inner padding 12px; rows pad 8px vertically, 8px left and 12px right; panel rows are 48px. Glyph columns are fixed (20px in list rows, 28px in slider rows, 32px tiles in panel rows) so labels line up down a list. 24px is reserved for the room around a floating window's shadow.
 
 Window-register surfaces are full-screen. The lock pins the clock bottom-left on an 80px × s margin with the date line (56px × s) under it; today's events and what's playing sit bottom-right, the power buttons take the music's place while the password is up. The picker is a centred carousel of slanted cards over the highlighted picture blurred full screen.
 
@@ -253,6 +253,25 @@ Flat by tone. Layers step ground (bar, backdrops) → plate (popups) → inset (
 ## Shapes
 
 Restrained rounding that steps down as surfaces nest: 10px for plates and floating cards (`radiusPlate`), 8px for inset sections, dialog buttons, centre cards and the lock's field and power buttons (`radiusInset`), 6px for rows, tiles, inputs, small buttons and tooltips (`radiusRow`), 2px for 4px tracks. Circles are for progress rings, the day-arc dot and the password dots. Strokes are 1px (plate borders, focus rings, the calendar's selected day), with two 2px exceptions: the active workspace's rule and the picker's gilt outline. The picker's cards are parallelograms leaning right.
+
+## Motion
+
+Motion says what changed and where it went, then stops. Everything arrives decelerating (`Theme.easing`, OutCubic; Hyprland's `settle`, the same curve as a bezier) and leaves accelerating, quicker than it came (`Theme.easingExit`, InCubic; Hyprland's `leave`). Nothing overshoots or pulses. The wrong-password shake is the one deliberate oscillation; the only loops are an overflowing title scrolling in the bar and the lock's aerial video, and both stop when hidden or idle.
+
+- **State** (`Theme.durationState`, 160ms): every colour, hover fill, border and opacity change, including all legend and glyph colours (`BarText`, `Icon`).
+- **Exit** (`Theme.durationExit`, 120ms): a notification popup leaving.
+- **Switch** (`Theme.durationSwitch`, 150ms): the workspace index, in step with Hyprland's workspace switch.
+- **Move** (`Theme.durationMove`, 300ms): the picker's carousel, the calendar's month.
+- **Reveal** (`Theme.durationReveal`, 650ms in, 360ms out): the lock, the greeter and the picker only.
+
+**Hyprland is quicker** (`home/common/desktop/hyprland/config/animations.nix`). It is in the way of every keystroke that opens, closes, moves or focuses a window, so its motion only shows where a thing went: 150ms to open a window, switch workspace (`slidefade 8%`) or reflow the tiling; 100ms for the border, inactive dim and shadow on focus and for layers and popups fading in; 80ms for any close.
+
+Who animates what: Hyprland fades whole surfaces in and out (windows, the bar's popups, Vicinae, Pass quick access, polkit, the picker), and the shell moves what's inside them (Pass and polkit settle the last 8px). The OSD and notification popups fade their own content out before their window goes (the OSD unloads 250ms after its fade, the popups' window unmaps once the last card has left), so Hyprland leaves those two layers alone (`no_anim`); a compositor fade on top would double the fade-in and come after the content had already gone. Inside a popup only opacity and translation animate, never size: Hyprland drops an xdg_popup that resizes every frame. A panel's plate snaps to its new height on a sub-view or expand, the content fades; the centre's stacks expand the same way, their revealed cards fading in.
+
+### Named Rules
+**The One Index Rule.** The workspace rule is a single index that glides to the new numeral while Hyprland slides the workspace in, in the same time on the same curve; the bar and the desktop tell one movement.
+
+**The One Thing At A Time Rule.** Moving parts never cross. A new notification waits half a beat while the stack makes room; a leaving one goes first and the stack closes up after it. A panel's sub-view or menu level fades in after the switch, and a new month arrives from the side it lies on.
 
 ## Components
 
@@ -275,25 +294,36 @@ Quiet until touched.
 - **Style:** 28px, 6px radius, 8px side padding, 12px text, a 1px rule border; plate inside an inset section (`PasswordField`), inset in polkit and Pass.
 - **Focus:** the border turns gilt over 160ms.
 - **Error:** the border turns alert, and the polkit card (and the lock's field) shakes horizontally on a wrong password.
+- **Placeholder:** text2 unless the field has a visible label. Polkit's reads "Checking…" while PAM works, its lock glyph lifting from muted to text2 (alert on a wrong password).
 
 ### Lists and Rows
 - **List row** (`ListRow`: networks, VPN countries, devices, power actions): transparent at rest, hover fill under the pointer. Active or armed: accent tint at 10% (16% hovered), glyph and label in the accent (gilt by default). Glyph column 20px (14px muted glyph), label 12px eliding, sublabel 11px text2.
-- **Panel row** (`PanelRow`, the network panel's main rows): 48px. A 32px inset glyph tile toggles the service (gilt glyph when on, rule fill on hover), the rest opens its sub-view, marked with a muted chevron. 13px bold title over an 11px text2 sublabel.
-- **Back row** (`BackButton`): muted chevron-left and a 13px bold title, heading every sub-view.
-- **Two-click confirm:** power actions arm on the first click, tinting in their hue (gilt for Lock and Suspend, caution for Log out and Reboot, alert for Shut down, series1/series2 for the Windows actions) and run on the second.
+- **Panel row** (`PanelRow`, the control panel's service rows): 48px. A 32px inset glyph tile toggles the service (gilt glyph when on, rule fill on hover), the rest opens its sub-view, marked with a muted chevron. Rows that launch something (Cast screen) have no chevron. 13px bold title over an 11px text2 sublabel.
+- **Back row** (`BackButton`): muted chevron-left (text2 on hover) and a 13px bold title, heading every sub-view.
+- **Section label** (`SectionLabel`): 11px text2 heading, 12px inset, 8px above (except the first), 2px below. The control panel: Sound, Display, Network, Devices. The outputs inset: This computer, AirPlay, Apps.
+- **Two-click confirm:** Lock and Suspend run on the first click. The rest arm on the first click, tinting in their hue (caution for Log out and Reboot, alert for Shut down, series1/series2 for the Windows actions) with the label turning to "Click again to …", and run on the second.
 
 ### Sliders
 - **Track:** 4px inset, 2px radius, enamel fill (`fill`); muted when the thing it sets is off. Click, drag, or wheel in 5% steps.
-- **Slider row:** 28px glyph column (an app icon replaces it), optional 80px text2 label, the track, a 38px right-aligned 11px value, and a 22px chevron slot kept on every row so tracks and values line up.
+- **Slider row:** 28px glyph column (an app icon replaces it; its click area at least 24px tall), optional 80px text2 label, the track, a 38px right-aligned 11px value, and a 24px chevron slot kept on every row so tracks and values line up. An optional 11px text2 sublabel runs under the track to the value's end (the output's name on the volume row); on an expandable row it expands too. A muted output or app shows "Muted" as its value rather than dimming its name.
 
 ### Navigation (Workspaces)
-Numerals, each at least 22px wide. Inactive: text2 (text on hover). Active: bold over a 14×2px rule at the bar's inner edge; gilt numeral and gilt rule while its monitor has focus, text over a muted rule on the other screen.
+Numerals, each at least 22px wide. Inactive: text2 (text on hover). Active: bold over a 14×2px rule at the bar's inner edge; gilt numeral and gilt rule while its monitor has focus, text over a muted rule on the other screen. The rule is one index for the row: it glides to the new numeral and turns gilt or muted as focus moves between screens, both over 150ms with Hyprland's switch (The One Index Rule).
 
 ### Tooltip
 A 6px plate with a 1px rule border, 12px text, after a 400ms hover; wraps past 360px. A popup, because the 24px bar window can't hold one.
 
+### Control panel, now playing
+One panel behind the network glyph holds everything daily, in sections: Sound (the volume row named by its output, whose chevron, or the name, opens an inset with the outputs, this computer's sinks and AirPlay speakers with their code prompts, and per-app volumes), Display (brightness, night light), Network (Ethernet, WiFi, VPN), Devices (Bluetooth, Cast screen, the battery chips), then the media card. Clicking the now-playing track in either bar opens its media card in a 320px popup; the track turns gilt while it's open and stays in the bar until it closes.
+
+### Bar badges
+VPN on is an 8px gilt dot with a 2px ground ring on the network glyph's top-right; its tooltip names the country and server. While the VPN connects or disconnects, its row says so ("Connecting to UK…") and the panel stays open; a failure is an alert line with the reason under Network. A low peripheral is the battery-alert glyph in caution (alert at 10% or below), shown only while a device is at 15% or below and not charging; its tooltip names each device and level, and clicking it opens the control panel. The bell is gilt with a badge only while something is unread, the kept count beside it in text2, and its tooltip says "3 notifications, 1 new".
+
+### On air
+While an app captures the screen (`Privacy.onAir`), the trust surfaces keep personal detail off it. Pass quick access shows an inset strip (alert screen-share glyph, 11px text2: "Sharing your screen: usernames and vaults stay hidden until you open an item") and lists titles and types only, with no usernames, vaults or account, until an item is opened; a share starting with an item open goes back to the list. Notification popups hold off like Do Not Disturb and stay in the centre; critical ones still pop with the app name and "Critical notification", no body, image, actions or reply. Nothing re-pops when the share ends. On the lock, today's events show only their times and the music row is hidden. The bell's tooltip says "Popups held while sharing".
+
 ### OSD
-A 300px floating plate above the bottom of the focused screen, with the Float shadow. Glyph in text, level in fill on an inset track, value in text2; everything muted when muted. Media shows artwork in a 40px inset well and a gilt play state. Rises and fades in over 160ms.
+A 300px floating plate above the bottom of the focused screen, with the Float shadow. Glyph in text, level in fill on an inset track, value in text2; glyph and fill go muted when muted, the value stays text2. Media shows artwork in a 40px inset well and a gilt play state. Rises and fades in over 160ms.
 
 ### Day Arc (signature)
 The day as a 24-hour track: the night in rule, the daylight between today's sunrise and sunset lit in text at 42%, a tick at each (text at 70%), and a gilt dot with a ground ring at now. It says how much light is left; the wallpaper follows the same sun.
@@ -313,7 +343,7 @@ Slanted parallelogram cards over the highlighted picture blurred full screen und
 - **Do** keep gilt to "here", "on" and the one primary button (The Here-or-On Rule).
 - **Do** keep resting states enamel and muted, and let alert, caution and ok report state only.
 - **Do** build depth with ground → plate → inset plus a 1px rule; add Float only to windows not anchored to the bar.
-- **Do** animate state changes in `Theme.durationState` (160ms) with `Easing.OutCubic`, and Window reveals in `Theme.durationReveal` (650ms) in / 360ms out.
+- **Do** animate with the `Theme` tokens (`durationState`, `durationExit`, `durationSwitch`, `durationMove`, `durationReveal`, `easing`, `easingExit`), and keep Hyprland's `animations.nix` quick: `durationSwitch` is its workspace time. The lock's own timings (the 600ms soften, the 900ms hold, the engage steps) and the 1200ms wallpaper crossfade are the authored exceptions.
 - **Do** set every readout with tabular figures and fixed-width cells so nothing shifts as digits change.
 - **Do** scale Window-register measurements with `s = max(0.75, height / 1080)`.
 

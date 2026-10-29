@@ -35,6 +35,8 @@ BarPopup {
         const now = today();
         selected = now.getMonth() === month && now.getFullYear() === year ? now : date;
         Calendar.show(year, month);
+        gridShift.from = delta > 0 ? 12 : -12;
+        monthArrival.restart();
     }
 
     implicitWidth: 350
@@ -53,10 +55,17 @@ BarPopup {
         radius: Theme.radiusRow
         color: area.containsMouse ? Theme.hover : "transparent"
 
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
+
         Icon {
             id: label
             anchors.centerIn: parent
-            color: Theme.muted
+            color: area.containsMouse ? Theme.text2 : Theme.muted
             font.pixelSize: 14
         }
 
@@ -122,6 +131,33 @@ BarPopup {
                 Layout.fillWidth: true
                 month: root.month
                 year: root.year
+                // The new month arrives from the side it lies on; a transform leaves the layout alone.
+                transform: Translate {
+                    id: shift
+                }
+
+                ParallelAnimation {
+                    id: monthArrival
+
+                    NumberAnimation {
+                        id: gridShift
+                        target: shift
+                        property: "x"
+                        to: 0
+                        duration: Theme.durationMove
+                        easing.type: Theme.easing
+                    }
+
+                    NumberAnimation {
+                        target: grid
+                        property: "opacity"
+                        from: 0
+                        to: 1
+                        duration: Theme.durationMove
+                        easing.type: Theme.easing
+                    }
+                }
+
                 delegate: Rectangle {
                     id: day
 
@@ -145,15 +181,32 @@ BarPopup {
                     radius: Theme.radiusRow
                     // Today is told by its gilt numeral, the selected day by a gilt ring.
                     color: area.containsMouse ? Theme.hover : "transparent"
-                    border.width: selected ? 1 : 0
-                    border.color: Theme.gilt
+                    // Always 1 wide so the ring can ease in; clear gilt draws nothing and fades
+                    // without passing through black.
+                    border.width: 1
+                    border.color: selected ? Theme.gilt : Theme.tint(Theme.gilt, 0)
+
+                    Behavior on border.color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
 
                     // Raised the same on every day, dots or not, so the numbers sit on one line.
                     BarText {
                         anchors.centerIn: parent
                         anchors.verticalCenterOffset: -3
                         text: day.model.day
-                        color: day.model.today ? Theme.gilt : day.model.month === grid.month ? Theme.text : Theme.muted
+                        // Days outside the month are muted, but never on the hover fill, where muted sinks.
+                        color: day.model.today ? Theme.gilt : day.model.month === grid.month ? Theme.text : area.containsMouse ? Theme.text2 : Theme.muted
                         font.pixelSize: 12
                         font.bold: day.model.today
                     }
@@ -175,6 +228,13 @@ BarPopup {
                                 radius: 2
                                 color: modelData
                                 opacity: day.model.month === grid.month ? 1 : 0.5
+
+                                Behavior on opacity {
+                                    NumberAnimation {
+                                        duration: Theme.durationState
+                                        easing.type: Theme.easing
+                                    }
+                                }
                             }
                         }
                     }
@@ -244,6 +304,13 @@ BarPopup {
                     spacing: 8
                     // Releases already downloaded.
                     opacity: modelData.done ? 0.5 : 1
+
+                    Behavior on opacity {
+                        NumberAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
 
                     Rectangle {
                         Layout.fillHeight: true
@@ -316,6 +383,13 @@ BarPopup {
                     color: signInArea.containsMouse ? Theme.hover : "transparent"
                     border.color: Theme.rule
                     border.width: 1
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
 
                     BarText {
                         id: signInLabel

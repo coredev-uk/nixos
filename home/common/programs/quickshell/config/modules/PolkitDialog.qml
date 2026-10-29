@@ -92,11 +92,11 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
+            // Hyprland fades the layer in and out (animations.nix).
             Item {
                 id: content
 
                 anchors.fill: parent
-                opacity: 0
 
                 function submitInput() {
                     if (!root.canSubmit || input.text === "")
@@ -106,17 +106,7 @@ Scope {
                     root.submit(response);
                 }
 
-                Component.onCompleted: {
-                    opacity = 1;
-                    input.forceActiveFocus();
-                }
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: Theme.durationState
-                        easing.type: Theme.easing
-                    }
-                }
+                Component.onCompleted: input.forceActiveFocus()
 
                 // Escape from the field or anywhere else in the dialog.
                 Keys.onEscapePressed: root.cancel()
@@ -159,12 +149,22 @@ Scope {
                         shadowVerticalOffset: 8
                     }
 
-                    // Rises into place as it fades in; x shakes on a wrong password.
+                    // Rises the last few pixels into place as Hyprland fades the layer in; x
+                    // shakes on a wrong password.
                     transform: Translate {
                         id: shake
 
-                        y: 8 * (1 - content.opacity)
+                        y: 8
+
+                        Behavior on y {
+                            NumberAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
                     }
+
+                    Component.onCompleted: shake.y = 0
 
                     SequentialAnimation {
                         id: shakeAnimation
@@ -213,7 +213,8 @@ Scope {
                                 Icon {
                                     anchors.centerIn: parent
                                     text: Icons.shieldLock
-                                    color: Theme.gilt
+                                    // A badge for the dialog, not a state: gilt is kept for here and on.
+                                    color: Theme.text2
                                     font.pixelSize: 16
                                 }
                             }
@@ -312,7 +313,8 @@ Scope {
                                     anchors.leftMargin: 12
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: Icons.lock
-                                    color: root.wrongPassword ? Theme.alert : Theme.muted
+                                    // Lifts out of idle while PAM checks, with the "Checking…" beside it.
+                                    color: root.wrongPassword ? Theme.alert : root.checking ? Theme.text2 : Theme.muted
                                     font.pixelSize: 14
                                 }
 
@@ -342,7 +344,8 @@ Scope {
                                         // PAM prompts end in a colon ("Password: "). The field is emptied on submit,
                                         // so this also shows the wait for PAM's answer.
                                         text: root.checking ? "Checking…" : (root.flow?.inputPrompt ?? "").replace(/:\s*$/, "") || "Password"
-                                        color: Theme.muted
+                                        // text2: the field has no label of its own, and "Checking…" is a status.
+                                        color: Theme.text2
                                         font.pixelSize: 12
                                         elide: Text.ElideRight
                                     }
@@ -405,6 +408,14 @@ Scope {
         Behavior on opacity {
             NumberAnimation {
                 duration: Theme.durationState
+                easing.type: Theme.easing
+            }
+        }
+
+        Behavior on color {
+            ColorAnimation {
+                duration: Theme.durationState
+                easing.type: Theme.easing
             }
         }
 

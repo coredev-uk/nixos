@@ -205,7 +205,7 @@ Scope {
 
                             Behavior on opacity {
                                 NumberAnimation {
-                                    duration: 320
+                                    duration: Theme.durationMove
                                     easing.type: Theme.easing
                                 }
                             }
@@ -255,7 +255,7 @@ Scope {
 
                     Behavior on position {
                         NumberAnimation {
-                            duration: 320
+                            duration: Theme.durationMove
                             easing.type: Theme.easing
                         }
                     }

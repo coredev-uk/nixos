@@ -31,8 +31,11 @@ Plate {
     readonly property bool critical: notification?.urgency === NotificationUrgency.Critical
     readonly property bool hasDefault: notification?.actions.some(action => action.identifier === "default") ?? false
     readonly property var buttons: notification?.actions.filter(action => action.identifier !== "default") ?? []
+    // A popup while the screen is shared (only critical ones show then): the app and that it's
+    // critical, nothing it says. The centre, opened deliberately, shows it all.
+    readonly property bool redacted: floating && Privacy.onAir
     // A picture sent with the notification wins over the app's icon.
-    readonly property string imageSource: source(notification?.image ?? "")
+    readonly property string imageSource: redacted ? "" : source(notification?.image ?? "")
     readonly property DesktopEntry desktopEntry: DesktopEntries.byId(notification?.desktopEntry ?? "")
     readonly property string iconSource: source(notification?.appIcon ?? "") || source(desktopEntry?.icon ?? "")
     // Groups inside the card sit a tone step away from its background: inset on a popup's plate,
@@ -132,7 +135,7 @@ Plate {
                     BarText {
                         Layout.fillWidth: true
                         text: `${NotificationService.appName(root.notification)} · ${root.relativeTime(root.now - (root.entry?.time ?? root.now))}`
-                        color: root.critical ? Theme.alert : Theme.muted
+                        color: root.critical ? Theme.alert : Theme.text2
                         font.pixelSize: 11
                         elide: Text.ElideRight
                     }
@@ -160,6 +163,13 @@ Plate {
                         radius: Theme.radiusRow
                         color: closeArea.containsMouse ? root.innerHover : "transparent"
 
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
+                            }
+                        }
+
                         Icon {
                             anchors.centerIn: parent
                             text: Icons.close
@@ -167,10 +177,12 @@ Plate {
                             font.pixelSize: 13
                         }
 
+                        // The glyph's square is 20px; the hit area reaches 24.
                         MouseArea {
                             id: closeArea
 
                             anchors.fill: parent
+                            anchors.margins: -2
                             hoverEnabled: true
                             onClicked: root.notification?.dismiss()
                         }
@@ -180,7 +192,7 @@ Plate {
                 BarText {
                     Layout.fillWidth: true
                     visible: text !== ""
-                    text: root.notification?.summary ?? ""
+                    text: root.redacted ? (root.critical ? "Critical notification" : "Notification") : root.notification?.summary ?? ""
                     font.pixelSize: 13
                     font.bold: true
                     wrapMode: Text.Wrap
@@ -190,7 +202,7 @@ Plate {
 
                 BarText {
                     Layout.fillWidth: true
-                    visible: text !== ""
+                    visible: text !== "" && !root.redacted
                     text: root.notification?.body ?? ""
                     textFormat: Text.StyledText
                     color: Theme.text2
@@ -210,7 +222,8 @@ Plate {
 
         RowLayout {
             Layout.fillWidth: true
-            visible: root.buttons.length > 0
+            // Their labels can say what the notification is about.
+            visible: root.buttons.length > 0 && !root.redacted
             spacing: 6
 
             Repeater {
@@ -225,6 +238,13 @@ Plate {
                     implicitHeight: 28
                     radius: Theme.radiusRow
                     color: buttonArea.containsMouse ? root.innerHover : root.inner
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
 
                     // With action icons the identifier is an icon name and the text only a label.
                     IconImage {
@@ -250,7 +270,10 @@ Plate {
 
                         anchors.fill: parent
                         hoverEnabled: true
-                        onClicked: button.modelData.invoke()
+                        onClicked: {
+                            NotificationService.markRead(root.entry);
+                            button.modelData.invoke();
+                        }
                     }
                 }
             }
@@ -258,7 +281,7 @@ Plate {
 
         RowLayout {
             Layout.fillWidth: true
-            visible: root.notification?.hasInlineReply ?? false
+            visible: (root.notification?.hasInlineReply ?? false) && !root.redacted
             spacing: 6
 
             Rectangle {
@@ -282,6 +305,7 @@ Plate {
                     function send() {
                         if (text === "")
                             return;
+                        NotificationService.markRead(root.entry);
                         root.notification.sendInlineReply(text);
                         text = "";
                     }
@@ -301,7 +325,7 @@ Plate {
                         anchors.fill: parent
                         visible: reply.text === ""
                         text: root.notification?.inlineReplyPlaceholder || "Reply"
-                        color: Theme.muted
+                        color: Theme.text2
                         font.pixelSize: 12
                     }
                 }
@@ -315,6 +339,13 @@ Plate {
                 // Nothing to send yet.
                 opacity: reply.text === "" ? 0.5 : 1
 
+                Behavior on color {
+                    ColorAnimation {
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
+                    }
+                }
+
                 Behavior on opacity {
                     NumberAnimation {
                         duration: Theme.durationState
@@ -325,7 +356,8 @@ Plate {
                 Icon {
                     anchors.centerIn: parent
                     text: Icons.send
-                    color: Theme.gilt
+                    // Enamel, not gilt: sending is an action, not a place or an on state.
+                    color: sendArea.containsMouse ? Theme.text : Theme.text2
                     font.pixelSize: 14
                 }
 

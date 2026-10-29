@@ -97,7 +97,10 @@ Item {
     MouseArea {
         id: area
         anchors.fill: parent
+        // One glyph alone is narrower than 24px.
+        anchors.margins: -4
         hoverEnabled: true
+        cursorShape: Qt.PointingHandCursor
         onClicked: popup.toggle()
     }
 
