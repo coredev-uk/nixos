@@ -156,6 +156,12 @@ in
             match.namespace = "bar";
             blur = true;
           }
+          # The shell animates these itself and keeps them mapped between showings; a fade of
+          # the whole surface on top would double up on map and come too late on unmap.
+          {
+            match.namespace = "^(osd|notifications)$";
+            no_anim = true;
+          }
         ];
 
         inherit (animations) curve animation;

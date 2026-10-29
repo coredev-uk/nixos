@@ -18,128 +18,65 @@ let
         ];
       }
     ];
+
+  # `speed` is in deciseconds. The compositor is in the way of every keystroke that opens, closes,
+  # moves or focuses a window, so it runs quicker than the shell's own tempos (Theme.qml in
+  # home/common/programs/quickshell): just long enough to show where a thing went.
+  # `switch` is Theme.durationSwitch, which the bar's workspace index shares.
+  switch = 1.5;
+  focus = 1;
+  exit = 0.8;
+
+  anim =
+    leaf: speed: curve: style:
+    {
+      inherit leaf speed;
+      enabled = true;
+      bezier = curve;
+    }
+    // (if style == null then { } else { inherit style; });
 in
 {
-
-  # Default curves, see https://wiki.hypr.land/Configuring/Animations/#curves
+  # Meridian moves the way the shell does (Easing.OutCubic in, InCubic out): it arrives and
+  # settles, never overshoots. See https://wiki.hypr.land/configuring/core/animations/
   curve = [
-    (bezier "easeOutQuint" 0.23 1 0.32 1)
-    (bezier "easeInOutCubic" 0.65 0.05 0.36 1)
-    (bezier "linear" 0 0 1 1)
-    (bezier "almostLinear" 0.5 0.5 0.75 1)
-    (bezier "quick" 0.15 0 0.1 1)
+    (bezier "settle" 0.33 1 0.68 1)
+    (bezier "leave" 0.32 0 0.67 0)
   ];
 
-  # Default animations, see https://wiki.hypr.land/Configuring/Animations/
   animation = [
+    (anim "global" switch "settle" null)
+
+    # Windows open a touch below full size and settle; tiling reflows in the same time.
+    (anim "windowsIn" switch "settle" "popin 96%")
+    (anim "windowsOut" exit "leave" "popin 98%")
+    (anim "windowsMove" switch "settle" null)
+    (anim "fadeIn" switch "settle" null)
+    (anim "fadeOut" exit "leave" null)
+
+    # Focus: the gilt border, the inactive dim and the shadow hand over quickly.
+    (anim "border" focus "settle" null)
+    (anim "fadeSwitch" focus "settle" null)
+    (anim "fadeShadow" focus "settle" null)
+    (anim "fadeDim" focus "settle" null)
     {
-      leaf = "global";
-      enabled = true;
-      speed = 10;
-      bezier = "default";
+      leaf = "borderangle";
+      enabled = false;
     }
-    {
-      leaf = "border";
-      enabled = true;
-      speed = 5.39;
-      bezier = "easeOutQuint";
-    }
-    {
-      leaf = "windows";
-      enabled = true;
-      speed = 4.79;
-      bezier = "easeOutQuint";
-    }
-    {
-      leaf = "windowsIn";
-      enabled = true;
-      speed = 4.1;
-      bezier = "easeOutQuint";
-      style = "popin 87%";
-    }
-    {
-      leaf = "windowsOut";
-      enabled = true;
-      speed = 1.49;
-      bezier = "linear";
-      style = "popin 87%";
-    }
-    {
-      leaf = "fadeIn";
-      enabled = true;
-      speed = 1.73;
-      bezier = "almostLinear";
-    }
-    {
-      leaf = "fadeOut";
-      enabled = true;
-      speed = 1.46;
-      bezier = "almostLinear";
-    }
-    {
-      leaf = "fade";
-      enabled = true;
-      speed = 3.03;
-      bezier = "quick";
-    }
-    {
-      leaf = "layers";
-      enabled = true;
-      speed = 3.81;
-      bezier = "easeOutQuint";
-    }
-    {
-      leaf = "layersIn";
-      enabled = true;
-      speed = 4;
-      bezier = "easeOutQuint";
-      style = "fade";
-    }
-    {
-      leaf = "layersOut";
-      enabled = true;
-      speed = 1.5;
-      bezier = "linear";
-      style = "fade";
-    }
-    {
-      leaf = "fadeLayersIn";
-      enabled = true;
-      speed = 1.79;
-      bezier = "almostLinear";
-    }
-    {
-      leaf = "fadeLayersOut";
-      enabled = true;
-      speed = 1.39;
-      bezier = "almostLinear";
-    }
-    {
-      leaf = "workspaces";
-      enabled = true;
-      speed = 1.94;
-      bezier = "almostLinear";
-      style = "fade";
-    }
-    {
-      leaf = "workspacesIn";
-      enabled = true;
-      speed = 1.21;
-      bezier = "almostLinear";
-      style = "fade";
-    }
-    {
-      leaf = "workspacesOut";
-      enabled = true;
-      speed = 1.94;
-      bezier = "almostLinear";
-      style = "fade";
-    }
-    {
-      leaf = "zoomFactor";
-      enabled = true;
-      speed = 7;
-      bezier = "quick";
-    }
+
+    # Layers (Vicinae, Pass quick access, polkit, the wallpaper picker) and popups (the bar's
+    # panels, menus, tooltips) fade in and out as a whole; the shell animates what's inside.
+    (anim "layersIn" focus "settle" "fade")
+    (anim "layersOut" exit "leave" "fade")
+    (anim "fadeLayersIn" focus "settle" null)
+    (anim "fadeLayersOut" exit "leave" null)
+    (anim "fadePopupsIn" focus "settle" null)
+    (anim "fadePopupsOut" exit "leave" null)
+
+    # Workspaces slide a little in the direction of travel as the bar's gilt rule glides to the
+    # new numeral, in the same time on the same curve (modules/Workspaces.qml).
+    (anim "workspaces" switch "settle" "slidefade 8%")
+
+    (anim "zoomFactor" switch "settle" null)
   ];
 }
