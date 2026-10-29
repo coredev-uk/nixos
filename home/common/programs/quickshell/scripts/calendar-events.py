@@ -24,11 +24,13 @@
 #   {"configured": bool,
 #    "events": [{"title", "detail", "start", "end", "allDay", "source",
 #                "calendar", "color", "done"}],
-#    "errors": [{"source", "message"}]}
+#    "errors": [{"source", "message"}],
+#    "passSignedOut": true}  (only when Proton Pass has no session)
 # All-day events have date starts/ends (end exclusive); timed ones ISO
 # datetimes, with an offset unless floating (local time). A failing source
 # only adds an error; the others still report their events.
 
+import fcntl
 import json
 import os
 import subprocess
@@ -52,6 +54,10 @@ RADARR_RELEASES = [
 
 
 class SourceError(Exception):
+    pass
+
+
+class PassSignedOut(SourceError):
     pass
 
 
@@ -81,12 +87,28 @@ def read_secret(ref):
     except subprocess.TimeoutExpired:
         raise SourceError(f"Timed out reading {ref} from Proton Pass")
     if proc.returncode != 0:
+        if "requires an authenticated client" in proc.stderr:
+            raise PassSignedOut("Proton Pass is signed out")
         # The cause is the last line: "    1: Could not find item with name X".
         reason = (proc.stderr.strip().splitlines() or ["failed"])[-1]
         reason = reason.strip().split(": ", 1)[-1]
         raise SourceError(f"Proton Pass: {reason}")
     # pass-cli ends the value with a newline.
     return proc.stdout.removesuffix("\n")
+
+
+def pass_lock():
+    """The shared side of quickshell-pass's lock (scripts/pass.sh): a pass-cli
+    call during a pending web login deletes the half-made session, so secrets
+    are only read while no login holds it. Released when the process exits."""
+    runtime = os.environ.get("XDG_RUNTIME_DIR") or "/tmp"
+    lock = open(os.path.join(runtime, "quickshell-pass.lock"), "a")
+    try:
+        fcntl.flock(lock, fcntl.LOCK_SH | fcntl.LOCK_NB)
+    except BlockingIOError:
+        lock.close()
+        raise SourceError("Finish signing in to Proton Pass first")
+    return lock
 
 
 def settings(section, keys):
@@ -242,6 +264,12 @@ def icloud_events(conf, start, end):
         password=conf["password"],
         timeout=TIMEOUT,
     )
+    # caldav 3 talks to iCloud through niquests, which upgrades to HTTP/3 when
+    # the server offers it; iCloud drops those QUIC connections now and then
+    # ("HTTP/3 connection terminated"), failing about one fetch in three.
+    # HTTP/2 over TCP never has.
+    if hasattr(client.session, "quic_cache_layer"):
+        client.session = type(client.session)(disable_http3=True)
     try:
         calendars = client.principal().calendars()
     except AuthorizationError:
@@ -322,15 +350,36 @@ def main():
         print(json.dumps(result))
         return 0
 
-    # Every source in parallel, each reading its own secrets first.
-    def run(fetch, section, keys):
-        return fetch(settings(section, keys), start, end)
+    def failed(source, message):
+        result["errors"].append({"source": source, "message": message})
 
+    # Secrets first, one pass-cli call at a time under quickshell-pass's lock;
+    # signed out, every pass:// source is skipped and reported once, as
+    # passSignedOut, rather than as one identical error per source.
+    sources = {}
+    lock = None
+    for source, (fetch, keys) in SOURCES.items():
+        if source not in config:
+            continue
+        section = config[source]
+        try:
+            if lock is None and isinstance(section, dict) and any(
+                    str(section.get(key, "")).startswith("pass://")
+                    for key in keys):
+                lock = pass_lock()
+            sources[source] = (fetch, settings(section, keys))
+        except PassSignedOut:
+            result["passSignedOut"] = True
+        except SourceError as e:
+            failed(source, str(e))
+    if lock is not None:
+        lock.close()
+
+    # Then every source in parallel.
     with ThreadPoolExecutor() as pool:
         futures = {
-            source: pool.submit(run, fetch, config[source], keys)
-            for source, (fetch, keys) in SOURCES.items()
-            if source in config
+            source: pool.submit(fetch, values, start, end)
+            for source, (fetch, values) in sources.items()
         }
     for source, future in futures.items():
         try:
@@ -342,8 +391,8 @@ def main():
             problems = [f"Unexpected error ({type(e).__name__})"]
         else:
             result["events"].extend(events)
-        result["errors"].extend(
-            {"source": source, "message": message} for message in problems)
+        for message in problems:
+            failed(source, message)
 
     print(json.dumps(result))
     return 0

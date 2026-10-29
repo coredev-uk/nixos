@@ -218,7 +218,7 @@ BarPopup {
 
             BarText {
                 // A failed fetch leaves configured false; the errors below say why instead.
-                visible: root.selectedEvents.length === 0 && Calendar.loaded && Calendar.errors.length === 0
+                visible: root.selectedEvents.length === 0 && Calendar.loaded && !Calendar.passSignedOut && Calendar.errors.length === 0
                 Layout.fillWidth: true
                 text: Calendar.configured ? "No events" : "Add calendars in ~/.config/quickshell/calendars.json"
                 color: Theme.text2
@@ -290,6 +290,45 @@ BarPopup {
                             font.pixelSize: 11
                             elide: Text.ElideRight
                         }
+                    }
+                }
+            }
+
+            // One line for a signed-out Proton Pass instead of the same error per source, with the
+            // way back in. The browser opens for the sign-in (PassQuickAccess handles the page).
+            RowLayout {
+                visible: Calendar.passSignedOut
+                Layout.fillWidth: true
+                spacing: 8
+
+                BarText {
+                    Layout.fillWidth: true
+                    text: Pass.signingIn ? "Finish signing in to Proton Pass in your browser" : "Signed out of Proton Pass, so the calendars can't load"
+                    color: Pass.signingIn ? Theme.text2 : Theme.caution
+                    font.pixelSize: 11
+                    wrapMode: Text.Wrap
+                }
+
+                Rectangle {
+                    implicitWidth: signInLabel.implicitWidth + 20
+                    implicitHeight: 24
+                    radius: Theme.radiusRow
+                    color: signInArea.containsMouse ? Theme.hover : "transparent"
+                    border.color: Theme.rule
+                    border.width: 1
+
+                    BarText {
+                        id: signInLabel
+                        anchors.centerIn: parent
+                        text: Pass.signingIn ? "Cancel" : "Sign in"
+                        font.pixelSize: 12
+                    }
+
+                    MouseArea {
+                        id: signInArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        onClicked: Pass.signingIn ? Pass.cancelSignIn() : Pass.signIn()
                     }
                 }
             }

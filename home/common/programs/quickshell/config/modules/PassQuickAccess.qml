@@ -32,6 +32,8 @@ Scope {
     // Confirmation or failure under the list.
     property string notice: ""
     property bool noticeIsError: false
+    // Closed for a web sign-in it started; shown again once signed in.
+    property bool reopenAfterSignIn: false
 
     readonly property var results: search(Pass.items, query, Pass.details)
     readonly property int selected: Math.max(0, results.findIndex(item => Pass.key(item) === selectedKey))
@@ -366,15 +368,18 @@ Scope {
             root.showNotice(message, true);
         }
 
-        // The browser needs the keyboard; the window comes back once signed in.
+        // The browser needs the keyboard; the window comes back once signed in, if it was the one
+        // that asked (the calendar can start a sign-in too).
         function onSignInPageReady(url: string) {
             Qt.openUrlExternally(url);
+            root.reopenAfterSignIn = root.open;
             root.close();
         }
 
         function onSignedInNow() {
-            if (!root.open)
+            if (root.reopenAfterSignIn && !root.open)
                 root.show();
+            root.reopenAfterSignIn = false;
         }
     }
 

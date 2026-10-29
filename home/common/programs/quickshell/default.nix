@@ -1,6 +1,5 @@
 {
   config,
-  inputs,
   lib,
   pkgs,
   self,
@@ -56,19 +55,13 @@ let
   # Events for the calendar popup (config/services/Calendar.qml): iCloud over CalDAV and the
   # Sonarr/Radarr release calendars, from ~/.config/quickshell/calendars.json (kept out of git;
   # format in the script's header). pass:// secrets come from Proton Pass; pass-cli is not a
-  # runtime input, for the same reason as quickshell-pass above. Built from the stable nixpkgs:
-  # unstable's caldav 3 pulls in niquests and urllib3-future, which aren't in the binary cache
-  # and whose test suites hang in the offline build sandbox.
-  quickshellCalendar =
-    let
-      stable = inputs.nixpkgs.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-    in
-    stable.writers.writePython3Bin "quickshell-calendar" {
-      libraries = with stable.python3Packages; [
-        caldav
-        requests
-      ];
-    } (builtins.readFile ./scripts/calendar-events.py);
+  # runtime input, for the same reason as quickshell-pass above.
+  quickshellCalendar = pkgs.writers.writePython3Bin "quickshell-calendar" {
+    libraries = with pkgs.python3Packages; [
+      caldav
+      requests
+    ];
+  } (builtins.readFile ./scripts/calendar-events.py);
 
   # Video behind the lock screen (config/lock/LockVideo.qml), only in the lock's own instance.
   # Qt decodes with VA-API but copied every frame through the CPU on NVIDIA: it exports frames
