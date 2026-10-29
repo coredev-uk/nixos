@@ -40,7 +40,7 @@
       # and black (ANSI 3 and 0), so red stays for errors. FZF_DEFAULT_OPTS, which fzf-tab
       # reads too.
       defaultOptions = [
-        "--color=16,bg+:0,gutter:-1,hl:3,hl+:3,pointer:3,marker:3,prompt:3,info:8,spinner:8,scrollbar:8"
+        "--color=16,bg+:0,gutter:0,hl:3,hl+:3,pointer:3,marker:3,prompt:3,info:8,spinner:8,scrollbar:8"
       ];
     };
     home-manager.enable = true;
