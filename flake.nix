@@ -48,6 +48,9 @@
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "unstable";
 
+    # Agent skills from the skills.sh registry by name (home/common/shell/omp.nix).
+    skills-nix.url = "github:z1-0/skills-nix";
+
     taste-skill.url = "github:Leonxlnx/taste-skill";
     taste-skill.flake = false;
 

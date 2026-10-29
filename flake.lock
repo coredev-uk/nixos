@@ -509,6 +509,7 @@
         "nixos-hardware": "nixos-hardware",
         "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
+        "skills-nix": "skills-nix",
         "taste-skill": "taste-skill",
         "treefmt-nix": "treefmt-nix",
         "unstable": "unstable",
@@ -533,6 +534,21 @@
       "original": {
         "owner": "oxalica",
         "repo": "rust-overlay",
+        "type": "github"
+      }
+    },
+    "skills-nix": {
+      "locked": {
+        "lastModified": 1792929949,
+        "narHash": "sha256-SH1QUqOZwkI9gF7UvSHbd1WjqJ19vKT/LN9c787Jg20=",
+        "owner": "z1-0",
+        "repo": "skills-nix",
+        "rev": "52509ce61f91fde554ba970aa908e439dfa3cf52",
+        "type": "github"
+      },
+      "original": {
+        "owner": "z1-0",
+        "repo": "skills-nix",
         "type": "github"
       }
     },

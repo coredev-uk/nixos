@@ -46,6 +46,20 @@ let
       '';
 in
 {
+  imports = [ inputs.skills-nix.homeModules.default ];
+
+  # Skills from the skills.sh registry, the same names as `npx skills add`: "owner/repo" for all
+  # of a repo's skills, "owner/repo@skill" for one. skills-nix pins each repo from its weekly
+  # copy of the registry, so `nix flake update skills-nix` moves them all. Installed straight
+  # into omp's own skills directory, beside the two below that skills-nix can't provide. It
+  # finds skills at `<dir>/SKILL.md`, under `skills/` or at a repo's root; a repo that keeps
+  # them elsewhere (REA's `.agents/skills`, say) needs its own input instead.
+  skills = {
+    enable = true;
+    dir = "~/.omp/agent/skills";
+    install = [ ];
+  };
+
   # oh-my-pi coding agent (https://omp.sh)
   # Node runs taste-skill's scripts (direction draw, lint, browser inspector).
   home.packages = [
@@ -72,8 +86,10 @@ in
       };
     };
 
+    # Built here rather than taken from the registry: it needs its engine fetched and wrapped.
     ".omp/agent/skills/impeccable".source = impeccableSkill;
-    # Taste Skill (https://tasteskill.dev); installed under its frontmatter name.
+    # Taste Skill (https://tasteskill.dev), which isn't on skills.sh; installed under its
+    # frontmatter name.
     ".omp/agent/skills/design-taste-frontend".source = "${inputs.taste-skill}/skills/taste-skill";
   };
 }
