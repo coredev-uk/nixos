@@ -47,7 +47,7 @@ let
     midlight = m.hover;
     dark = m.ground;
     mid = m.rule;
-    text = m.text;
+    inherit (m) text;
     brightText = m.text;
     buttonText = m.text;
     base = m.inset;
@@ -55,7 +55,7 @@ let
     shadow = m.ground;
     highlight = m.gilt;
     highlightedText = m.ground;
-    link = m.link;
+    inherit (m) link;
     linkVisited = m.series4;
     alternateBase = m.plate;
     noRole = m.ground;

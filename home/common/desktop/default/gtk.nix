@@ -63,7 +63,10 @@ let
   };
 
   defineColours =
-    extra: lib.concatLines (lib.mapAttrsToList (name: value: "@define-color ${name} ${value};") (colours // extra));
+    extra:
+    lib.concatLines (
+      lib.mapAttrsToList (name: value: "@define-color ${name} ${value};") (colours // extra)
+    );
 
   # GTK 3 has no CSS variables (it rejects them), and libadwaita derives its borders from
   # currentColor, so the 1px rule is set under each version's own name.
@@ -71,11 +74,13 @@ let
   gtk4Css = ''
     ${defineColours { }}
     :root {
-    ${lib.concatLines (
-      lib.mapAttrsToList (name: value: "  --${lib.replaceStrings [ "_" ] [ "-" ] name}: ${value};") (
-        colours // { border_color = m.rule; }
+    ${
+      lib.concatLines (
+        lib.mapAttrsToList (name: value: "  --${lib.replaceStrings [ "_" ] [ "-" ] name}: ${value};") (
+          colours // { border_color = m.rule; }
+        )
       )
-    )}}
+    }}
   '';
 in
 {
