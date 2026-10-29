@@ -1,13 +1,13 @@
 ---
 name: Quickshell (atlas)
-description: The desktop shell around Hyprland, keeping time like the Royal Observatory. A quiet night-navy instrument strip for working, a wide window for arriving and leaving.
+description: The desktop shell around Hyprland, keeping time like the Royal Observatory. A quiet night-slate instrument strip for working, a wide window for arriving and leaving.
 colors:
-  ground: "#0f1826"
-  plate: "#1a2638"
-  inset: "#121c2b"
-  hover: "#223149"
-  rule: "#2b3b54"
-  selection: "#3a4d6b"
+  ground: "#151920"
+  plate: "#222830"
+  inset: "#191d24"
+  hover: "#2d333e"
+  rule: "#363d49"
+  selection: "#47505e"
   text: "#ece5d3"
   text2: "#a9a493"
   muted: "#6d717a"
@@ -157,16 +157,16 @@ components:
 
 **Creative North Star: "Meridian"**
 
-The shell keeps time like the Royal Observatory at Greenwich: night-navy grounds, enamel-cream legends, and gilt kept for "here" and "on", the way the Shepherd Gate clock keeps its gold for the hands. It is a quiet instrument of the day the wallpaper already follows. The person at it glances up, reads state in under a second, and nothing moved that didn't change. Nothing may create a sense of unease: no jitter, no flashes, no colour that isn't reporting something.
+The shell keeps time like the Royal Observatory at Greenwich: night-slate grounds, enamel-cream legends, and gilt kept for "here" and "on", the way the Shepherd Gate clock keeps its gold for the hands. It is a quiet instrument of the day the wallpaper already follows. The person at it glances up, reads state in under a second, and nothing moved that didn't change. Nothing may create a sense of unease: no jitter, no flashes, no colour that isn't reporting something.
 
 There are two registers. **The Instrument** is where the work happens: the 24px bar, its plates (panels, menus, tooltips, notifications), the OSD, the polkit dialog and Pass quick access. It is dense and settled; type runs 11–14px, rows line up on fixed glyph columns, and resting states are enamel and muted so a single gilt or alert glyph reads at once. **The Window** is for arriving and leaving: the lock screen, the greeter and the wallpaper picker. They go full-bleed over the wallpaper (and on the lock, its aerial clip), with a 300px light clock and slow, rising reveals. Both registers use the same palette, the same family and the same flat, tonal depth; only scale and pacing change.
 
-The same palette is the system palette (`meridian` in `lib/theme/default.nix`), which Hyprland, Vicinae, Ghostty, zellij and the CLI tools, Neovim, GTK, Qt and Discord all read, so everything around the windows reads as one. `Theme.qml` and `lib/theme` hold the same values; a change goes in both.
+The same palette is the system palette (`meridian` in `lib/theme/default.nix`), which Hyprland, Vicinae, Ghostty, Neovim, GTK, Qt and Discord read, so everything around the windows reads as one. Terminal programs (zellij, btop, fzf, bat, k9s, lazygit) take no palette of their own: they draw with the terminal's 16 colours, which Ghostty sets from it. `Theme.qml` and `lib/theme` hold the same values; a change goes in both.
 
 Rejected outright: the pastel unixporn bar, the macOS glass menubar, glows, gradients and animated accent colour, and big-tile dashboards.
 
 **Key Characteristics:**
-- Night-navy grounds stepped by tone (ground → plate → inset, hover and rule above), every edge a 1px rule.
+- Night-slate grounds stepped by tone (ground → plate → inset, hover and rule above), every edge a 1px rule.
 - Gilt means "you are here" or "this is on", and the one primary button. Nothing else is gold.
 - Atkinson Hyperlegible Next everywhere, with tabular figures so readouts never shift.
 - The day arc: the day as a 24-hour track with the daylight lit and a gilt dot at now, in the bar and on the lock.
@@ -174,7 +174,7 @@ Rejected outright: the pastel unixporn bar, the macOS glass menubar, glows, grad
 
 ## Colors
 
-Night navy and enamel, with one warm metal and a short list of state colours (`config/common/Theme.qml`, the same values as `meridian` in `lib/theme`). Surfaces take colours by role, never by hue.
+Night slate and enamel, with one warm metal and a short list of state colours (`config/common/Theme.qml`, the same values as `meridian` in `lib/theme`). Surfaces take colours by role, never by hue.
 
 ### Primary
 - **Gilt** (#c9a24f): "here" and "on". The focused monitor's active workspace numeral and its 2px rule, the bar item whose plate is open (date and time, network, power), focus rings on fields, the selected row in Pass, the picker's outline and today in the calendar; enabled services in the network panel, Caffeine, night light, Do Not Disturb and unread notifications, a charging battery, the now-dot on the day arc. Also the fill of the one primary button in a dialog and the lock's submit.
@@ -188,12 +188,12 @@ Night navy and enamel, with one warm metal and a short list of state colours (`c
 - **Series 1–4** (#8fb0d3, #6fb39a, #d39a8f, #a99ad6): categorical only. System-stat series, network categories, calendar sources (Sonarr series1 by default). In the power menu, series1 and series2 tell the two Windows actions apart while armed. They never report state.
 
 ### Neutral
-- **Ground** (#0f1826): the bar, full-screen backdrops (lock, greeter, picker), the scrim over a softened wallpaper (18% at rest, 42% engaged on the lock; 40% in the picker; 60% behind polkit), the label on a gilt button, the ring around the day-arc dot.
-- **Plate** (#1a2638): every popup and floating surface (`Plate`): panels, menus, tooltips, the OSD, dialogs, notification popups. At 85% alpha for the lock's field, power buttons and today panel.
-- **Inset** (#121c2b): sections and controls inside a plate: glyph tiles, slider and progress tracks, the OSD artwork well, Pass and polkit fields, centre notification cards.
-- **Hover** (#223149): the fill under the pointer on rows, back rows and secondary buttons.
-- **Rule** (#2b3b54): every 1px line: plate borders, the bar's inner edge, separators, unfocused field borders, the day arc's night track, scrollbar thumbs, hover on a glyph tile.
-- **Selection** (#3a4d6b): text selection.
+- **Ground** (#151920): the bar, full-screen backdrops (lock, greeter, picker), the scrim over a softened wallpaper (18% at rest, 42% engaged on the lock; 40% in the picker; 60% behind polkit), the label on a gilt button, the ring around the day-arc dot.
+- **Plate** (#222830): every popup and floating surface (`Plate`): panels, menus, tooltips, the OSD, dialogs, notification popups. At 85% alpha for the lock's field, power buttons and today panel.
+- **Inset** (#191d24): sections and controls inside a plate: glyph tiles, slider and progress tracks, the OSD artwork well, Pass and polkit fields, centre notification cards.
+- **Hover** (#2d333e): the fill under the pointer on rows, back rows and secondary buttons.
+- **Rule** (#363d49): every 1px line: plate borders, the bar's inner edge, separators, unfocused field borders, the day arc's night track, scrollbar thumbs, hover on a glyph tile.
+- **Selection** (#47505e): text selection.
 - **Text** (#ece5d3): primary legends and the bar's readouts; the day arc's lit span (42%) and ticks (70%).
 - **Text2** (#a9a493): secondary: sublabels, values, timestamps, section headings, the bar's date and inactive workspaces.
 - **Muted** (#6d717a): idle glyphs, chevrons, empty or disabled things, days outside the month.

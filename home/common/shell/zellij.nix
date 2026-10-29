@@ -1,31 +1,23 @@
-{ self, pkgs, ... }:
+_:
 let
-  m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
-  term = m.terminal;
-
-  # Colours as RGB triplets, the form zellij's own themes use: "#c9a24f" -> [ 201 162 79 ].
-  rgb =
-    hex:
-    map pkgs.lib.fromHexString [
-      (builtins.substring 1 2 hex)
-      (builtins.substring 3 2 hex)
-      (builtins.substring 5 2 hex)
-    ];
-  # base/background plus the four emphasis slots every component takes.
+  # ANSI colour numbers, so zellij draws with the terminal's palette (Ghostty's, from
+  # lib/theme) rather than fixed colours of its own; its built-in theme uses fixed 256-colour
+  # values. 0 black (a step above the background), 2 green, 3 yellow, 6 cyan, 7 white,
+  # 8 bright black, 15 bright white.
   component = base: background: emphasis: {
-    base = rgb base;
-    background = rgb background;
-    emphasis_0 = rgb (builtins.elemAt emphasis 0);
-    emphasis_1 = rgb (builtins.elemAt emphasis 1);
-    emphasis_2 = rgb (builtins.elemAt emphasis 2);
-    emphasis_3 = rgb (builtins.elemAt emphasis 3);
+    inherit base background;
+    emphasis_0 = builtins.elemAt emphasis 0;
+    emphasis_1 = builtins.elemAt emphasis 1;
+    emphasis_2 = builtins.elemAt emphasis 2;
+    emphasis_3 = builtins.elemAt emphasis 3;
   };
-  # Key hints and highlighted words: gilt first, then the calm categorical hues.
+  # Key hints and highlighted words in yellow; the secondary slot (also the new-tab button)
+  # in bright black so it doesn't compete, then green. No magenta.
   emphasis = [
-    m.gilt
-    m.link
-    m.ok
-    m.series4
+    3
+    8
+    2
+    3
   ];
 in
 {
@@ -33,40 +25,39 @@ in
     enable = true;
 
     # New-style (0.42+) component theme.
-    themes.meridian.themes.meridian = {
-      text_unselected = component m.text m.ground emphasis;
-      text_selected = component m.text m.selection emphasis;
-      # The selected tab (and the active mode key) is "here": ground on gilt. Everything
-      # else sits on plate, so the bar reads as one quiet strip.
-      ribbon_selected = component m.ground m.gilt [
-        m.inset
-        m.ground
-        m.ground
-        m.ground
+    themes.terminal.themes.terminal = {
+      text_unselected = component 7 0 emphasis;
+      text_selected = component 15 0 emphasis;
+      # The selected tab and the active mode are "here": dark on yellow.
+      ribbon_selected = component 0 3 [
+        0
+        0
+        0
+        0
       ];
-      ribbon_unselected = component m.text2 m.plate emphasis;
-      table_title = component m.gilt m.ground emphasis;
-      table_cell_selected = component m.text m.selection emphasis;
-      table_cell_unselected = component m.text2 m.ground emphasis;
-      list_selected = component m.text m.selection emphasis;
-      list_unselected = component m.text2 m.ground emphasis;
-      # The focused pane's frame is gilt; resting frames recede to the rule.
-      frame_selected = component m.gilt m.ground emphasis;
-      frame_unselected = component m.rule m.ground emphasis;
-      frame_highlight = component m.caution m.ground emphasis;
-      exit_code_success = component m.ok m.ground emphasis;
-      exit_code_error = component m.alert m.ground emphasis;
+      ribbon_unselected = component 7 0 emphasis;
+      table_title = component 3 0 emphasis;
+      table_cell_selected = component 15 0 emphasis;
+      table_cell_unselected = component 7 0 emphasis;
+      list_selected = component 15 0 emphasis;
+      list_unselected = component 7 0 emphasis;
+      # The focused pane's frame is yellow; resting frames recede.
+      frame_selected = component 3 0 emphasis;
+      frame_unselected = component 8 0 emphasis;
+      frame_highlight = component 6 0 emphasis;
+      exit_code_success = component 2 0 emphasis;
+      exit_code_error = component 1 0 emphasis;
       multiplayer_user_colors = {
-        player_1 = rgb m.series1;
-        player_2 = rgb m.series2;
-        player_3 = rgb m.series3;
-        player_4 = rgb m.series4;
-        player_5 = rgb term.normal.cyan;
-        player_6 = rgb term.bright.blue;
-        player_7 = rgb term.bright.green;
-        player_8 = rgb term.bright.magenta;
-        player_9 = rgb term.bright.cyan;
-        player_10 = rgb m.fill;
+        player_1 = 4;
+        player_2 = 2;
+        player_3 = 6;
+        player_4 = 3;
+        player_5 = 12;
+        player_6 = 10;
+        player_7 = 14;
+        player_8 = 11;
+        player_9 = 9;
+        player_10 = 7;
       };
     };
 
@@ -74,7 +65,7 @@ in
     exitShellOnExit = true;
 
     settings = {
-      theme = "meridian";
+      theme = "terminal";
       default_shell = "zsh";
       show_startup_tips = false;
       show_release_notes = false;

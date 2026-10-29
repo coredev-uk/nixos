@@ -3,19 +3,19 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Meridian: the shell keeps time like the Royal Observatory at Greenwich. Night-navy grounds,
+// Meridian: the shell keeps time like the Royal Observatory at Greenwich. Night-slate grounds,
 // enamel-cream legends, and gilt kept for "here" and "on". Roles, not hues: every surface takes
 // its colours by what they mean (DESIGN.md). The same values are the system palette in
 // lib/theme (`meridian`), which every other app reads; change them in both places.
 Singleton {
     // Grounds, darkest to lightest. The bar and full-screen backdrops sit on `ground`, popups are
     // `plate`s, sections and controls inside a plate are `inset`, and `rule` draws every 1px line.
-    readonly property color ground: "#0f1826"
-    readonly property color plate: "#1a2638"
-    readonly property color inset: "#121c2b"
-    readonly property color hover: "#223149"
-    readonly property color rule: "#2b3b54"
-    readonly property color selection: "#3a4d6b"
+    readonly property color ground: "#151920"
+    readonly property color plate: "#222830"
+    readonly property color inset: "#191d24"
+    readonly property color hover: "#2d333e"
+    readonly property color rule: "#363d49"
+    readonly property color selection: "#47505e"
 
     // Enamel legends: primary, secondary (sublabels, values, timestamps), and muted (idle
     // glyphs, chevrons, empty or disabled things).

@@ -9,16 +9,17 @@ rec {
   inherit (libx) hexToRgb;
 
   # Meridian: the system palette (home/common/programs/quickshell/DESIGN.md). The Quickshell
-  # shell's config/common/Theme.qml holds the same values; everything else (Hyprland, Vicinae,
-  # terminals, Neovim, GTK, Qt, Discord) reads them from here.
+  # shell's config/common/Theme.qml holds the same values; Hyprland, Vicinae, Ghostty, Neovim,
+  # GTK, Qt and Discord read them from here. Programs running in the terminal use its 16
+  # colours instead of their own copy.
   meridian = {
     # Grounds
-    ground = "#0f1826";
-    plate = "#1a2638";
-    inset = "#121c2b";
-    hover = "#223149";
-    rule = "#2b3b54";
-    selection = "#3a4d6b";
+    ground = "#151920";
+    plate = "#222830";
+    inset = "#191d24";
+    hover = "#2d333e";
+    rule = "#363d49";
+    selection = "#47505e";
     # Legends
     text = "#ece5d3";
     text2 = "#a9a493";
@@ -39,16 +40,16 @@ rec {
     series4 = "#a99ad6";
 
     # The 16 ANSI colours, for terminals and the CLI tools that draw with them. Normal on the
-    # ground is at least 5:1, bright at least 6.9:1; bright black (comments, hints) 3.5:1.
+    # ground is at least 5:1, bright at least 6.9:1; bright black (comments, hints) 3.6:1.
     # Yellow is gilt, so a terminal's emphasis reads like the shell's.
     terminal = {
-      background = "#0f1826";
+      background = "#151920";
       foreground = "#ece5d3";
       cursor = "#c9a24f";
-      selectionBackground = "#3a4d6b";
+      selectionBackground = "#47505e";
       selectionForeground = "#ece5d3";
       normal = {
-        black = "#1a2638";
+        black = "#222830";
         red = "#e06c5a";
         green = "#6fb39a";
         yellow = "#c9a24f";
@@ -58,7 +59,7 @@ rec {
         white = "#bdb9a9";
       };
       bright = {
-        black = "#5f6f8a";
+        black = "#6b727e";
         red = "#ea8676";
         green = "#8cc7b0";
         yellow = "#d8b468";

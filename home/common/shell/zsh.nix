@@ -24,49 +24,8 @@
       enable = true;
       enableCompletion = true;
       autosuggestion.enable = true;
-      # Styles in ANSI names, so they follow the terminal's Meridian palette (and stay
-      # legible over ssh in any terminal). Commands green, builtins blue, strings yellow,
-      # comments bright black (fg=8), errors red.
       syntaxHighlighting = {
         enable = true;
-        styles = {
-          default = "none";
-          unknown-token = "fg=red";
-          reserved-word = "fg=magenta";
-          alias = "fg=green";
-          suffix-alias = "fg=green,underline";
-          global-alias = "fg=cyan";
-          builtin = "fg=blue";
-          function = "fg=green";
-          command = "fg=green";
-          precommand = "fg=green,underline";
-          hashed-command = "fg=green";
-          arg0 = "fg=green";
-          commandseparator = "fg=magenta";
-          autodirectory = "fg=blue,underline";
-          path = "underline";
-          path_prefix = "underline";
-          globbing = "fg=cyan";
-          history-expansion = "fg=magenta";
-          single-hyphen-option = "fg=cyan";
-          double-hyphen-option = "fg=cyan";
-          command-substitution-delimiter = "fg=magenta";
-          process-substitution-delimiter = "fg=magenta";
-          back-quoted-argument-delimiter = "fg=magenta";
-          single-quoted-argument = "fg=yellow";
-          double-quoted-argument = "fg=yellow";
-          dollar-quoted-argument = "fg=yellow";
-          single-quoted-argument-unclosed = "fg=red";
-          double-quoted-argument-unclosed = "fg=red";
-          dollar-quoted-argument-unclosed = "fg=red";
-          back-quoted-argument-unclosed = "fg=red";
-          dollar-double-quoted-argument = "fg=cyan";
-          back-double-quoted-argument = "fg=cyan";
-          back-dollar-quoted-argument = "fg=cyan";
-          rc-quote = "fg=cyan";
-          redirection = "fg=magenta";
-          comment = "fg=8";
-        };
       };
 
       initContent = ''
@@ -74,7 +33,7 @@
         zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
         zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
         zstyle ':completion:*' menu no
-        # fzf-tab: take fzf's (Meridian) colours from FZF_DEFAULT_OPTS, preview directories
+        # fzf-tab: take fzf's colours from FZF_DEFAULT_OPTS, preview directories
         zstyle ':fzf-tab:*' use-fzf-default-opts yes
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'

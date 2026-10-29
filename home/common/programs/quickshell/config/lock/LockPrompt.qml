@@ -2,7 +2,7 @@ import QtQuick
 import qs.common
 import qs.widgets
 
-// The password, in the line under the time: a navy field with a dot per typed character and a
+// The password, in the line under the time: a slate field with a dot per typed character and a
 // gilt submit on its right, and beside it why the last attempt failed or that Caps
 // Lock is on. Shown while the context is active. A hidden TextInput takes the keys and keeps
 // focus while idle, so the first key typed lands.

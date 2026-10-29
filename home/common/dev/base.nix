@@ -1,139 +1,101 @@
-{ self, pkgs, ... }:
-let
-  m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
-in
+{ pkgs, ... }:
 {
   programs = {
 
     # Kubernetes CLI
     k9s = {
       enable = true;
-      settings.k9s.ui.skin = "meridian";
-      # Tables on the ground with a hover-blue cursor row; gilt marks the focused frame,
-      # the crumb you're on and key hints. Red is left to errors and kills.
-      skins.meridian.k9s = {
+      settings.k9s.ui.skin = "terminal";
+      # k9s's own skin is fixed RGB colours; this one names the terminal's ANSI colours
+      # (tcell: olive = yellow, teal = cyan, silver = white, gray = bright black) and leaves
+      # the background to the terminal, so k9s follows Ghostty's palette.
+      skins.terminal.k9s = {
         body = {
-          fgColor = m.text;
-          bgColor = m.ground;
-          logoColor = m.gilt;
+          fgColor = "silver";
+          bgColor = "default";
+          logoColor = "olive";
         };
         prompt = {
-          fgColor = m.text;
-          bgColor = m.inset;
-          suggestColor = m.muted;
+          fgColor = "silver";
+          bgColor = "default";
+          suggestColor = "gray";
         };
         help = {
-          fgColor = m.text;
-          bgColor = m.ground;
-          sectionColor = m.text2;
-          keyColor = m.gilt;
-          numKeyColor = m.link;
+          fgColor = "silver";
+          bgColor = "default";
+          sectionColor = "teal";
+          keyColor = "olive";
+          numKeyColor = "teal";
         };
         frame = {
           title = {
-            fgColor = m.text;
-            bgColor = m.ground;
-            highlightColor = m.gilt;
-            counterColor = m.text2;
-            filterColor = m.link;
+            fgColor = "silver";
+            bgColor = "default";
+            highlightColor = "olive";
+            counterColor = "gray";
+            filterColor = "teal";
           };
           border = {
-            fgColor = m.rule;
-            focusColor = m.gilt;
+            fgColor = "gray";
+            focusColor = "olive";
           };
           menu = {
-            fgColor = m.text2;
-            keyColor = m.gilt;
-            numKeyColor = m.link;
+            fgColor = "silver";
+            keyColor = "olive";
+            numKeyColor = "teal";
           };
           crumbs = {
-            fgColor = m.text;
-            bgColor = m.plate;
-            activeColor = m.gilt;
+            fgColor = "black";
+            bgColor = "teal";
+            activeColor = "olive";
           };
           status = {
-            newColor = m.link;
-            modifyColor = m.text;
-            addColor = m.ok;
-            pendingColor = m.caution;
-            errorColor = m.alert;
-            highlightColor = m.gilt;
-            killColor = m.alert;
-            completedColor = m.muted;
+            newColor = "teal";
+            modifyColor = "silver";
+            addColor = "green";
+            pendingColor = "olive";
+            errorColor = "maroon";
+            highlightColor = "olive";
+            killColor = "maroon";
+            completedColor = "gray";
           };
         };
         info = {
-          fgColor = m.text2;
-          sectionColor = m.text;
+          fgColor = "silver";
+          sectionColor = "teal";
         };
         views = {
           table = {
-            fgColor = m.text;
-            bgColor = m.ground;
-            cursorFgColor = m.text;
-            cursorBgColor = m.hover;
-            markColor = m.gilt;
+            fgColor = "silver";
+            bgColor = "default";
+            cursorFgColor = "white";
+            cursorBgColor = "black";
+            markColor = "olive";
             header = {
-              fgColor = m.text2;
-              bgColor = m.ground;
-              sorterColor = m.gilt;
-            };
-          };
-          xray = {
-            fgColor = m.text;
-            bgColor = m.ground;
-            cursorColor = m.hover;
-            cursorTextColor = m.text;
-            graphicColor = m.link;
-          };
-          charts = {
-            bgColor = m.ground;
-            chartBgColor = m.ground;
-            dialBgColor = m.ground;
-            defaultDialColors = [
-              m.ok
-              m.alert
-            ];
-            defaultChartColors = [
-              m.ok
-              m.alert
-            ];
-            resourceColors = {
-              cpu = [
-                m.series1
-                m.series4
-              ];
-              mem = [
-                m.series2
-                m.series3
-              ];
+              fgColor = "gray";
+              bgColor = "default";
+              sorterColor = "olive";
             };
           };
           yaml = {
-            keyColor = m.link;
-            valueColor = m.text;
-            colonColor = m.muted;
+            keyColor = "teal";
+            valueColor = "silver";
+            colonColor = "gray";
           };
           logs = {
-            fgColor = m.text;
-            bgColor = m.ground;
-            indicator = {
-              fgColor = m.text2;
-              bgColor = m.ground;
-              toggleOnColor = m.gilt;
-              toggleOffColor = m.muted;
-            };
+            fgColor = "silver";
+            bgColor = "default";
           };
         };
         dialog = {
-          fgColor = m.text;
-          bgColor = m.plate;
-          buttonFgColor = m.text;
-          buttonBgColor = m.hover;
-          buttonFocusFgColor = m.ground;
-          buttonFocusBgColor = m.gilt;
-          labelFgColor = m.text2;
-          fieldFgColor = m.text;
+          fgColor = "silver";
+          bgColor = "default";
+          buttonFgColor = "silver";
+          buttonBgColor = "black";
+          buttonFocusFgColor = "black";
+          buttonFocusBgColor = "olive";
+          labelFgColor = "teal";
+          fieldFgColor = "silver";
         };
       };
     };
@@ -149,26 +111,9 @@ in
       enable = true;
       settings = {
         promptToReturnFromSubprocess = false;
-        # Gilt for the focused panel and search; the cursor row on hover, as in fzf and k9s.
-        gui.theme = {
-          activeBorderColor = [
-            m.gilt
-            "bold"
-          ];
-          inactiveBorderColor = [ m.rule ];
-          searchingActiveBorderColor = [ m.giltHover ];
-          optionsTextColor = [ m.text2 ];
-          selectedLineBgColor = [ m.hover ];
-          inactiveViewSelectedLineBgColor = [ m.plate ];
-          cherryPickedCommitFgColor = [ m.ground ];
-          cherryPickedCommitBgColor = [ m.link ];
-          markedBaseCommitFgColor = [ m.ground ];
-          markedBaseCommitBgColor = [ m.gilt ];
-          # Unstaged work isn't an error; red stays for errors and destructive actions.
-          unstagedChangesColor = [ m.caution ];
-          defaultFgColor = [ m.text ];
-          authorColors."*" = m.text2;
-        };
+        # lazygit draws with the terminal's ANSI colours already; only its selected line is
+        # blue by default, which the palette's light blue makes hard to read text on.
+        gui.theme.selectedLineBgColor = [ "black" ];
       };
     };
 
