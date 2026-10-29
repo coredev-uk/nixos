@@ -2,6 +2,7 @@
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
+  syn = m.syntax;
 in
 {
   programs.nixvim = {
@@ -22,13 +23,13 @@ in
         base06 = m.text;
         base07 = m.text;
         base08 = m.alert;
-        base09 = m.caution;
+        base09 = syn.constant;
         base0A = m.gilt;
-        base0B = m.ok;
-        base0C = m.terminal.normal.cyan;
-        base0D = m.link;
-        base0E = m.series4;
-        base0F = m.series3;
+        base0B = syn.string;
+        base0C = syn.type;
+        base0D = syn.function;
+        base0E = syn.keyword;
+        base0F = syn.special;
       };
     };
 
@@ -145,20 +146,20 @@ in
       Identifier.fg = m.text;
       TSVariable.fg = m.text;
       TSVariableBuiltin = {
-        fg = m.series3;
+        fg = syn.special;
         italic = true;
       };
-      Statement.fg = m.series4;
-      Repeat.fg = m.series4;
-      Exception.fg = m.series4;
-      TSException.fg = m.series4;
-      Character.fg = m.ok;
-      TSCharacter.fg = m.ok;
-      Macro.fg = m.series3;
-      TSFuncMacro.fg = m.series3;
-      TSConstMacro.fg = m.series3;
-      TSNamespace.fg = m.terminal.normal.cyan;
-      TSTag.fg = m.series1;
+      Statement.fg = syn.keyword;
+      Repeat.fg = syn.keyword;
+      Exception.fg = syn.keyword;
+      TSException.fg = syn.keyword;
+      Character.fg = syn.string;
+      TSCharacter.fg = syn.string;
+      Macro.fg = syn.special;
+      TSFuncMacro.fg = syn.special;
+      TSConstMacro.fg = syn.special;
+      TSNamespace.fg = syn.type;
+      TSTag.fg = syn.function;
       Debug.fg = m.caution;
       WarningMsg.fg = m.caution;
       Underlined = {
@@ -169,16 +170,16 @@ in
       Delimiter.fg = m.text2;
       TSPunctDelimiter.fg = m.text2;
       # base16 paints types in base0A; gilt stays for here/selection/search, so types take the
-      # terminal cyan. @type and @type.builtin link to the TS groups.
-      Type.fg = m.terminal.normal.cyan;
-      TSType.fg = m.terminal.normal.cyan;
+      # syntax cyan. @type and @type.builtin link to the TS groups.
+      Type.fg = syn.type;
+      TSType.fg = syn.type;
       TSTypeBuiltin = {
-        fg = m.terminal.normal.cyan;
+        fg = syn.type;
         italic = true;
       };
-      StorageClass.fg = m.terminal.normal.cyan;
-      Structure.fg = m.terminal.normal.cyan;
-      Typedef.fg = m.terminal.normal.cyan;
+      StorageClass.fg = syn.type;
+      Structure.fg = syn.type;
+      Typedef.fg = syn.type;
 
       DiagnosticError.fg = m.alert;
       DiagnosticWarn.fg = m.caution;

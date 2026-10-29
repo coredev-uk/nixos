@@ -39,6 +39,18 @@ rec {
     series3 = "#d39a8f";
     series4 = "#a99ad6";
 
+    # Code in the editor (Neovim): more chroma than the shell's state colours, which are read
+    # at a glance, because syntax is read in colour line after line. All at least 7:1 on the
+    # ground.
+    syntax = {
+      keyword = "#b69cf2";
+      string = "#8ccf8a";
+      function = "#79b3f0";
+      type = "#56c7c2";
+      constant = "#f0a060";
+      special = "#e8917f";
+    };
+
     # The 16 ANSI colours, for terminals and the CLI tools that draw with them. Normal on the
     # ground is at least 5:1, bright at least 6.9:1; bright black (comments, hints) 3.6:1.
     # Yellow is gilt, so a terminal's emphasis reads like the shell's.
