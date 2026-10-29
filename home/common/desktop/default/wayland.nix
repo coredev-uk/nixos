@@ -1,7 +1,7 @@
 { pkgs, config, ... }:
 
 {
-  # Notifications, the OSD and the polkit agent are part of the quickshell config.
+  # The bar, notifications, OSD, polkit agent, lock screen and wallpaper are all Quickshell.
   imports = [
     ../../programs/quickshell
     ../../programs/airplay.nix

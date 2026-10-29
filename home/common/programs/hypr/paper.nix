@@ -22,8 +22,8 @@ let
     "Golden Gate"
   ];
 
-  # Not named after the source: hyprpaper and the lock screen read current.jpg from here
-  # (home/common/programs/quickshell/default.nix).
+  # Not named after the source: the wallpaper instance and the lock screen read current.jpg from
+  # here (home/common/programs/quickshell/default.nix).
   current = "${config.xdg.cacheHome}/wallpapers/current.jpg";
 
   macosWallpaper = inputs.macos-wallpapers.packages.${pkgs.stdenv.hostPlatform.system}.default;
@@ -52,7 +52,7 @@ let
       pkgs.systemd
       pkgs.util-linux
     ];
-    # hyprctl comes from PATH so it always matches the running compositor.
+    # quickshell comes from PATH, the same one the wallpaper instance runs.
     text = ''
       # The timer and the keybind can overlap.
       exec 9>"''${XDG_RUNTIME_DIR:-/tmp}/set-wallpaper.lock"
@@ -62,7 +62,7 @@ let
       img=$(macos-wallpaper "$@" ${lib.escapeShellArgs macosWallpaperArgs})
       [ "$(readlink ${lib.escapeShellArg current} || true)" = "$img" ] && exit 0
 
-      # hyprpaper's config points here, so the next login starts on this image.
+      # The wallpaper instance starts on this link, so the next login starts on this image.
       mkdir -p "$(dirname ${lib.escapeShellArg current})"
       ln -sfn "$img" ${lib.escapeShellArg current}
 
@@ -78,12 +78,16 @@ let
         cp -f "$img" "$greeter/wallpaper.jpg.part" && mv -f "$greeter/wallpaper.jpg.part" "$greeter/wallpaper.jpg"
       fi
 
-      for _ in $(seq 1 30); do
-        hyprctl hyprpaper wallpaper ",$img, cover" && exit 0
-        sleep 1
-      done
-      echo "hyprpaper did not accept $img" >&2
-      exit 1
+      # The wallpaper instance (home/common/programs/quickshell/wallpaper/shell.qml) crossfades
+      # to it. When it isn't running yet it starts on the link above, so there's nothing to tell.
+      if systemctl --user is-active --quiet quickshell-wallpaper.service; then
+        for _ in $(seq 1 10); do
+          quickshell ipc --config wallpaper call wallpaper change "$img" && exit 0
+          sleep 1
+        done
+        echo "the wallpaper instance did not take $img" >&2
+        exit 1
+      fi
     '';
   };
 
@@ -201,22 +205,8 @@ let
 
 in
 {
-  services.hyprpaper = {
-    enable = true;
-
-    settings = {
-      splash = false;
-
-      # Shown as soon as hyprpaper starts, before macos-wallpaper.service has checked the sun.
-      wallpaper = [
-        {
-          monitor = "";
-          path = current;
-          fit_mode = "cover";
-        }
-      ];
-    };
-  };
+  # The desktop wallpaper itself is drawn by Quickshell (quickshell-wallpaper,
+  # home/common/programs/quickshell/default.nix).
 
   # Called by name from quickshell's WallpaperPicker.
   home.packages = [
@@ -228,11 +218,11 @@ in
     Unit = {
       Description = "Show the macOS wallpaper for the sun's position";
       # Explicit After=graphical-session.target stops the target's implicit After= on this
-      # unit (WantedBy), which formed a cycle with hyprpaper (After=graphical-session.target)
-      # and stalled session startup for up to 30s whenever systemd dropped hyprpaper's job.
+      # unit (WantedBy), which would form a cycle with quickshell-wallpaper
+      # (After=graphical-session.target) and stall session startup.
       After = [
         "graphical-session.target"
-        "hyprpaper.service"
+        "quickshell-wallpaper.service"
       ];
       PartOf = [ "graphical-session.target" ];
     };

@@ -123,7 +123,7 @@ let
         exit 1
       fi
 
-      # The wallpaper hyprpaper shows (home/common/programs/hypr/paper.nix).
+      # The desktop's wallpaper (home/common/programs/hypr/paper.nix).
       export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.jpg"}
       # wlsunset's location (home/common/programs/hypr/sunset.nix), for the next sunrise or sunset.
       export QS_LOCK_LATITUDE=${lib.escapeShellArg config.services.wlsunset.latitude}
@@ -170,9 +170,33 @@ in
 {
   programs.quickshell = {
     enable = true;
-    configs.bar = ./config;
+    configs = {
+      bar = ./config;
+      # Run by quickshell-wallpaper below, not by the module's service.
+      wallpaper = ./wallpaper;
+    };
     activeConfig = "bar";
     systemd.enable = true;
+  };
+
+  # The desktop wallpaper (wallpaper/shell.qml), in place of hyprpaper: its own instance so the
+  # bar's restarts on switch never blank the desktop, restarted only when its own file changes.
+  # set-wallpaper (home/common/programs/hypr/paper.nix) tells it about a new image over IPC.
+  systemd.user.services.quickshell-wallpaper = {
+    Unit = {
+      Description = "Desktop wallpaper (Quickshell)";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ "${./wallpaper}" ];
+    };
+    Service = {
+      ExecStart = "${lib.getExe config.programs.quickshell.package} --config wallpaper";
+      Environment = [
+        "QS_WALLPAPER=${config.xdg.cacheHome}/wallpapers/current.jpg"
+      ];
+      Restart = "on-failure";
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
   };
 
   # The config is a store symlink and fonts are only read at startup, so a running
