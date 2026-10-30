@@ -144,6 +144,7 @@ in
       enable = true;
       nix-direnv.enable = true;
     };
+    devenv.enable = true;
 
     # Git
     git.enable = true;
