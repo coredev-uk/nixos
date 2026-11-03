@@ -82,6 +82,27 @@ in
           dark = "titanium";
           light = "light";
         };
+        retry = {
+          waitForUsageReset = true;
+        };
+        modelRoles = {
+          default = "anthropic/claude-opus-5-5";
+          plan = "anthropic/claude-opus-5-5:high";
+          slow = "anthropic/claude-opus-5-5:max";
+          task = "anthropic/claude-sonnet-5-5";
+          smol = "anthropic/claude-haiku-5-5";
+          commit = "anthropic/claude-haiku-5-5";
+        };
+        task = {
+          showResolvedModelBadge = true;
+          agentModelOverrides = {
+            task = "@task";
+            sonic = "@smol";
+            scout = "anthropic/claude-sonnet-5-5";
+            reviewer = "@slow";
+            security-reviewer = "anthropic/claude-opus-5-5:high";
+          };
+        };
         setupVersion = 2;
       };
     };
