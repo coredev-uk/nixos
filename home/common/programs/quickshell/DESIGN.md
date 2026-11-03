@@ -240,7 +240,7 @@ Window-register surfaces are full-screen. The lock pins the clock bottom-left on
 
 ## Elevation & Depth
 
-Flat by tone. Layers step ground (bar, backdrops) → plate (popups) → inset (sections, tracks, tiles), with hover and rule above, and every plate carries a 1px rule border. Only windows that float free of the bar get a shadow: the OSD, the polkit dialog and Pass quick access. Blur is reserved for full-screen backdrops (the lock's wallpaper while engaged, blur 0.7 × 64 and −0.2 saturation; the picker's, 0.6 × 48) and is always followed by a ground scrim.
+Flat by tone. Layers step ground (bar, backdrops) → plate (popups) → inset (sections, tracks, tiles), with hover and rule above, and every plate carries a 1px rule border. Only windows that float free of the bar get a shadow: the OSD, the polkit dialog, the share picker and Pass quick access. Blur is reserved for full-screen backdrops (the lock's wallpaper while engaged, blur 0.7 × 64 and −0.2 saturation; the picker's, 0.6 × 48) and is always followed by a ground scrim.
 
 ### Shadow Vocabulary
 - **Float** (MultiEffect: black, opacity 0.35, blur 1.0, vertical offset 8px, 24px window padding around the card): free-floating windows only.

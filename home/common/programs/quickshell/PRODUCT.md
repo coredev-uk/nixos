@@ -12,15 +12,16 @@ One user: paul, on `atlas` (NixOS desktop, Hyprland on Wayland, NVIDIA GPU, two 
 
 ## Product Purpose
 
-A single Quickshell (Qt 6 / QML) config that provides the whole desktop shell around Hyprland. It replaces the separate bar, notification daemon, OSD, polkit agent, lock screen and greeter that would otherwise be needed. Success means daily controls are reachable from the shell without opening an app, and the surfaces that guard the session never fail open.
+A single Quickshell (Qt 6 / QML) config that provides the whole desktop shell around Hyprland. It replaces the separate bar, notification daemon, OSD, polkit agent, screen-share picker, lock screen and greeter that would otherwise be needed. Success means daily controls are reachable from the shell without opening an app, and the surfaces that guard the session never fail open.
 
 ## Positioning
 
-The shell is built for one machine and one person, so it can use atlas specifics directly: its screens, its peripherals, Proton Pass, iCloud, Sonarr/Radarr, Windows dual boot and the VFIO VM. It doesn't need the portability abstractions a published shell would. One QML tree runs as three separate instances so that a failure in one can't take down another:
+The shell is built for one machine and one person, so it can use atlas specifics directly: its screens, its peripherals, Proton Pass, iCloud, Sonarr/Radarr, Windows dual boot and the VFIO VM. It doesn't need the portability abstractions a published shell would. One QML tree runs as four separate instances so that a failure in one can't take down another:
 
 - **Bar** (`config/shell.qml`): home-manager `programs.quickshell`, a systemd user service that restarts on switch.
 - **Lock** (`config/lockscreen.qml`): its own one-shot instance (`quickshell-lock`, started by hypridle's `lock_cmd`), so a bar restart can't take the lock down.
 - **Greeter** (`config/greeter.qml`): runs under greetd as the `greeter` user and reuses the lock screen's faces (`hosts/common/desktop/greeter.nix`).
+- **Share picker** (`config/sharepicker.qml`): run by xdg-desktop-portal-hyprland (its `custom_picker_binary`, the `quickshell-share-picker` wrapper writing `~/.config/hypr/xdph.conf`) whenever an app asks to share the screen; shows a still of every screen and window, or a dragged region, and hands the choice back to xdph. Restart `xdg-desktop-portal-hyprland` after changing the wrapper.
 
 ## Operating Context
 
