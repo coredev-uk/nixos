@@ -10,7 +10,7 @@ import Quickshell.Wayland
 Singleton {
     id: root
 
-    readonly property var nativeClients: ["cider", "spotify"]
+    readonly property var nativeClients: ["cider", "spotify", "sona"]
     readonly property var urlPatterns: ["music.apple.com", "open.spotify.com"]
 
     function clientName(player: MprisPlayer): string {

@@ -159,6 +159,30 @@ let
       done
     '';
   };
+
+  # xdph's screen-share picker (screencopy:custom_picker_binary): runs config/sharepicker.qml
+  # and hands its choice back on stdout, which xdph parses as "[SELECTION]<flags>/<what>"; no
+  # line is a cancel. Its own instance, like the lock, so a bar restart can't close it.
+  quickshellSharePicker = pkgs.writeShellApplication {
+    name = "quickshell-share-picker";
+    runtimeInputs = [ pkgs.coreutils ];
+    text = ''
+      out=$(mktemp -t quickshell-share-picker.XXXXXX)
+      trap 'rm -f "$out"' EXIT
+      allow=0
+      for arg in "$@"; do
+        if [ "$arg" = --allow-token ]; then
+          allow=1
+        fi
+      done
+      # Quickshell's log would land in the stdout xdph reads.
+      QS_SHARE_OUT="$out" QS_SHARE_ALLOW_TOKEN="$allow" \
+        ${lib.getExe config.programs.quickshell.package} --path ${./config}/sharepicker.qml >/dev/null 2>&1 || true
+      if [ -s "$out" ]; then
+        printf '[SELECTION]%s\n' "$(cat "$out")"
+      fi
+    '';
+  };
 in
 {
   programs.quickshell = {
@@ -223,4 +247,11 @@ in
     quickshellPass
     quickshellCalendar
   ];
+
+  # Read when xdph starts: restart xdg-desktop-portal-hyprland after a change.
+  xdg.configFile."hypr/xdph.conf".text = ''
+    screencopy {
+      custom_picker_binary = ${quickshellSharePicker}/bin/quickshell-share-picker
+    }
+  '';
 }
