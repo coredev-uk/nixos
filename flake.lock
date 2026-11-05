@@ -450,6 +450,22 @@
         "type": "github"
       }
     },
+    "nixpkgs_3": {
+      "locked": {
+        "lastModified": 1793110635,
+        "narHash": "sha256-dhoW6VgFWlaodSY5jrBn+CF2FLmaUvDVgM7+C7T2+NM=",
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
+        "type": "github"
+      },
+      "original": {
+        "owner": "NixOS",
+        "repo": "nixpkgs",
+        "rev": "31ecbaca1bdefa45dffc409f0250bd8039ea0010",
+        "type": "github"
+      }
+    },
     "nixvim": {
       "inputs": {
         "flake-parts": "flake-parts_2",
@@ -510,6 +526,7 @@
         "nixpkgs": "nixpkgs_2",
         "nixvim": "nixvim",
         "skills-nix": "skills-nix",
+        "sona": "sona",
         "taste-skill": "taste-skill",
         "treefmt-nix": "treefmt-nix",
         "unstable": "unstable",
@@ -549,6 +566,25 @@
       "original": {
         "owner": "z1-0",
         "repo": "skills-nix",
+        "type": "github"
+      }
+    },
+    "sona": {
+      "inputs": {
+        "nixpkgs": "nixpkgs_3"
+      },
+      "locked": {
+        "lastModified": 1793900175,
+        "narHash": "sha256-OHKZZLYv5wOQ/RJzkx3xwwd8+Z7lnCI0WjQ98u9GWIM=",
+        "owner": "coredev-uk",
+        "repo": "sona-go",
+        "rev": "5e664fd5cd123fed724070ef8ec45b5e9b0f5374",
+        "type": "github"
+      },
+      "original": {
+        "owner": "coredev-uk",
+        "ref": "build/nix-flake",
+        "repo": "sona-go",
         "type": "github"
       }
     },

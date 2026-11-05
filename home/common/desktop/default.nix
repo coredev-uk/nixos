@@ -26,10 +26,10 @@ in
     ../scripts
 
     # Standard Programs
-    ../programs/cider
     ../programs/discord.nix
     ../programs/gaming.nix
     ../programs/ghostty.nix
+    ../programs/sona.nix
     ../programs/zen.nix
   ];
 
