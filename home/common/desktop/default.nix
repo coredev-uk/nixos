@@ -34,7 +34,6 @@ in
   ];
 
   home.packages = with pkgs; [
-    brave
     desktop-file-utils
     file-roller
     plexDesktop
