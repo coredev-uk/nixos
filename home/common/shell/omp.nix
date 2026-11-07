@@ -76,7 +76,9 @@ in
     ".omp/agent/config.yml" = {
       force = true;
       source = (pkgs.formats.yaml { }).generate "omp-config.yml" {
-        symbolPreset = "unicode";
+        # Nerd Font glyphs (Symbols Nerd Font, installed with Ghostty). Also shows the
+        # subscription icon on spend rather than the `unicode` preset's literal "S".
+        symbolPreset = "nerd";
         composer.shape = "box";
         theme = {
           dark = "titanium";

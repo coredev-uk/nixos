@@ -20,9 +20,12 @@ let
   ];
 in
 {
-  # Fira Code comes from hosts/common/desktop on NixOS; darwin hosts have no
-  # desktop module, so install it here (HM copies it into ~/Library/Fonts).
-  home.packages = lib.optional meta.isDarwin theme.fonts.monospace.package;
+  # Fira Code and the Nerd Font symbols come from hosts/common/desktop on NixOS; darwin
+  # hosts have no desktop module, so install them here (HM copies them into ~/Library/Fonts).
+  home.packages = lib.optionals meta.isDarwin [
+    theme.fonts.monospace.package
+    theme.fonts.iconFont.package
+  ];
 
   # Each Ghostty surface runs in a transient systemd scope; this prefix drop-in applies to
   # all of them. Interactive zsh (e.g. zellij panes, whose pty zellij keeps open) ignores
@@ -59,7 +62,12 @@ in
 
     settings = {
       theme = "meridian";
-      font-family = theme.fonts.monospace.name;
+      # Nerd Font glyphs (omp's `nerd` symbols, see ../shell/omp.nix) from the symbols font
+      # rather than Ghostty's built-in copy, so they track nixpkgs.
+      font-family = [
+        theme.fonts.monospace.name
+        theme.fonts.iconFont.name
+      ];
       # window-decoration = false;
       clipboard-paste-protection = false;
       # Close windows without asking, even with a running process (zellij keeps sessions).
@@ -68,13 +76,48 @@ in
       # TERM=xterm-256color where that fails.
       shell-integration-features = "ssh-env,ssh-terminfo";
 
-      # Tabbing is zellij's job (see ../shell/zellij.nix):
-      # - release Ghostty's default Alt+digit tab switching so zellij receives them
-      # - drop the new-tab shortcut (Ctrl+Shift+T on Linux, Cmd+T on macOS)
-      keybind =
-        map (n: "alt+${toString n}=unbind") (lib.range 1 9)
-        ++ map (n: "alt+digit_${toString n}=unbind") (lib.range 1 8)
-        ++ [ (if meta.isDarwin then "super+t=unbind" else "ctrl+shift+t=unbind") ];
+      # Tabs and splits are zellij's job (see ../shell/zellij.nix), so release the keys it
+      # binds. Linux: Ghostty's Alt+digit tab switching and its new-tab shortcut. macOS: the
+      # Cmd keys for Ghostty's tabs, splits and search, and Ctrl+Tab tab cycling, which zellij
+      # binds the same way.
+      keybind = map (key: "${key}=unbind") (
+        if meta.isDarwin then
+          [
+            "super+t"
+            "super+w"
+            "super+shift+["
+            "super+shift+]"
+            "super+9"
+            "super+d"
+            "super+shift+d"
+            "super+["
+            "super+]"
+            "super+f"
+            "super+g"
+            "ctrl+tab"
+            "ctrl+shift+tab"
+          ]
+          ++ lib.concatMap (n: [
+            "super+${toString n}"
+            "super+digit_${toString n}"
+          ]) (lib.range 1 8)
+          ++
+            lib.concatMap
+              (arrow: [
+                "super+alt+arrow_${arrow}"
+                "super+ctrl+arrow_${arrow}"
+              ])
+              [
+                "up"
+                "down"
+                "left"
+                "right"
+              ]
+        else
+          map (n: "alt+${toString n}") (lib.range 1 9)
+          ++ map (n: "alt+digit_${toString n}") (lib.range 1 8)
+          ++ [ "ctrl+shift+t" ]
+      );
     };
   };
 }
