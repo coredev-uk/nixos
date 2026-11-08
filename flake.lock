@@ -356,11 +356,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794042104,
-        "narHash": "sha256-AkS3jtwLO7zjTX1g9HA4qVe5SFItPkzFjt15g9VrApY=",
+        "lastModified": 1794083704,
+        "narHash": "sha256-6zy+LcIktHluBNcox05L3WTz69WjysodvLukDEudVmg=",
         "owner": "FlameFlag",
         "repo": "nixcord",
-        "rev": "a82a7c70b95232795567ca7db062ff1ac747b059",
+        "rev": "f753a8d227d283406849d09e84f04236beb67e50",
         "type": "github"
       },
       "original": {
@@ -376,11 +376,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1793871777,
-        "narHash": "sha256-DbFyxXHjP4SJDWVVIILkgrUZxj29cDusi8ULXoQGuZ8=",
+        "lastModified": 1794051415,
+        "narHash": "sha256-mJok3uMK0awq2MPKdSnvTxm3UD89KD3LclQzASgtY1s=",
         "owner": "nixos",
         "repo": "nixos-hardware",
-        "rev": "d645c71a58dbae3eb17ff551a07aea13a541cb1a",
+        "rev": "1a8ff4f57ffe1f732beaa1db842247a381ea471d",
         "type": "github"
       },
       "original": {
@@ -572,11 +572,11 @@
     "taste-skill": {
       "flake": false,
       "locked": {
-        "lastModified": 1793841132,
-        "narHash": "sha256-BASbXznKYEcCUOEd0rm+ajcaGNhZ3wjONJP6tkpGEww=",
+        "lastModified": 1794054801,
+        "narHash": "sha256-7w2pcrS5g3ACXiAoJL3oe+hiVy+aDmUnx3PxeRZ9rVg=",
         "owner": "Leonxlnx",
         "repo": "taste-skill",
-        "rev": "9b4bf937a1f69348126959c15d2f99a73e65699b",
+        "rev": "f6b76575f949707b4e3c37cd86cb44b0b98643e8",
         "type": "github"
       },
       "original": {
