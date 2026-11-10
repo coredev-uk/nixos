@@ -83,18 +83,12 @@
       inherit (self) outputs;
       username = "paul";
 
-      # The one switch between password managers: "1password" or "proton-pass". It reaches every
-      # host and home module as `meta.passwordManager` (lib/helpers.nix). What each choice sets
-      # up, and what Proton Pass can't do yet, is in README.md.
-      passwordManager = "1password";
-
       libx = import ./lib {
         inherit
           self
           inputs
           outputs
           username
-          passwordManager
           ;
       };
 

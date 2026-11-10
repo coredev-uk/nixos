@@ -3,15 +3,8 @@
   inputs,
   outputs,
   username,
-  passwordManager,
   ...
 }:
-assert
-  builtins.elem passwordManager [
-    "1password"
-    "proton-pass"
-  ]
-  || throw "passwordManager must be \"1password\" or \"proton-pass\", not \"${passwordManager}\"";
 let
   # Helper function to generate common specialArgs
   mkSpecialArgs =
@@ -35,8 +28,6 @@ let
         config.allowUnfree = true;
       };
       meta = {
-        # "1password" or "proton-pass"; set once in flake.nix.
-        inherit passwordManager;
         inherit
           hostname
           desktop
