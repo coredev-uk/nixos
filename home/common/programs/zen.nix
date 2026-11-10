@@ -30,33 +30,29 @@ in
             }
           );
         in
-        mkExtensionSettings (
-          {
-            # Dark Reader
-            "addon@darkreader.org" = "darkreader";
-            # YouTube
-            "sponsorBlocker@ajay.app" = "sponsorblock";
-            # Cookies
-            "idcac-pub@guus.ninja" = "istilldontcareaboutcookies";
-            # Proton (Pass is installed with either password manager)
-            "78272b6fa58f4a1abaac99321d503a20@proton.me" = "proton-pass";
-            "vpn@proton.ch" = "proton-vpn";
-            # Refined GitHub: off, it made GitHub's pages noticeably slower. Uncomment to try again.
-            # "{a4c4eda4-fb84-4a84-b4a1-f7c1cbf2a1ad}" = "refined-github";
-            # Wappalyzer
-            "wappalyzer@crunchlabz.com" = "wappalyzer";
-            # AdBlocker
-            "uBlock0@raymondhill.net" = "ublock-origin";
-            # CSFloat Market Cheker
-            "{194d0dc6-7ada-41c6-88b8-95d7636fe43c}" = "csgofloat";
-            # Firefox Multi-Accounts Containers
-            "@testpilot-containers" = "multi-account-containers";
-          }
-          // lib.optionalAttrs (meta.passwordManager == "1password") {
-            # 1Password
-            "{d634138d-c276-4fc8-924b-40a0ea21d284}" = "1password-x-password-manager";
-          }
-        );
+        mkExtensionSettings {
+          # Dark Reader
+          "addon@darkreader.org" = "darkreader";
+          # YouTube
+          "sponsorBlocker@ajay.app" = "sponsorblock";
+          # Cookies
+          "idcac-pub@guus.ninja" = "istilldontcareaboutcookies";
+          # Proton
+          "78272b6fa58f4a1abaac99321d503a20@proton.me" = "proton-pass";
+          "vpn@proton.ch" = "proton-vpn";
+          # Refined GitHub: off, it made GitHub's pages noticeably slower. Uncomment to try again.
+          # "{a4c4eda4-fb84-4a84-b4a1-f7c1cbf2a1ad}" = "refined-github";
+          # Wappalyzer
+          "wappalyzer@crunchlabz.com" = "wappalyzer";
+          # AdBlocker
+          "uBlock0@raymondhill.net" = "ublock-origin";
+          # 1Password
+          "{d634138d-c276-4fc8-924b-40a0ea21d284}" = "1password-x-password-manager";
+          # CSFloat Market Cheker
+          "{194d0dc6-7ada-41c6-88b8-95d7636fe43c}" = "csgofloat";
+          # Firefox Multi-Accounts Containers
+          "@testpilot-containers" = "multi-account-containers";
+        };
 
       # Containers
       containers = {

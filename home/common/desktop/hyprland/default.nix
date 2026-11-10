@@ -43,11 +43,7 @@ in
       {
         monitor = (import ./config/monitors.nix { })."${meta.hostname}";
 
-        # The 1Password app starts hidden, as it serves the SSH agent, the browser integration
-        # and the unlock prompts. Proton Pass needs no app running: the SSH agent is a pass-cli
-        # service (home/common/shell/ssh.nix), the extension stands alone, and the desktop app
-        # has no start-hidden or start-at-login option on Linux.
-        on = lib.mkIf (meta.passwordManager == "1password") {
+        on = {
           _args = [
             "hyprland.start"
             (lua ''
