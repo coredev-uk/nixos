@@ -5,10 +5,12 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The control panel's Nix view: how last night's cache build went, what the cache holds, and
-// where this computer stands against it (services/NixStatus.qml), with any failed systemd units
-// (system and user) listed by name; a click copies the journalctl command for one. Off the home
-// network only the failed units and the last section remain. Reads every minute while it is showing.
+// The control panel's Nix view: the nightly lock update waiting to land (the flake-update pull
+// request, its checks and how long it has been failing), how main's builds into the cache are
+// going, what the cache holds, and where this computer stands against it (services/NixStatus.qml),
+// with any failed systemd units (system and user) listed by name; a click copies the journalctl
+// command for one, or opens the pull request. Off the home network only the failed units and the
+// last section remain. Reads every minute while it is showing.
 ColumnLayout {
     id: root
 
@@ -16,35 +18,56 @@ ColumnLayout {
     readonly property double nowSeconds: NixStatus.now / 1000
     readonly property string checkedText: NixStatus.fetchedAt === 0 ? "" : `Checked ${Qt.formatTime(new Date(NixStatus.fetchedAt), "HH:mm")}`
 
-    // Icon colour, title and detail line of the header, from the nightly build's state.
+    // Icon colour, title and detail line of the header, from the first thing that needs attention.
     readonly property var head: {
         // Read from `data` alone: its derived properties update one after another.
         const build = NixStatus.data?.build;
-        const lastFailed = build?.success === false;
+        const update = NixStatus.data?.update;
         switch (NixStatus.stateOf(NixStatus.data)) {
         case "ok":
             return {
                 tone: Theme.ok,
-                title: "Last build succeeded",
-                detail: [NixStatus.ago(build.last_run), build.duration === null ? "" : `took ${NixStatus.duration(build.duration)}`].filter(s => s !== "").join(", ")
+                title: "Up to date",
+                detail: [`main built ${NixStatus.ago(build.main?.finished ?? build.last_run)}`, "no lock update open"].join(", ")
             };
         case "failed":
-            return {
-                tone: Theme.alert,
-                title: "Last build failed",
-                detail: [NixStatus.ago(build.last_run), build.failed_phase ? `at the ${build.failed_phase} step` : ""].filter(s => s !== "").join(", ")
-            };
+            {
+                const failedTargets = build.targets.filter(t => t.success === false).map(t => t.name);
+                return {
+                    tone: Theme.alert,
+                    title: "main isn't building",
+                    detail: [build.main.failing_since ? `Failing for ${NixStatus.span(nowSeconds - build.main.failing_since)}` : "Failing", failedTargets.length ? failedTargets.join(" and ") : ""].filter(s => s !== "").join(": ")
+                };
+            }
+        case "update-failing":
+            {
+                const since = NixStatus.updateFailingSince(update);
+                return {
+                    tone: Theme.alert,
+                    title: "Lock update failing",
+                    detail: `#${update.number}${since === null ? "" : `, for ${NixStatus.span(nowSeconds - since)}`}: ${NixStatus.names(NixStatus.failingChecks(update))}`
+                };
+            }
+        case "update-pending":
+            {
+                const pending = NixStatus.pendingChecks(update);
+                return {
+                    tone: Theme.text2,
+                    title: "Lock update pending",
+                    detail: pending.length === 0 ? `#${update.number}, every check passed, merging` : `#${update.number}, waiting on ${NixStatus.names(pending)}`
+                };
+            }
         case "running":
             return {
-                tone: lastFailed ? Theme.alert : Theme.text2,
+                tone: Theme.text2,
                 title: "Build running",
-                detail: build.last_run === null ? "The first build is still in progress" : `Last one ${lastFailed ? `failed${build.failed_phase ? ` at the ${build.failed_phase} step` : ""}` : "succeeded"}, ${NixStatus.ago(build.last_run)}`
+                detail: build.last_run === null ? "The first build is still in progress" : `Last one ${build.success === false ? "failed" : "succeeded"}, ${NixStatus.ago(build.last_run)}`
             };
         case "never":
             return {
                 tone: Theme.muted,
                 title: "No build yet",
-                detail: build.next_run ? `Next nightly run ${nextRun(build.next_run)}` : "Waiting for the first run"
+                detail: "Waiting for the first run"
             };
         case "unreachable":
             return {
@@ -61,13 +84,19 @@ ColumnLayout {
         }
     }
 
-    // [{ title, lines: [{ key, value, tone?, fraction? }] }]; `fraction` draws a fill bar under the line.
+    // [{ title, lines: [{ key, value, tone?, fraction?, copy?, url? }] }]; `fraction` draws a fill
+    // bar under the line, `copy` copies on click, `url` opens on click.
     readonly property var sections: {
         const out = [];
         const d = NixStatus.data;
+        if (d?.update?.open)
+            out.push({
+                title: "Lock update",
+                lines: updateLines(d.update)
+            });
         if (d?.cache?.reachable ?? false) {
             out.push({
-                title: "Last build",
+                title: "Builds",
                 lines: buildLines(d)
             });
             out.push({
@@ -92,12 +121,6 @@ ColumnLayout {
 
     signal linkOpened
 
-    // "Fri 01:00, in 8 h" for an epoch in seconds ahead of the last read.
-    function nextRun(epoch: real): string {
-        const when = Qt.formatDateTime(new Date(epoch * 1000), "ddd HH:mm");
-        return epoch > nowSeconds ? `${when}, in ${NixStatus.span(epoch - nowSeconds)}` : when;
-    }
-
     // One line per failed unit, scope in the key; a click copies the command that reads its journal.
     function unitLines(units: var): var {
         return units.map(u => ({
@@ -113,6 +136,43 @@ ColumnLayout {
         return n.toLocaleString(Qt.locale(), "f", 0);
     }
 
+    // The pull request (a click opens it), what moved, each required check and how merging goes.
+    function updateLines(u: var): var {
+        const lines = [
+            {
+                key: "Pull request",
+                value: `#${u.number}, opened ${NixStatus.ago(u.opened_at)}`,
+                url: u.url
+            }
+        ];
+        if (u.inputs > 0)
+            lines.push({
+                key: "Inputs",
+                value: u.inputs === 1 ? "1 moved" : `${u.inputs} moved`
+            });
+        for (const check of u.checks) {
+            let value = "Waiting to start";
+            if (check.state === "success") {
+                value = "Passed";
+            } else if (check.state === "failure") {
+                const since = check.name === "nix-cache" && u.failing_since ? u.failing_since : check.since;
+                value = since ? `Failing for ${NixStatus.span(nowSeconds - since)}` : "Failed";
+            } else if (check.since) {
+                value = `Running for ${NixStatus.span(nowSeconds - check.since)}`;
+            }
+            lines.push({
+                key: check.name,
+                value: value,
+                tone: check.state === "failure" ? Theme.alert : check.state === "pending" ? Theme.text2 : undefined
+            });
+        }
+        lines.push({
+            key: "Merge",
+            value: u.auto_merge ? "By itself once every check passes" : "Not queued; merge it on GitHub"
+        });
+        return lines;
+    }
+
     function buildLines(d: var): var {
         const b = d.build;
         const lines = [
@@ -121,26 +181,22 @@ ColumnLayout {
                 value: b.last_run === null ? "None yet" : [NixStatus.ago(b.last_run), b.duration === null ? "" : `took ${NixStatus.duration(b.duration)}`].filter(s => s !== "").join(", ")
             }
         ];
-        if (b.next_run !== null)
+        if (b.main?.success !== null && b.main?.success !== undefined)
             lines.push({
-                key: "Next nightly",
-                value: nextRun(b.next_run)
-            });
-        if (b.inputs_updated !== null)
-            lines.push({
-                key: "Inputs",
-                value: b.inputs_updated === 0 ? "None updated" : `${b.inputs_updated} updated`
-            });
-        if (b.oldest_input !== null)
-            lines.push({
-                key: "Oldest input",
-                value: `${b.oldest_input.name}, ${NixStatus.span(nowSeconds - b.oldest_input.modified)} old`
+                key: "main",
+                value: b.main.success ? `Built and cached ${NixStatus.ago(b.main.finished)}` : b.main.failing_since ? `Failing for ${NixStatus.span(nowSeconds - b.main.failing_since)}` : "Failing",
+                tone: b.main.success ? undefined : Theme.alert
             });
         for (const target of b.targets)
             lines.push({
                 key: target.name,
                 value: target.success === true ? ["Built", NixStatus.bytes(target.closure_bytes)].filter(s => s !== "").join(" · ") : target.success === false ? "Failed" : "–",
                 tone: target.success === false ? Theme.alert : undefined
+            });
+        if (b.oldest_input !== null)
+            lines.push({
+                key: "Oldest input",
+                value: `${b.oldest_input.name}, ${NixStatus.span(nowSeconds - b.oldest_input.modified)} old`
             });
         return lines;
     }
@@ -199,7 +255,7 @@ ColumnLayout {
         if (d.upstream?.update_available !== null && d.upstream?.update_available !== undefined)
             lines.push({
                 key: "Updates",
-                value: d.upstream.update_available ? "main has a newer lock" : "Matches main's lock"
+                value: d.upstream.update_available ? "main has a newer lock, switch to it" : "Matches main's lock"
             });
         if (d.failed_units)
             lines.push({
@@ -309,12 +365,13 @@ ColumnLayout {
 
                         required property var modelData
                         readonly property bool copyable: modelData.copy !== undefined
+                        readonly property bool linked: modelData.url !== undefined
                         readonly property bool copied: copyable && root.copiedValue === modelData.copy
 
                         Layout.fillWidth: true
                         implicitHeight: lineColumn.implicitHeight
                         radius: Theme.radiusRow
-                        color: copyable && lineArea.containsMouse ? Theme.rule : "transparent"
+                        color: (copyable || linked) && lineArea.containsMouse ? Theme.rule : "transparent"
 
                         Behavior on color {
                             ColorAnimation {
@@ -377,10 +434,17 @@ ColumnLayout {
                         MouseArea {
                             id: lineArea
                             anchors.fill: parent
-                            enabled: line.copyable
+                            enabled: line.copyable || line.linked
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
-                            onClicked: root.copy(line.modelData.copy)
+                            onClicked: {
+                                if (line.linked) {
+                                    Quickshell.execDetached(["xdg-open", line.modelData.url]);
+                                    root.linkOpened();
+                                } else {
+                                    root.copy(line.modelData.copy);
+                                }
+                            }
                         }
                     }
                 }

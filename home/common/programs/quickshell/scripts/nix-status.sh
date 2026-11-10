@@ -8,8 +8,14 @@
 #   upstream  main's flake.lock on GitHub: its nixpkgs revision, and update_available when that
 #             differs from the running system's
 #   cache     Attic's numbers from Prometheus (nix-cache-exporter); reachable = Prometheus answered
-#   build     the nightly nix-cache-builder CronJob: its last run, targets, oldest flake input;
-#             build.* from the exporter are absent until the first run has finished
+#   build     the nix-cache-builder (polls every 30 minutes, builds new commits on main and on open
+#             pull requests): its last run, and main's latest built commit (success, failing_since,
+#             targets); build.* from the exporter are absent until the first run has finished
+#   update    the open flake-update pull request (BOT Cecil's nightly lock update, which merges
+#             itself once its checks pass): number, url, opened_at, auto_merge, inputs (how many
+#             moved), checks [{name, state: success|failure|pending, since}] with nix-cache among
+#             them, and failing_since, since when the builder has failed it across its refreshes;
+#             open = false when there is none, null when GitHub didn't answer
 #   failed_units  [{scope, name, description}] from systemctl --failed, system and user
 #             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
@@ -17,6 +23,7 @@
 prometheus=https://prometheus.hera.ac/api/v1/query
 lock_url=https://raw.githubusercontent.com/coredev-uk/nixos/main/flake.lock
 cache_url=https://nix-cache.hera.ac/coredev
+repo_api=https://api.github.com/repos/coredev-uk/nixos
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
@@ -30,10 +37,33 @@ query() {
 }
 
 query metrics '{__name__=~"nix_cache_.+"}'
-query kube '{__name__=~"kube_cronjob_status_last_successful_time|kube_cronjob_next_schedule_time",namespace="nix-cache",cronjob="nix-cache-builder"}'
 query active 'sum(kube_job_status_active{namespace="nix-cache"})'
 query up 'up{namespace="nix-cache"}'
 fetch "$lock_url" >"$tmp/lock" &
+
+# GitHub with gh's token when it has one (5000 requests an hour; anonymous ones get 60, shared
+# with everything else on the home IP).
+auth=()
+if command -v gh >/dev/null && token=$(timeout 3 gh auth token 2>/dev/null) && [ -n "$token" ]; then
+	auth=(--header "Authorization: Bearer $token")
+fi
+github() {
+	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
+}
+: >"$tmp/pulls"
+: >"$tmp/checks"
+: >"$tmp/status"
+update() {
+	github '/pulls?state=open&head=coredev-uk:flake-update' >"$tmp/pulls"
+	local sha
+	sha=$(jq -r '.[0].head.sha // empty' "$tmp/pulls" 2>/dev/null)
+	if [ -n "$sha" ]; then
+		github "/commits/$sha/check-runs?per_page=100" >"$tmp/checks" &
+		github "/commits/$sha/status" >"$tmp/status" &
+		wait
+	fi
+}
+update &
 
 # Failed units, both managers; an empty file (no bus, timeout) reads as "unknown" below.
 failed() {
@@ -79,26 +109,36 @@ jq -n \
 	--arg narinfo "$(cat "$tmp/narinfo")" \
 	--rawfile lock "$tmp/lock" \
 	--rawfile metrics "$tmp/metrics" \
-	--rawfile kube "$tmp/kube" \
 	--rawfile active "$tmp/active" \
 	--rawfile up "$tmp/up" \
+	--rawfile pulls "$tmp/pulls" \
+	--rawfile checks "$tmp/checks" \
+	--rawfile status "$tmp/status" \
 	--rawfile units_system "$tmp/system" \
 	--rawfile units_user "$tmp/user" \
 	'
   def prom($raw): ($raw | fromjson? // null) | if .status == "success" then .data.result else null end;
   def gauge($rs; $name): first($rs[]? | select(.metric.__name__ == $name) | .value[1] | tonumber) // null;
+  def labelled($rs; $name; $labels):
+    first($rs[]? | select(.metric.__name__ == $name and (.metric | contains($labels))) | .value[1] | tonumber) // null;
   def flag($v): if $v == null then null else $v == 1 end;
   def by($rs; $name; $label):
     [$rs[]? | select(.metric.__name__ == $name) | {key: .metric[$label], value: (.value[1] | tonumber)}] | from_entries;
+  def byref($rs; $name; $ref):
+    [$rs[]? | select(.metric.__name__ == $name and .metric.ref == $ref) | {key: .metric.target, value: (.value[1] | tonumber)}] | from_entries;
+  def epoch: if . == null then null else fromdateiso8601 end;
 
   prom($metrics) as $m
-  | prom($kube) as $k
   | prom($active) as $a
   | prom($up) as $u
   | ($lock | fromjson? // null | if . == null then null else .nodes[.nodes.root.inputs.nixpkgs].locked end) as $pin
-  | by($m; "nix_cache_build_target_success"; "target") as $target_ok
-  | by($m; "nix_cache_build_closure_bytes"; "target") as $target_bytes
+  | byref($m; "nix_cache_build_target_success"; "main") as $target_ok
+  | byref($m; "nix_cache_build_closure_bytes"; "main") as $target_bytes
   | by($m; "nix_cache_flake_input_last_modified_timestamp_seconds"; "input") as $inputs
+  | ($pulls | fromjson? // null) as $prs
+  | ($prs | if type == "array" then .[0] else null end) as $pr
+  | ($checks | fromjson? // null) as $runs
+  | ($status | fromjson? // null) as $statuses
   | {
       fetched_at: $now,
       system: {
@@ -129,12 +169,14 @@ jq -n \
         success: flag(gauge($m; "nix_cache_build_success")),
         failed_phase: (first($m[]? | select(.metric.__name__ == "nix_cache_build_failed_phase" and .value[1] == "1") | .metric.phase) // null),
         last_run: gauge($m; "nix_cache_build_last_run_timestamp_seconds"),
-        last_success: gauge($k; "kube_cronjob_status_last_successful_time"),
-        next_run: gauge($k; "kube_cronjob_next_schedule_time"),
+        last_success: gauge($m; "nix_cache_build_last_success_timestamp_seconds"),
         duration: gauge($m; "nix_cache_build_duration_seconds"),
         phases: by($m; "nix_cache_build_phase_duration_seconds"; "phase"),
-        lock_changed: flag(gauge($m; "nix_cache_build_lock_changed")),
-        inputs_updated: gauge($m; "nix_cache_build_inputs_updated"),
+        main: {
+          success: flag(labelled($m; "nix_cache_ref_build_success"; {ref: "main"})),
+          finished: labelled($m; "nix_cache_ref_build_timestamp_seconds"; {ref: "main"}),
+          failing_since: labelled($m; "nix_cache_ref_failing_since_timestamp_seconds"; {ref: "main"})
+        },
         targets: ([$target_ok, $target_bytes | keys[]] | unique | map({
           name: .,
           success: flag($target_ok[.]),
@@ -144,6 +186,40 @@ jq -n \
         store_used_bytes: gauge($m; "nix_cache_builder_store_used_bytes"),
         store_size_bytes: gauge($m; "nix_cache_builder_store_size_bytes")
       },
+      update: (
+        if ($prs | type) != "array" then null
+        elif $pr == null then {open: false}
+        else {
+          open: true,
+          number: $pr.number,
+          url: $pr.html_url,
+          opened_at: ($pr.created_at | epoch),
+          auto_merge: ($pr.auto_merge != null),
+          inputs: ([($pr.body // "") | splits("\n") | select(startswith("- `"))] | length),
+          # Every check the ruleset on main requires is listed, as pending until it first reports
+          # (nix-cache only does once the builder picks the commit up on its next poll).
+          checks: (
+            ([$runs.check_runs[]? | {
+              name,
+              state: (if .status != "completed" then "pending"
+                      elif .conclusion == "success" or .conclusion == "neutral" or .conclusion == "skipped" then "success"
+                      else "failure" end),
+              since: ((if .status == "completed" then .completed_at else .started_at end) | epoch)
+            }]
+            + [$statuses.statuses[]? | {
+              name: .context,
+              state: (if .state == "success" then "success" elif .state == "pending" then "pending" else "failure" end),
+              since: (.updated_at | epoch)
+            }]) as $reported
+            | $reported + [["evaluate", "flake-checker", "poseidon", "nix-cache"][]
+                | select(. as $n | $reported | all(.name != $n))
+                | {name: ., state: "pending", since: null}]
+            | sort_by(.name)
+          ),
+          failing_since: labelled($m; "nix_cache_ref_failing_since_timestamp_seconds"; {ref: "pr-\($pr.number)"})
+        }
+        end
+      ),
       failed_units: (
         [{scope: "system", raw: $units_system}, {scope: "user", raw: $units_user}]
         | map(. as $s | ($s.raw | fromjson? // null) | if . == null then null else map({scope: $s.scope, name: .unit, description: .description}) end)
