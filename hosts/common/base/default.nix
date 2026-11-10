@@ -45,11 +45,11 @@
     fwupd.enable = true;
   };
 
+  # No sudo.execWheelOnly: services.btrbk runs as the btrbk user and calls sudo for btrfs, so
+  # restricting the binary to wheel stops the hourly /home snapshots.
   security = {
     polkit.enable = true;
     rtkit.enable = true;
-    # Only wheel members can execute the setuid sudo binary at all.
-    sudo.execWheelOnly = true;
   };
 
   # Create dirs for home-manager
