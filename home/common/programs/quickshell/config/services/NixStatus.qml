@@ -31,14 +31,15 @@ Singleton {
     // them reads `data` through stateOf() instead, since they update one after another.
     //
     // "loading" before the first read, "unreachable" while Prometheus doesn't answer (off the home
-    // network), then the cache builder's own state: "running" (a builder Job is active, which
-    // takes precedence over the last result it will replace), "failed", "ok", or "never" (the
-    // exporter has no result yet).
+    // network), then, first match wins: "failed" (main's latest commit didn't build into the cache,
+    // so a switch would build it here), "update-failing" (the flake-update pull request has a
+    // failed check), "update-pending" (it is open and its checks are still running), "running" (a
+    // builder Job is active), "ok", or "never" (the exporter has no result yet).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
-    // The last finished build failed, whether or not another is running now.
-    readonly property bool lastFailed: data?.build?.success === false
+    // Something that keeps updates from landing has failed: main's build or the update's checks.
+    readonly property bool lastFailed: ["failed", "update-failing"].includes(state)
     // Failed systemd units, system and user ([{ scope, name, description }]); empty when none or
     // when neither manager answered (`data.failed_units` null), so a missing read stays calm.
     readonly property var failedUnits: data?.failed_units ?? []
@@ -50,17 +51,44 @@ Singleton {
             return failed ? "unreachable" : "loading";
         if (!(d.cache?.reachable ?? false))
             return "unreachable";
+        if (d.build?.main?.success === false)
+            return "failed";
+        if (d.update?.open && failingChecks(d.update).length > 0)
+            return "update-failing";
+        if (d.update?.open)
+            return "update-pending";
         if (d.build?.running ?? false)
             return "running";
-        if (d.build?.success === false)
-            return "failed";
         if (d.build?.last_run !== null && d.build?.last_run !== undefined)
             return "ok";
         return "never";
     }
 
+    function failingChecks(update: var): var {
+        return (update?.checks ?? []).filter(c => c.state === "failure");
+    }
+
+    function pendingChecks(update: var): var {
+        return (update?.checks ?? []).filter(c => c.state === "pending");
+    }
+
+    // When the update started failing: the builder's record for nix-cache, kept across the pull
+    // request's nightly refreshes, else the earliest failed check on its current commit.
+    function updateFailingSince(update: var): var {
+        const times = failingChecks(update).map(c => c.name === "nix-cache" && update.failing_since ? update.failing_since : c.since).filter(t => t !== null && t !== undefined);
+        return times.length === 0 ? null : Math.min(...times);
+    }
+
+    // "nix-cache and poseidon", "3 checks" past two.
+    function names(checks: var): string {
+        if (checks.length > 2)
+            return `${checks.length} checks`;
+        return checks.map(c => c.name).join(" and ");
+    }
+
     function summaryOf(d: var): string {
         const build = d?.build;
+        const update = d?.update;
         const parts = [];
         switch (stateOf(d)) {
         case "loading":
@@ -68,11 +96,23 @@ Singleton {
         case "unreachable":
             parts.push("Cache unreachable");
             break;
-        case "running":
-            parts.push(build.success === false ? "Build running, last failed" : "Build running");
-            break;
         case "failed":
-            parts.push(`Failed${build.failed_phase ? ` at ${build.failed_phase} step` : ""}, ${ago(build.last_run)}`);
+            parts.push(`main failing${build.main.failing_since ? ` for ${span(now / 1000 - build.main.failing_since)}` : ""}`);
+            break;
+        case "update-failing":
+            {
+                const since = updateFailingSince(update);
+                parts.push(`Update #${update.number} failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
+                break;
+            }
+        case "update-pending":
+            {
+                const pending = pendingChecks(update);
+                parts.push(pending.length === 0 ? `Update #${update.number} merging` : `Update #${update.number} waiting on ${names(pending)}`);
+                break;
+            }
+        case "running":
+            parts.push("Build running");
             break;
         case "ok":
             parts.push(`Built ${ago(build.last_run)}`);
@@ -82,7 +122,7 @@ Singleton {
             break;
         }
         if (d.upstream?.update_available)
-            parts.push("update on main");
+            parts.push("switch pending");
         if (d.system?.reboot_pending)
             parts.push("reboot pending");
         const failedCount = d.failed_units?.length ?? 0;
@@ -182,7 +222,8 @@ Singleton {
     }
 
     // `next`'s local fields always win; a remote section that came back unreachable is replaced by
-    // the previous one while that is recent (see staleFor). Prometheus gives both cache and build.
+    // the previous one while that is recent (see staleFor). Prometheus gives both cache and build,
+    // GitHub upstream and update.
     function accept(next: var) {
         const prev = root.data;
         const recent = prev !== null && Date.now() - root.fetchedAt < root.staleFor;
@@ -199,6 +240,10 @@ Singleton {
         }
         if (!(next.upstream?.reachable) && recent && prev.upstream?.reachable) {
             merged.upstream = prev.upstream;
+            missed = true;
+        }
+        if ((next.update === null || next.update === undefined) && recent && prev.update) {
+            merged.update = prev.update;
             missed = true;
         }
         if (next.system && next.system.cached === null && recent && prev.system?.cached !== null && prev.system?.cached !== undefined) {
