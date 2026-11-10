@@ -68,17 +68,6 @@ BarPopup {
         root.visible = false;
     }
 
-    // The panel closes first, so it isn't in the first frames of the file.
-    function toggleRecording() {
-        root.visible = false;
-        Recorder.toggle();
-    }
-
-    function saveReplay() {
-        root.visible = false;
-        Replay.save();
-    }
-
     function updateScanner() {
         if (wifiDevice)
             wifiDevice.scannerEnabled = visible && view === NetworkPanel.View.Wifi;
@@ -289,41 +278,6 @@ BarPopup {
                 canToggle: false
                 onToggled: root.castScreen()
                 onOpened: root.castScreen()
-            }
-
-            // Starts or stops the screen recording (services/Recorder.qml), like its keybind.
-            PanelRow {
-                icon: Recorder.recording ? Icons.stop : Icons.record
-                iconColor: Recorder.recording ? Theme.alert : Theme.muted
-                label: Recorder.recording ? "Stop recording" : "Record screen"
-                sublabel: Recorder.stopping ? "Finishing the file…" : Recorder.recording ? `Recording ${Recorder.monitor} · ${Recorder.elapsedText}` : "The focused screen and what it plays"
-                canOpen: false
-                canToggle: false
-                onToggled: root.toggleRecording()
-                onOpened: root.toggleRecording()
-            }
-
-            // Keeps the last minutes of the primary screen ready to save (services/Replay.qml).
-            PanelRow {
-                icon: Icons.replay
-                on: Replay.armed
-                label: "Instant replay"
-                sublabel: Replay.armed ? `On · the last ${Replay.span} of ${Replay.monitor}` : `Off · keeps the last ${Replay.span} of ${Replay.monitor}`
-                canOpen: false
-                canToggle: false
-                onToggled: Replay.toggle()
-                onOpened: Replay.toggle()
-            }
-
-            PanelRow {
-                visible: Replay.armed
-                icon: Icons.contentSave
-                label: "Save replay"
-                sublabel: `The last ${Replay.span}, to the recordings folder`
-                canOpen: false
-                canToggle: false
-                onToggled: root.saveReplay()
-                onOpened: root.saveReplay()
             }
 
             DeviceBatteries {

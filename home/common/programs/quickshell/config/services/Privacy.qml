@@ -6,9 +6,9 @@ import Quickshell
 // Apps currently capturing the microphone, camera, screen or system audio (services/Captures.qml),
 // and where audio is being cast: the AirPlay speakers playing this computer's output.
 // Each list holds { name, icon } entries, one per app or speaker. The shell's own screen
-// recording (services/Recorder.qml) isn't listed: it has its bar indicator, and counts as on air.
-// Its instant replay buffer (services/Replay.qml) is neither: it shares nothing until a clip is
-// saved, so it is not on air and has no indicator.
+// recording (services/Recorder.qml) isn't listed: the bar's capture glyph shows it, and it counts
+// as on air. Its instant replay buffer (services/Replay.qml) is neither: it shares nothing until a
+// clip is saved, so it is not on air, and the capture glyph is only gilt (on) while it runs.
 Singleton {
     id: root
 

@@ -294,7 +294,7 @@ in
     "QS_LONGITUDE=${config.services.wlsunset.longitude}"
     # Where screen recordings go (xdg.userDirs, home/common/shell/xdg.nix).
     "QS_RECORDINGS_DIR=${config.xdg.userDirs.extraConfig.RECORDINGS}"
-    # Instant replay (replaySeconds, replayMonitor above), for the panel's labels.
+    # Instant replay (replaySeconds, replayMonitor above), for the capture menu's labels.
     "QS_REPLAY_SECONDS=${toString replaySeconds}"
     "QS_REPLAY_MONITOR=${replayMonitor}"
   ];

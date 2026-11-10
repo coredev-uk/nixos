@@ -3,6 +3,7 @@
   imports = [
     ./tiling-common.nix
     ./greeter.nix
+    ./sudo-polkit.nix
   ];
 
   # Single Hyprland source for the whole session: the compositor, its cap_sys_nice wrapper,

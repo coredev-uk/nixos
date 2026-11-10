@@ -5,13 +5,14 @@ import Quickshell
 import Quickshell.Io
 
 // Instant replay: gpu-screen-recorder keeps the last few minutes of the primary monitor and of what
-// the default output plays in RAM, and a save writes them to the recordings folder
-// (`quickshell ipc -c bar call replay save`, Super+Shift+C, or the control panel's Save replay row).
+// the default output plays in RAM, and a save writes them, or just their last stretch, to the
+// recordings folder (the capture menu, modules/CaptureMenu.qml; Super+Shift+C for the last 30 s,
+// Super+Ctrl+Shift+C for all of it; `quickshell ipc -c bar call replay save|clip SECONDS`).
 // The buffer runs as the quickshell-replay user unit (default.nix), which systemd supervises and
 // which outlives the bar, so a restart on switch doesn't empty it. Whether it is armed is kept in
 // the state dir like Do Not Disturb, and the bar starts the unit again at login. Buffering shares
-// nothing, so it isn't on air (Privacy) and the bar shows no indicator of it: the control panel's
-// row is lit while it is armed. The clip is named and announced by scripts/record.sh.
+// nothing, so it isn't on air (Privacy): the capture glyph is gilt while it is armed. The clip is
+// named and announced by scripts/record.sh.
 Singleton {
     id: root
 
@@ -53,13 +54,29 @@ Singleton {
         poll.stop();
     }
 
-    // The recorder writes the buffer when its unit gets SIGUSR1; record.sh takes it from there.
-    function save() {
+    // The recorder writes the whole buffer on SIGUSR1, and only its end on SIGRTMIN+1..6 (these
+    // lengths, gpu-screen-recorder(1)); record.sh takes it from there.
+    readonly property var clipSignals: ({
+            "10": "SIGRTMIN+1",
+            "30": "SIGRTMIN+2",
+            "60": "SIGRTMIN+3",
+            "300": "SIGRTMIN+4",
+            "600": "SIGRTMIN+5",
+            "1800": "SIGRTMIN+6"
+        })
+
+    // All of the buffer, or (with `last`, one of clipSignals' lengths shorter than it) its end.
+    function save(last: int) {
         if (!armed || !active) {
-            fail("Instant replay isn't running. Turn it on in the control panel first.");
+            fail("Instant replay isn't running. Turn it on from the capture menu first.");
             return;
         }
-        saver.run(["systemctl", "--user", "kill", "--kill-whom=main", "--signal=SIGUSR1", unit]);
+        const signal = last > 0 && last < seconds ? clipSignals[String(last)] : "SIGUSR1";
+        if (!signal) {
+            fail(`Can't save the last ${last} seconds: gpu-screen-recorder saves 10 s, 30 s, 1, 5, 10 or 30 min.`);
+            return;
+        }
+        saver.run(["systemctl", "--user", "kill", "--kill-whom=main", `--signal=${signal}`, unit]);
     }
 
     function start() {
@@ -170,7 +187,11 @@ Singleton {
             root.toggle();
         }
         function save(): void {
-            root.save();
+            root.save(0);
+        }
+        // The last SECONDS of it: 10, 30, 60, 300, 600 or 1800.
+        function clip(seconds: int): void {
+            root.save(seconds);
         }
     }
 }

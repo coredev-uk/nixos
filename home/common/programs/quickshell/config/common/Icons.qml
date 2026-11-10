@@ -118,8 +118,11 @@ Singleton {
     readonly property string speaker: String.fromCodePoint(0xF04C3) // speaker
     readonly property string speakerWireless: String.fromCodePoint(0xF071F) // speaker_wireless
 
-    // Screen recording (Recorder indicator and the control panel's Record screen row) and instant
-    // replay (its rows; contentSave is shared with the screenshot popup below)
+    // The bar's capture glyph and its menu (CaptureButton, CaptureMenu): screenshot, recording and
+    // instant replay (contentSave is shared with the screenshot popup below)
+    // Outline, like Caffeine's idle cup beside it.
+    readonly property string capture: String.fromCodePoint(0xF0D5D) // camera_outline
+    readonly property string screenshot: String.fromCodePoint(0xF0E51) // monitor_screenshot
     readonly property string record: String.fromCodePoint(0xF044A) // record
     readonly property string stop: String.fromCodePoint(0xF04DB) // stop
     readonly property string replay: String.fromCodePoint(0xF0459) // replay

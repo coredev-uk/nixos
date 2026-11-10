@@ -7,8 +7,8 @@ import Quickshell.Io
 
 // Screen recording: gpu-screen-recorder (hardware encoding) capturing the focused monitor and what
 // the default output plays into the recordings folder (xdg.userDirs, set as QS_RECORDINGS_DIR by
-// default.nix), started and stopped by `quickshell ipc -c bar call recorder toggle`, the control
-// panel's Record screen row or the bar's indicator (modules/RecordingIndicator.qml). A recording
+// default.nix), started and stopped by `quickshell ipc -c bar call recorder toggle` (Super+Shift+R)
+// or the capture menu (modules/CaptureMenu.qml), whose bar glyph shows the time. A recording
 // counts as on air (Privacy.onAir) from the moment it starts until the file is finished. The
 // recorder runs through the quickshell-record helper (scripts/record.sh), which also raises the
 // notifications: the file when it's saved, the reason when it fails.

@@ -52,8 +52,10 @@ in
     (bind "CTRL + SHIFT + Space" (exec "quickshell ipc -c bar call pass toggle"))
     # Screen recording on the focused monitor (home/common/programs/quickshell/config/services/Recorder.qml)
     (bind "${mod} + SHIFT + R" (exec "quickshell ipc -c bar call recorder toggle"))
-    # Save the instant replay buffer as a clip (home/common/programs/quickshell/config/services/Replay.qml)
-    (bind "${mod} + SHIFT + C" (exec "quickshell ipc -c bar call replay save"))
+    # Instant replay (home/common/programs/quickshell/config/services/Replay.qml): save the last
+    # 30 seconds, or all of the buffer with Ctrl
+    (bind "${mod} + SHIFT + C" (exec "quickshell ipc -c bar call replay clip 30"))
+    (bind "${mod} + CTRL + SHIFT + C" (exec "quickshell ipc -c bar call replay save"))
 
     # WM Controls
     (bind "${mod} + R" (exec "hyprctl reload"))

@@ -23,12 +23,18 @@ Scope {
     property bool wrongPassword: false
 
     readonly property bool canSubmit: flow !== null && flow.isResponseRequired && !checking
+    // pam_u2f (hosts/common/desktop/default.nix) waits for a touch without asking for anything,
+    // after its cue: the field says so instead of asking for a password. The password follows
+    // if the key isn't touched.
+    readonly property bool awaitingKey: flow !== null && !flow.isResponseRequired && !checking && !(flow.supplementaryIsError ?? false) && (flow.supplementaryMessage ?? "") !== ""
     readonly property string statusText: {
         const message = flow?.supplementaryMessage ?? "";
         // pam_unix reports nothing on a wrong password, but e.g. faillock explains itself.
         if (wrongPassword)
             return flow?.supplementaryIsError && message !== "" ? message : "Wrong password, try again";
-        return message;
+        // Information is about the wait it came with (the key's cue, shown in the field); once a
+        // password is asked for, it's stale. Errors stay.
+        return flow?.supplementaryIsError ? message : "";
     }
     readonly property bool statusIsError: wrongPassword || (flow?.supplementaryIsError ?? false)
 
@@ -312,10 +318,10 @@ Scope {
                                     anchors.left: parent.left
                                     anchors.leftMargin: 12
                                     anchors.verticalCenter: parent.verticalCenter
-                                    text: Icons.lock
-                                    // Lifts out of idle while PAM checks, with the "Checking…" beside it.
-                                    color: root.wrongPassword ? Theme.alert : root.checking ? Theme.text2 : Theme.muted
-                                    font.pixelSize: 14
+                                    text: root.awaitingKey ? Icons.key : Icons.lock
+                                    // Lifts out of idle while PAM checks or waits for the key, with the
+                                    // words beside it.
+                                    color: root.wrongPassword ? Theme.alert : root.checking || root.awaitingKey ? Theme.text2 : Theme.muted
                                 }
 
                                 TextInput {
@@ -343,7 +349,7 @@ Scope {
                                         visible: input.text === ""
                                         // PAM prompts end in a colon ("Password: "). The field is emptied on submit,
                                         // so this also shows the wait for PAM's answer.
-                                        text: root.checking ? "Checking…" : (root.flow?.inputPrompt ?? "").replace(/:\s*$/, "") || "Password"
+                                        text: root.checking ? "Checking…" : root.awaitingKey ? root.flow.supplementaryMessage : (root.flow?.inputPrompt ?? "").replace(/:\s*$/, "") || "Password"
                                         // text2: the field has no label of its own, and "Checking…" is a status.
                                         color: Theme.text2
                                         font.pixelSize: 12
