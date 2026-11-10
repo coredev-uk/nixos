@@ -1,8 +1,8 @@
 name: "Flake Checks"
 
 # Fast checks on every push: evaluate every configuration (catches option, type and
-# module errors) and check formatting, without building anything. Full builds run in
-# nix-build.yml (weekly, on lock changes, or manually).
+# module errors) and run the flake's own checks (formatting), without building any host.
+# Full builds run in nix-build.yml (weekly, on lock changes, or manually).
 on:
   push:
     # Nothing in these affects an evaluated output.
@@ -12,6 +12,9 @@ on:
       - "vfio-hardening/**"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 # A newer push to the same branch supersedes a running check; only the latest commit matters.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -19,16 +22,28 @@ concurrency:
 
 jobs:
   evaluate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
+      # The caches hosts/default.nix configures.
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          extra-conf: |
+            extra-substituters = https://nix-citizen.cachix.org https://nix-community.cachix.org
+            extra-trusted-public-keys = nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
       # NixOS configurations, devShells, formatter and overlays, for every system.
-      - name: Check flake outputs (no build)
+      - name: Evaluate flake outputs (no build)
         run: nix flake check --no-build --all-systems
+
+      # Builds the checks of this runner's system (formatting); `--no-build` above only
+      # evaluates them. Other systems' checks cannot be built here.
+      - name: Build flake checks
+        run: nix flake check -L
 
       # Not covered by `nix flake check`. poseidon has no IFD, so an x86_64-linux runner
       # can evaluate it; building it needs macOS (nix-build.yml).
@@ -37,16 +52,15 @@ jobs:
           nix eval --raw '.#homeConfigurations."paul@atlas".activationPackage.drvPath'
           nix eval --raw .#darwinConfigurations.poseidon.system.drvPath
 
-      - name: Check formatting
-        run: nix fmt -- --ci
-
+  # Reads flake.lock only, no Nix needed.
   flake-checker:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - uses: actions/checkout@v7
-
-      - name: Install nix
-        uses: DeterminateSystems/nix-installer-action@v23
+        with:
+          persist-credentials: false
 
       - name: Check flake inputs
         uses: DeterminateSystems/flake-checker-action@v14
+        with:
+          nixpkgs-keys: nixpkgs,unstable

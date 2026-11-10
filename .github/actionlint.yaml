@@ -1,0 +1,13 @@
+# actionlint's built-in label list lags GitHub's runner images; ubuntu-26.04 is a hosted
+# runner label (actions/runner-images README), not a self-hosted one.
+self-hosted-runner:
+  labels:
+    - ubuntu-26.04
+
+# Its bundled action metadata also lags: create-github-app-token v3 takes client-id (app-id is
+# deprecated there).
+paths:
+  .github/workflows/update-flake-lock.yml:
+    ignore:
+      - 'missing input "app-id"'
+      - 'input "client-id" is not defined'

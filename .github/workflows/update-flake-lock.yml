@@ -1,0 +1,89 @@
+name: "Update flake.lock"
+
+# Nightly `nix flake update`, proposed by BOT Cecil (bot-cecil[bot]) as one pull request on the
+# flake-update branch, which every run refreshes from main. It merges itself (auto-merge, squash)
+# once the checks main's ruleset requires have passed: Flake Checks, the poseidon build, and
+# nix-cache, the status home-ops' builder (kubernetes/apps/nix-cache) sets once it has built
+# atlas's system and home into the binary cache. A failure leaves the PR open and main as it was.
+on:
+  schedule:
+    - cron: "30 23 * * *" # before the night, so the builder has it built by morning
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-26.04
+    steps:
+      # The bot-cecil app's credentials (1Password item kubernetes/bot-cecil). Its token's
+      # pushes, unlike GITHUB_TOKEN's, trigger the PR's checks.
+      - name: Generate BOT Cecil token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      # The inputs that moved, with a compare link for GitHub ones, for the commit and PR body.
+      - name: Update flake inputs
+        id: update
+        run: |
+          old=$(mktemp)
+          cp flake.lock "$old"
+          nix flake update
+          {
+            echo 'changes<<EOF'
+            jq -r --slurpfile old "$old" '
+              .nodes as $n | $old[0].nodes as $o | .nodes.root.inputs | to_entries[]
+              | (.value | if type == "array" then .[0] else . end) as $k
+              | ($o[$k].locked.rev // "") as $a | ($n[$k].locked // {}) as $b
+              | select($a != ($b.rev // ""))
+              | if $b.type == "github" and $a != "" then
+                  "- `\(.key)`: [`\($a[0:7])` → `\($b.rev[0:7])`](https://github.com/\($b.owner)/\($b.repo)/compare/\($a)...\($b.rev))"
+                else
+                  "- `\(.key)`: `\($a[0:7])` → `\(($b.rev // "")[0:7])`"
+                end' flake.lock
+            echo EOF
+          } >>"$GITHUB_OUTPUT"
+
+      # sign-commits: the commit goes through GitHub's API, so it is BOT Cecil's and Verified.
+      - name: Open or refresh the pull request
+        id: pr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          branch: flake-update
+          delete-branch: true
+          add-paths: flake.lock
+          commit-message: |
+            chore(flake): update inputs
+
+            ${{ steps.update.outputs.changes }}
+          title: "chore(flake): update inputs"
+          body: |
+            ${{ steps.update.outputs.changes }}
+
+            Merges itself once Flake Checks, the poseidon build and `nix-cache` (atlas's system and home built into the binary cache by home-ops' nix-cache-builder) pass.
+
+      - name: Merge once the required checks pass
+        if: steps.pr.outputs.pull-request-number != '' && steps.pr.outputs.pull-request-operation != 'closed'
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          PR: ${{ steps.pr.outputs.pull-request-number }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --squash
