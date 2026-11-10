@@ -22,9 +22,11 @@ in
   '';
 
   hardware.nvidia = {
-    # Open kernel modules: NVIDIA's recommended path for Turing and newer (the RTX 3080 is
-    # Ampere). Set back to false if the VFIO hook can no longer unload the driver.
-    open = true;
+    # Proprietary kernel modules. The open ones (tried 2026-11-10) broke the single-GPU VM: it
+    # started, but the passed-through card stayed black with its fans at full. Open 610.57.04
+    # also has Ampere + Hyprland lockups (NVIDIA/open-gpu-kernel-modules#1411) and VFIO ROM
+    # reads failing (#955).
+    open = false;
 
     package = pinned;
 
