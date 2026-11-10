@@ -1,4 +1,5 @@
 {
+  pkgs,
   meta,
   ...
 }:
@@ -26,8 +27,13 @@
 
   programs.git =
     let
-      opSignProgram =
-        if meta.isDarwin then
+      # op-ssh-sign is 1Password's `ssh-keygen -Y sign`. With Proton Pass, plain ssh-keygen signs
+      # through the agent in SSH_AUTH_SOCK (home/common/shell/ssh.nix); signingKey below is the
+      # public key, which git passes as a literal.
+      signProgram =
+        if meta.passwordManager == "proton-pass" then
+          "${pkgs.openssh}/bin/ssh-keygen"
+        else if meta.isDarwin then
           "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
         else
           # From the system programs._1password-gui (hosts/common/desktop/1password.nix)
@@ -101,7 +107,7 @@
         gpg = {
           format = "ssh";
           ssh.allowedSignersFile = "~/.config/git/allowed_signers";
-          ssh.program = opSignProgram;
+          ssh.program = signProgram;
         };
 
       };

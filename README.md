@@ -16,6 +16,28 @@ was a great help at getting going.
 | `poseidon` | macOS (nix-darwin) | Laptop  |       N/A        |   Working   |
 |  `athena`  |      Windows       | Desktop |       N/A        |     N/A     |
 
+## Password Manager
+
+`passwordManager` in `flake.nix` is the one switch: `"1password"` (the default) or
+`"proton-pass"`. Every module reads it as `meta.passwordManager`; rebuild atlas
+(NixOS and Home Manager) and poseidon after changing it.
+
+| | 1Password | Proton Pass |
+| --- | --- | --- |
+| SSH agent | the app's agent, keys listed in `~/.config/1Password/ssh/agent.toml` | `pass-cli ssh-agent start` as a user service (systemd on atlas, launchd on poseidon), socket `~/.ssh/proton-pass-agent.sock`; it serves every SSH key item of the signed-in account |
+| Commit signing | `op-ssh-sign` | git's `ssh-keygen` through that agent |
+| App | `programs._1password-gui`, polkit unlock, started hidden by Hyprland | `proton-pass` (Home Manager on atlas, the Homebrew cask on poseidon), not started at login |
+| Browser | 1Password extension and the `custom_allowed_browsers` entry for Zen | the Proton Pass extension, already installed with either |
+
+Before switching to Proton Pass, import the SSH keys into it with `pass-cli item
+create ssh-key import` (the public keys in `home/common/shell/ssh.nix` and
+`home/common/shell/git.nix` stay valid only for the same keys) and sign in with
+`pass-cli login` (the bar's Proton Pass window does it on atlas); the agent
+service retries every 30 seconds until then. 1Password's polkit unlock and its
+browser allow-list have no Proton Pass counterpart here: Proton's app and
+extension unlock with their own settings. The items other repositories read are
+covered in coredev-uk/home-ops's `.github/README.md`.
+
 ## Bootstrap Guide
 
 Clone the repo, run `nix develop` then `./install-with-disk`.

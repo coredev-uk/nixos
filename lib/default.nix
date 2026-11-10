@@ -3,6 +3,7 @@
   inputs,
   outputs,
   username,
+  passwordManager,
   ...
 }:
 let
@@ -12,6 +13,7 @@ let
       inputs
       outputs
       username
+      passwordManager
       ;
   };
 in

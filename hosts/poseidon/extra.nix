@@ -43,8 +43,10 @@
 
   services.tailscale.enable = true;
 
-  programs._1password.enable = true;
-  programs._1password-gui.enable = true;
+  # Proton Pass's app is the `proton-pass` cask below; its CLI and SSH agent are Home Manager's
+  # (home/common/shell/ssh.nix).
+  programs._1password.enable = meta.passwordManager == "1password";
+  programs._1password-gui.enable = meta.passwordManager == "1password";
 
   # Home-manager's zsh (oh-my-zsh) runs compinit and sets the prompt. nix-darwin's own
   # compinit in /etc/zshrc shares ~/.zcompdump between Ghostty's login shell (/bin/zsh 5.9)
