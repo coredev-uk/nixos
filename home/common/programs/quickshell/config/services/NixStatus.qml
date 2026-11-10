@@ -32,13 +32,14 @@ Singleton {
     //
     // "loading" before the first read, "unreachable" while Prometheus doesn't answer (off the home
     // network), then, first match wins: "failed" (main's latest commit didn't build into the cache,
-    // so a switch would build it here), "update-failing" (the flake-update pull request has a
-    // failed check), "update-pending" (it is open and its checks are still running), "running" (a
-    // builder Job is active), "ok", or "never" (the exporter has no result yet).
+    // so a switch would build it here), "update-failing" (a lock update pull request, one per
+    // flake input, has a failed check), "update-pending" (updates are open and their checks still
+    // running), "running" (a builder Job is active), "ok", or "never" (the exporter has no result
+    // yet).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
-    // Something that keeps updates from landing has failed: main's build or the update's checks.
+    // Something that keeps updates from landing has failed: main's build or an update's checks.
     readonly property bool lastFailed: ["failed", "update-failing"].includes(state)
     // Failed systemd units, system and user ([{ scope, name, description }]); empty when none or
     // when neither manager answered (`data.failed_units` null), so a missing read stays calm.
@@ -53,9 +54,9 @@ Singleton {
             return "unreachable";
         if (d.build?.main?.success === false)
             return "failed";
-        if (d.update?.open && failingChecks(d.update).length > 0)
+        if (failingUpdates(d).length > 0)
             return "update-failing";
-        if (d.update?.open)
+        if ((d.updates ?? []).length > 0)
             return "update-pending";
         if (d.build?.running ?? false)
             return "running";
@@ -72,11 +73,23 @@ Singleton {
         return (update?.checks ?? []).filter(c => c.state === "pending");
     }
 
-    // When the update started failing: the builder's record for nix-cache, kept across the pull
-    // request's nightly refreshes, else the earliest failed check on its current commit.
+    // The open lock updates with a failed check, longest-failing first.
+    function failingUpdates(d: var): var {
+        return (d?.updates ?? []).filter(u => failingChecks(u).length > 0).sort((a, b) => (updateFailingSince(a) ?? 0) - (updateFailingSince(b) ?? 0));
+    }
+
+    // When an update started failing: the builder's record for nix-cache, kept across the pull
+    // request's refreshes, else the earliest failed check on its current commit.
     function updateFailingSince(update: var): var {
         const times = failingChecks(update).map(c => c.name === "nix-cache" && update.failing_since ? update.failing_since : c.since).filter(t => t !== null && t !== undefined);
         return times.length === 0 ? null : Math.min(...times);
+    }
+
+    // "unstable and sona", "3 updates" past two.
+    function inputs(updates: var): string {
+        if (updates.length > 2)
+            return `${updates.length} updates`;
+        return updates.map(u => u.input).join(" and ");
     }
 
     // "nix-cache and poseidon", "3 checks" past two.
@@ -88,7 +101,6 @@ Singleton {
 
     function summaryOf(d: var): string {
         const build = d?.build;
-        const update = d?.update;
         const parts = [];
         switch (stateOf(d)) {
         case "loading":
@@ -101,14 +113,15 @@ Singleton {
             break;
         case "update-failing":
             {
-                const since = updateFailingSince(update);
-                parts.push(`Update #${update.number} failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
+                const failing = failingUpdates(d);
+                const since = updateFailingSince(failing[0]);
+                parts.push(`${failing.length === 1 ? `${failing[0].input} update` : inputs(failing)} failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
                 break;
             }
         case "update-pending":
             {
-                const pending = pendingChecks(update);
-                parts.push(pending.length === 0 ? `Update #${update.number} merging` : `Update #${update.number} waiting on ${names(pending)}`);
+                const count = d.updates.length;
+                parts.push(count === 1 ? `${d.updates[0].input} update pending` : `${count} updates pending`);
                 break;
             }
         case "running":
@@ -242,8 +255,8 @@ Singleton {
             merged.upstream = prev.upstream;
             missed = true;
         }
-        if ((next.update === null || next.update === undefined) && recent && prev.update) {
-            merged.update = prev.update;
+        if ((next.updates === null || next.updates === undefined) && recent && prev.updates) {
+            merged.updates = prev.updates;
             missed = true;
         }
         if (next.system && next.system.cached === null && recent && prev.system?.cached !== null && prev.system?.cached !== undefined) {

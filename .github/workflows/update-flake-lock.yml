@@ -1,25 +1,71 @@
-name: "Update flake.lock"
+name: "Update flake inputs"
 
-# Nightly `nix flake update`, proposed by BOT Cecil (bot-cecil[bot]) as one pull request on the
-# flake-update branch, which every run refreshes from main. It merges itself (auto-merge, squash)
-# once the checks main's ruleset requires have passed: Flake Checks, the poseidon build, and
-# nix-cache, the status home-ops' builder (kubernetes/apps/nix-cache) sets once it has built
-# atlas's system and home into the binary cache. A failure leaves the PR open and main as it was.
+# One pull request per flake input that has an update, from BOT Cecil (bot-cecil[bot]), each on its
+# own branch (flake-update/<input>) and merging itself (auto-merge, squash) once the checks main's
+# ruleset requires have passed: Flake Checks, the poseidon build, and nix-cache, the status
+# home-ops' builder (kubernetes/apps/nix-cache) sets once it has built atlas's system and home into
+# the binary cache. An input that breaks the build stays open on its own while the rest land.
+#
+# Runs nightly, and whenever a push to main changes the flake: every open update is then redone on
+# top of the new main, so their flake.locks never conflict and an input that depends on another's
+# update (nixvim following unstable) passes once that one has merged. An update main already has
+# is closed.
 on:
   schedule:
-    - cron: "30 23 * * *" # before the night, so the builder has it built by morning
+    - cron: "30 23 * * *" # before the night, so the builder has them built by morning
+  push:
+    branches:
+      - main
+    paths:
+      - "flake.lock"
+      - "flake.nix"
   workflow_dispatch:
 
 permissions:
   contents: read
 
+# One run at a time; a push while one runs queues the next, which sees the newest main.
 concurrency:
   group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
-  update:
+  plan:
     runs-on: ubuntu-26.04
+    outputs:
+      inputs: ${{ steps.plan.outputs.inputs }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      # The root inputs whose locked source would change. Node names can be renumbered between
+      # locks (nixpkgs_2 …), so each side is looked up through its own root.
+      - name: Find inputs with updates
+        id: plan
+        run: |
+          old=$(mktemp)
+          cp flake.lock "$old"
+          nix flake update
+          inputs=$(jq -c --slurpfile old "$old" '
+            .nodes as $n | $old[0].nodes as $o
+            | [.nodes.root.inputs | to_entries[] | select(.value | type == "string")
+              | select($o[$o.root.inputs[.key]].locked.narHash != $n[.value].locked.narHash) | .key]' flake.lock)
+          echo "inputs=$inputs" >>"$GITHUB_OUTPUT"
+          echo "Inputs with updates: $inputs"
+
+  update:
+    needs: plan
+    if: needs.plan.outputs.inputs != '[]'
+    runs-on: ubuntu-26.04
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        input: ${{ fromJSON(needs.plan.outputs.inputs) }}
     steps:
       # The bot-cecil app's credentials (1Password item kubernetes/bot-cecil). Its token's
       # pushes, unlike GITHUB_TOKEN's, trigger the PR's checks.
@@ -39,47 +85,48 @@ jobs:
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
 
-      # The inputs that moved, with a compare link for GitHub ones, for the commit and PR body.
-      - name: Update flake inputs
+      # Only this input; inputs that follow it (nixvim → unstable) move with it.
+      - name: Update ${{ matrix.input }}
         id: update
+        env:
+          INPUT: ${{ matrix.input }}
         run: |
           old=$(mktemp)
           cp flake.lock "$old"
-          nix flake update
+          nix flake update "$INPUT"
           {
-            echo 'changes<<EOF'
-            jq -r --slurpfile old "$old" '
-              .nodes as $n | $old[0].nodes as $o | .nodes.root.inputs | to_entries[]
-              | (.value | if type == "array" then .[0] else . end) as $k
-              | ($o[$k].locked.rev // "") as $a | ($n[$k].locked // {}) as $b
-              | select($a != ($b.rev // ""))
-              | if $b.type == "github" and $a != "" then
-                  "- `\(.key)`: [`\($a[0:7])` → `\($b.rev[0:7])`](https://github.com/\($b.owner)/\($b.repo)/compare/\($a)...\($b.rev))"
+            echo 'change<<EOF'
+            jq -r --slurpfile old "$old" --arg k "$INPUT" '
+              $old[0].nodes[$old[0].nodes.root.inputs[$k]].locked as $a
+              | .nodes[.nodes.root.inputs[$k]].locked as $b
+              | if $b.type == "github" and ($a.rev // "") != "" then
+                  "`\($k)`: [`\($a.rev[0:7])` → `\($b.rev[0:7])`](https://github.com/\($b.owner)/\($b.repo)/compare/\($a.rev)...\($b.rev))"
                 else
-                  "- `\(.key)`: `\($a[0:7])` → `\(($b.rev // "")[0:7])`"
+                  "`\($k)`: `\(($a.rev // $a.narHash)[0:12])` → `\(($b.rev // $b.narHash)[0:12])`"
                 end' flake.lock
             echo EOF
           } >>"$GITHUB_OUTPUT"
 
       # sign-commits: the commit goes through GitHub's API, so it is BOT Cecil's and Verified.
+      # With nothing left to change (main already has it), the branch and its PR are removed.
       - name: Open or refresh the pull request
         id: pr
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           sign-commits: true
-          branch: flake-update
+          branch: flake-update/${{ matrix.input }}
           delete-branch: true
           add-paths: flake.lock
           commit-message: |
-            chore(flake): update inputs
+            chore(flake): update ${{ matrix.input }}
 
-            ${{ steps.update.outputs.changes }}
-          title: "chore(flake): update inputs"
+            ${{ steps.update.outputs.change }}
+          title: "chore(flake): update ${{ matrix.input }}"
           body: |
-            ${{ steps.update.outputs.changes }}
+            ${{ steps.update.outputs.change }}
 
-            Merges itself once Flake Checks, the poseidon build and `nix-cache` (atlas's system and home built into the binary cache by home-ops' nix-cache-builder) pass.
+            Merges itself once Flake Checks, the poseidon build and `nix-cache` (atlas's system and home built into the binary cache by home-ops' nix-cache-builder) pass. Redone on top of main whenever main's flake changes.
 
       - name: Merge once the required checks pass
         if: steps.pr.outputs.pull-request-number != '' && steps.pr.outputs.pull-request-operation != 'closed'
@@ -87,3 +134,31 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           PR: ${{ steps.pr.outputs.pull-request-number }}
         run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --squash
+
+  # Open update PRs for inputs that no longer have an update (main caught up some other way).
+  close-stale:
+    needs: plan
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Generate BOT Cecil token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Close updates main already has
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          INPUTS: ${{ needs.plan.outputs.inputs }}
+        run: |
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json number,headRefName \
+            --jq '.[] | select(.headRefName | startswith("flake-update/")) | "\(.number) \(.headRefName)"' |
+            while read -r number branch; do
+              if ! jq -e --arg i "${branch#flake-update/}" 'index($i) != null' <<<"$INPUTS" >/dev/null; then
+                gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
+                  --comment "main already has this input's latest revision."
+              fi
+            done

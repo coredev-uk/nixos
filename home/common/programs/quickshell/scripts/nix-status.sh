@@ -11,11 +11,12 @@
 #   build     the nix-cache-builder (polls every 30 minutes, builds new commits on main and on open
 #             pull requests): its last run, and main's latest built commit (success, failing_since,
 #             targets); build.* from the exporter are absent until the first run has finished
-#   update    the open flake-update pull request (BOT Cecil's nightly lock update, which merges
-#             itself once its checks pass): number, url, opened_at, auto_merge, inputs (how many
-#             moved), checks [{name, state: success|failure|pending, since}] with nix-cache among
-#             them, and failing_since, since when the builder has failed it across its refreshes;
-#             open = false when there is none, null when GitHub didn't answer
+#   updates   the open lock updates: BOT Cecil's nightly pull requests, one per flake input
+#             (flake-update/<input>), each merging itself once its checks pass: [{input, number,
+#             url, opened_at, auto_merge, checks: [{name, state: success|failure|pending, since}],
+#             failing_since}]; checks (two requests a pull request) only with gh's token, else
+#             null; failing_since is since when the builder has failed it across its refreshes;
+#             null when GitHub didn't answer
 #   failed_units  [{scope, name, description}] from systemctl --failed, system and user
 #             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
@@ -50,20 +51,32 @@ fi
 github() {
 	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
 }
-: >"$tmp/pulls"
-: >"$tmp/checks"
-: >"$tmp/status"
-update() {
-	github '/pulls?state=open&head=coredev-uk:flake-update' >"$tmp/pulls"
-	local sha
-	sha=$(jq -r '.[0].head.sha // empty' "$tmp/pulls" 2>/dev/null)
-	if [ -n "$sha" ]; then
-		github "/commits/$sha/check-runs?per_page=100" >"$tmp/checks" &
-		github "/commits/$sha/status" >"$tmp/status" &
-		wait
-	fi
+# The update pull requests, then each one's check runs and statuses.
+: >"$tmp/updates"
+updates() {
+	github '/pulls?state=open&per_page=100' |
+		jq -c '[.[] | select(.head.ref | startswith("flake-update/"))]' >"$tmp/updates" 2>/dev/null || return 0
+	# No answer from GitHub: leave it empty, which reads as unknown below.
+	[ -s "$tmp/updates" ] || return 0
+	local number sha
+	while read -r number sha; do
+		: >"$tmp/checks-$number"
+		: >"$tmp/status-$number"
+		if [ "${#auth[@]}" -gt 0 ]; then
+			github "/commits/$sha/check-runs?per_page=100" >"$tmp/checks-$number" &
+			github "/commits/$sha/status" >"$tmp/status-$number" &
+		fi
+	done < <(jq -r '.[] | "\(.number) \(.head.sha)"' "$tmp/updates")
+	wait
+	# One array of {pr, runs, statuses} for the jq below.
+	jq -c '.[]' "$tmp/updates" | while read -r pr; do
+		number=$(jq -r .number <<<"$pr")
+		jq -nc --argjson pr "$pr" --rawfile runs "$tmp/checks-$number" --rawfile statuses "$tmp/status-$number" \
+			'{pr: $pr, runs: ($runs | fromjson? // null), statuses: ($statuses | fromjson? // null)}'
+	done | jq -sc . >"$tmp/updates.full"
+	mv "$tmp/updates.full" "$tmp/updates"
 }
-update &
+updates &
 
 # Failed units, both managers; an empty file (no bus, timeout) reads as "unknown" below.
 failed() {
@@ -111,9 +124,7 @@ jq -n \
 	--rawfile metrics "$tmp/metrics" \
 	--rawfile active "$tmp/active" \
 	--rawfile up "$tmp/up" \
-	--rawfile pulls "$tmp/pulls" \
-	--rawfile checks "$tmp/checks" \
-	--rawfile status "$tmp/status" \
+	--rawfile updates "$tmp/updates" \
 	--rawfile units_system "$tmp/system" \
 	--rawfile units_user "$tmp/user" \
 	'
@@ -135,10 +146,7 @@ jq -n \
   | byref($m; "nix_cache_build_target_success"; "main") as $target_ok
   | byref($m; "nix_cache_build_closure_bytes"; "main") as $target_bytes
   | by($m; "nix_cache_flake_input_last_modified_timestamp_seconds"; "input") as $inputs
-  | ($pulls | fromjson? // null) as $prs
-  | ($prs | if type == "array" then .[0] else null end) as $pr
-  | ($checks | fromjson? // null) as $runs
-  | ($status | fromjson? // null) as $statuses
+  | ($updates | fromjson? // null) as $ups
   | {
       fetched_at: $now,
       system: {
@@ -186,38 +194,39 @@ jq -n \
         store_used_bytes: gauge($m; "nix_cache_builder_store_used_bytes"),
         store_size_bytes: gauge($m; "nix_cache_builder_store_size_bytes")
       },
-      update: (
-        if ($prs | type) != "array" then null
-        elif $pr == null then {open: false}
-        else {
-          open: true,
+      # Every check the ruleset on main requires is listed, as pending until it first reports
+      # (nix-cache only does once the builder picks the commit up on its next poll).
+      updates: (
+        if ($ups | type) != "array" then null
+        else [$ups[] | .pr as $pr | {
+          input: ($pr.head.ref | ltrimstr("flake-update/")),
           number: $pr.number,
           url: $pr.html_url,
           opened_at: ($pr.created_at | epoch),
           auto_merge: ($pr.auto_merge != null),
-          inputs: ([($pr.body // "") | splits("\n") | select(startswith("- `"))] | length),
-          # Every check the ruleset on main requires is listed, as pending until it first reports
-          # (nix-cache only does once the builder picks the commit up on its next poll).
           checks: (
-            ([$runs.check_runs[]? | {
-              name,
-              state: (if .status != "completed" then "pending"
-                      elif .conclusion == "success" or .conclusion == "neutral" or .conclusion == "skipped" then "success"
-                      else "failure" end),
-              since: ((if .status == "completed" then .completed_at else .started_at end) | epoch)
-            }]
-            + [$statuses.statuses[]? | {
-              name: .context,
-              state: (if .state == "success" then "success" elif .state == "pending" then "pending" else "failure" end),
-              since: (.updated_at | epoch)
-            }]) as $reported
-            | $reported + [["evaluate", "flake-checker", "poseidon", "nix-cache"][]
-                | select(. as $n | $reported | all(.name != $n))
-                | {name: ., state: "pending", since: null}]
-            | sort_by(.name)
+            if .runs == null and .statuses == null then null
+            else
+              ([.runs.check_runs[]? | {
+                name,
+                state: (if .status != "completed" then "pending"
+                        elif .conclusion == "success" or .conclusion == "neutral" or .conclusion == "skipped" then "success"
+                        else "failure" end),
+                since: ((if .status == "completed" then .completed_at else .started_at end) | epoch)
+              }]
+              + [.statuses.statuses[]? | {
+                name: .context,
+                state: (if .state == "success" then "success" elif .state == "pending" then "pending" else "failure" end),
+                since: (.updated_at | epoch)
+              }]) as $reported
+              | $reported + [["evaluate", "flake-checker", "poseidon", "nix-cache"][]
+                  | select(. as $n | $reported | all(.name != $n))
+                  | {name: ., state: "pending", since: null}]
+              | sort_by(.name)
+            end
           ),
           failing_since: labelled($m; "nix_cache_ref_failing_since_timestamp_seconds"; {ref: "pr-\($pr.number)"})
-        }
+        }] | sort_by(.input)
         end
       ),
       failed_units: (
