@@ -41,7 +41,7 @@ let
   # atlas's Nix state and the home-lab binary cache for the panel's Nix view
   # (config/services/NixStatus.qml): Prometheus, main's flake.lock and the cache's narinfo,
   # fetched in parallel with short timeouts into one JSON object. nixos-version comes from the
-  # running system by absolute path.
+  # running system by absolute path, as does systemctl (failed units, system and user).
   quickshellNixStatus = pkgs.writeShellApplication {
     name = "quickshell-nix-status";
     runtimeInputs = with pkgs; [
@@ -66,6 +66,28 @@ let
     text = builtins.readFile ./scripts/pass.sh;
   };
 
+  # Screen recording (config/services/Recorder.qml): gpu-screen-recorder itself comes from the
+  # NixOS module (hosts/common/desktop/hyprland.nix), whose build finds the capability wrapper
+  # for KMS capture; the script starts it and raises the notifications.
+  quickshellRecord = pkgs.writeShellApplication {
+    name = "quickshell-record";
+    runtimeInputs = with pkgs; [
+      coreutils
+      libnotify
+      systemd # systemd-run
+      util-linux # setpriv
+      xdg-utils
+    ];
+    text = builtins.readFile ./scripts/record.sh;
+  };
+
+  # Instant replay (config/services/Replay.qml, the quickshell-replay unit below). The one place
+  # that says how much is kept and of which screen. Kept in RAM at 20 Mbit/s (scripts/record.sh),
+  # so every minute costs 150 MB: 300 s is 750 MB. The monitor is the gaming one (the 165 Hz
+  # screen with VRR, workspace 1 at login; home/common/desktop/hyprland/config/monitors.nix).
+  replaySeconds = 300;
+  replayMonitor = "DP-1";
+
   # Events for the calendar popup (config/services/Calendar.qml): iCloud over CalDAV and the
   # Sonarr/Radarr release calendars, from ~/.config/quickshell/calendars.json (kept out of git;
   # format in the script's header). pass:// secrets come from Proton Pass; pass-cli is not a
@@ -77,39 +99,26 @@ let
     ];
   } (builtins.readFile ./scripts/calendar-events.py);
 
-  # Video behind the lock screen (config/lock/LockVideo.qml), only in the lock's own instance.
-  # Qt decodes with VA-API but copied every frame through the CPU on NVIDIA: it exports frames
-  # as composed layers, which nvidia-vaapi-driver refuses, so each export failed and Qt fell
-  # back to a copy. Qt has the separate-layers path behind a constant; turn it on and import
-  # each plane with the format the driver reports (RG88/RG1616 chroma, where Qt assumes
-  # GR88/GR1616 and NVIDIA's EGL rejects those). Both screens playing 1440p120: about 75% of a
-  # core before, 45% after; Mesa drivers support separate layers too.
-  qtMultimedia = pkgs.qt6.qtmultimedia.overrideAttrs (old: {
-    postPatch = (old.postPatch or "") + ''
-      substituteInPlace src/plugins/multimedia/ffmpeg/qffmpeghwaccel_vaapi.cpp \
-        --replace-fail "constexpr bool VAExportUseLayers = false;" \
-          "constexpr bool VAExportUseLayers = true;" \
-        --replace-fail "planes[i].drmFormat = drm_formats[i];" \
-          "planes[i].drmFormat = VAExportUseLayers ? DRMFormat(prime.layers[i].drm_format) : drm_formats[i];" \
-        --replace-fail "if (prime.layers[i].drm_format != quint32(drm_formats[i])) {" \
-          "if (false) {"
-    '';
-  });
-
-  # nvidia-vaapi-driver from master, for the lock's clip only. Up to 0.0.18 its 16-slot queue of
-  # decoded frames could wrap and drop one under a decode backlog (FFmpeg runs 16 frame threads
-  # per player), and vaSyncSurface on that frame then waited forever: with a player per screen
-  # the lock froze within a second, nearly every time. Fixed upstream in #465 (grow the queue),
-  # after 0.0.18; back to the nixpkgs package once a release has it.
-  vaapiDriver = pkgs.nvidia-vaapi-driver.overrideAttrs {
-    version = "0.0.18-unstable-2026-10-11";
-    src = pkgs.fetchFromGitHub {
-      owner = "elFarto";
-      repo = "nvidia-vaapi-driver";
-      rev = "443050726fdb30888a2ced1cea1c5d036ea3b15c";
-      hash = "sha256-E2c4Hn4A0Vx3lcmP/Ms7FHEtxsDcxhCmcVFvct1Uv+0=";
-    };
+  # Print key and the screenshot popup (config/modules/ScreenshotPopup.qml): capture, save and
+  # edit. Saves go to the XDG screenshots directory (home/common/shell/xdg.nix).
+  quickshellScreenshot = pkgs.writeShellApplication {
+    name = "quickshell-screenshot";
+    runtimeInputs = with pkgs; [
+      config.programs.quickshell.package
+      coreutils
+      grimblast
+      satty
+      wl-clipboard
+    ];
+    text = ''
+      export QS_SCREENSHOTS=${lib.escapeShellArg config.xdg.userDirs.extraConfig.SCREENSHOTS}
+    ''
+    + builtins.readFile ./scripts/screenshot.sh;
   };
+
+  # Qt Multimedia and the NVIDIA VA-API driver for the clip behind the lock screen
+  # (config/lock/LockVideo.qml); the greeter plays it too (hosts/common/desktop/greeter.nix).
+  video = import ./video.nix { inherit pkgs; };
 
   # Session lock (config/lockscreen.qml): its own one-shot instance, run by hypridle's lock_cmd
   # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down. The idle
@@ -162,15 +171,7 @@ let
       # The aerial clip of the wallpaper, made by wallpaper-video (home/common/programs/hypr/paper.nix);
       # the still shows until it exists.
       export QS_LOCK_VIDEO=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.mp4"}
-      # Qt Multimedia for the clip; the quickshell wrapper prepends its own paths to these.
-      export NIXPKGS_QT6_QML_IMPORT_PATH=${qtMultimedia}/${pkgs.qt6.qtbase.qtQmlPrefix}''${NIXPKGS_QT6_QML_IMPORT_PATH:+:$NIXPKGS_QT6_QML_IMPORT_PATH}
-      export QT_PLUGIN_PATH=${qtMultimedia}/${pkgs.qt6.qtbase.qtPluginPrefix}''${QT_PLUGIN_PATH:+:$QT_PLUGIN_PATH}
-      export QT_FFMPEG_DECODING_HW_DEVICE_TYPES=vaapi
-      # Nothing here encodes. Unset, Qt probes every hardware device type for encoders at
-      # startup (about 1 s, before the lock's first frame); empty skips the probe.
-      export QT_FFMPEG_ENCODING_HW_DEVICE_TYPES=
-      # Searched first, so only the NVIDIA driver is replaced; others still come from the system.
-      export LIBVA_DRIVERS_PATH=${vaapiDriver}/lib/dri:/run/opengl-driver/lib/dri
+      ${video.environment}
       exec quickshell --no-duplicate --path ${./config}/lockscreen.qml
     '';
   };
@@ -254,6 +255,28 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
+  # The instant replay buffer (config/services/Replay.qml). A unit of its own, not a child of the
+  # bar, so the bar's restarts on switch don't empty the buffer, and systemd restarts it if the
+  # recorder dies (a driver reset, a resume from suspend). Not wanted by anything: the bar starts
+  # it when replay is armed (state kept in its state dir) and the toggle stops it. SIGINT ends
+  # the recorder cleanly; after five failures in five minutes the unit stays failed and the bar
+  # turns replay off and says why.
+  systemd.user.services.quickshell-replay = {
+    Unit = {
+      Description = "Instant replay buffer (Quickshell)";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+      StartLimitIntervalSec = 300;
+      StartLimitBurst = 5;
+    };
+    Service = {
+      ExecStart = "${lib.getExe quickshellRecord} --replay ${replayMonitor} ${config.xdg.userDirs.extraConfig.RECORDINGS} ${toString replaySeconds}";
+      KillSignal = "SIGINT";
+      Restart = "on-failure";
+      RestartSec = 5;
+    };
+  };
+
   # The config is a store symlink and fonts are only read at startup, so a running
   # instance never sees either change; restart it on switch instead.
   systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
@@ -269,6 +292,11 @@ in
     # wlsunset's location (home/common/programs/hypr/sunset.nix), for the bar's day arc.
     "QS_LATITUDE=${config.services.wlsunset.latitude}"
     "QS_LONGITUDE=${config.services.wlsunset.longitude}"
+    # Where screen recordings go (xdg.userDirs, home/common/shell/xdg.nix).
+    "QS_RECORDINGS_DIR=${config.xdg.userDirs.extraConfig.RECORDINGS}"
+    # Instant replay (replaySeconds, replayMonitor above), for the panel's labels.
+    "QS_REPLAY_SECONDS=${toString replaySeconds}"
+    "QS_REPLAY_MONITOR=${replayMonitor}"
   ];
 
   home.packages = [
@@ -285,6 +313,8 @@ in
     quickshellLock
     quickshellPass
     quickshellCalendar
+    quickshellScreenshot
+    quickshellRecord
   ];
 
   # Read when xdph starts: restart xdg-desktop-portal-hyprland after a change.

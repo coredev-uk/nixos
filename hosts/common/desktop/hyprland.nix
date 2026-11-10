@@ -19,4 +19,9 @@
   # The quickshell lock screen authenticates against this (home/common/programs/quickshell).
   # Password only: no U2F prompt in the way of unlocking.
   security.pam.services.quickshell-lock = { };
+
+  # The shell's screen recorder (home/common/programs/quickshell/config/services/Recorder.qml):
+  # KMS capture needs gsr-kms-server's cap_sys_admin wrapper, and the module's package is built
+  # to find it. Without it every recording would ask for root through polkit.
+  programs.gpu-screen-recorder.enable = true;
 }

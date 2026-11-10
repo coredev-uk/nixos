@@ -31,6 +31,10 @@ Scope {
     property bool capsLock: false
     // Bumped on every rejected attempt so each surface can replay its shake.
     property int failures: 0
+    // The lock's idle grace (LockContext): while open, any input unlocks without the password,
+    // until graceUntil (ms since the epoch). Never open on the greeter.
+    property bool graceOpen: false
+    property real graceUntil: 0
 
     onCurrentTextChanged: {
         if (currentText !== "") {

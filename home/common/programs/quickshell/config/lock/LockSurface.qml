@@ -15,7 +15,8 @@ Rectangle {
 
     // Set by the quickshell-lock and quickshell-greeter wrappers.
     readonly property string wallpaperPath: Quickshell.env("QS_LOCK_WALLPAPER") ?? ""
-    // The lock screen's only; the greeter has none.
+    // Set where there is a clip to play: by the lock's wrapper always, by the greeter's when
+    // /var/lib/greeter-wallpaper has one.
     readonly property string videoPath: Quickshell.env("QS_LOCK_VIDEO") ?? ""
     // Layout scale, 1 at 1080p.
     readonly property real s: Math.max(0.75, height / 1080)
@@ -53,8 +54,9 @@ Rectangle {
 
         Loader {
             anchors.fill: parent
-            // By URL, so the greeter (no Qt Multimedia) never compiles it. Asynchronous, so the
-            // lock's first frame (with the still) doesn't wait for Qt Multimedia and FFmpeg.
+            // By URL, so an instance without Qt Multimedia (the greeter, when there is no clip)
+            // never compiles it. Asynchronous, so the first frame (with the still) doesn't wait
+            // for Qt Multimedia and FFmpeg.
             asynchronous: true
             Component.onCompleted: {
                 if (root.videoPath !== "")
@@ -192,6 +194,21 @@ Rectangle {
                     easing.type: Theme.easing
                 }
             }
+        }
+    }
+
+    // An idle lock's grace period, top-left; the greeter never has one.
+    Reveal {
+        anchors.fill: parent
+        shown: root.shown && root.context.graceOpen
+        rise: 28 * root.s
+        delay: 270
+
+        LockGrace {
+            anchors.fill: parent
+            context: root.context
+            s: root.s
+            margin: root.margin
         }
     }
 }

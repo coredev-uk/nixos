@@ -39,6 +39,9 @@ Singleton {
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
     // The last finished build failed, whether or not another is running now.
     readonly property bool lastFailed: data?.build?.success === false
+    // Failed systemd units, system and user ([{ scope, name, description }]); empty when none or
+    // when neither manager answered (`data.failed_units` null), so a missing read stays calm.
+    readonly property var failedUnits: data?.failed_units ?? []
     // One line for the panel row.
     readonly property string summary: summaryOf(data)
 
@@ -82,6 +85,9 @@ Singleton {
             parts.push("update on main");
         if (d.system?.reboot_pending)
             parts.push("reboot pending");
+        const failedCount = d.failed_units?.length ?? 0;
+        if (failedCount > 0)
+            parts.push(failedCount === 1 ? "1 unit failed" : `${failedCount} units failed`);
         return parts.join(" · ");
     }
 

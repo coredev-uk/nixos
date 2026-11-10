@@ -27,6 +27,8 @@
 
       extraConfig = {
         SCREENSHOTS = "${config.home.homeDirectory}/pictures/screenshots";
+        # The shell's screen recorder (home/common/programs/quickshell/config/services/Recorder.qml).
+        RECORDINGS = "${config.home.homeDirectory}/videos/recordings";
       };
     };
   };

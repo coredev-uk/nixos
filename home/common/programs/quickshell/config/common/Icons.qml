@@ -118,7 +118,18 @@ Singleton {
     readonly property string speaker: String.fromCodePoint(0xF04C3) // speaker
     readonly property string speakerWireless: String.fromCodePoint(0xF071F) // speaker_wireless
 
+    // Screen recording (Recorder indicator and the control panel's Record screen row) and instant
+    // replay (its rows; contentSave is shared with the screenshot popup below)
+    readonly property string record: String.fromCodePoint(0xF044A) // record
+    readonly property string stop: String.fromCodePoint(0xF04DB) // stop
+    readonly property string replay: String.fromCodePoint(0xF0459) // replay
+
     // Nix view (nf-linux-nixos is not a Material Design glyph)
     readonly property string nixos: String.fromCodePoint(0xF313) // linux_nixos
     readonly property string openInNew: String.fromCodePoint(0xF03CC) // open_in_new
+
+    // Screenshot popup (check and close are shared with the groups above)
+    readonly property string pencil: String.fromCodePoint(0xF03EB) // pencil
+    readonly property string contentSave: String.fromCodePoint(0xF0193) // content_save
+    readonly property string alertCircle: String.fromCodePoint(0xF0028) // alert_circle
 }

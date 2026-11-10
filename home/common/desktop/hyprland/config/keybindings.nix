@@ -50,6 +50,10 @@ in
     (bind "${mod} + SHIFT + P" (exec "quickshell ipc -c bar call wallpapers toggle"))
     # Proton Pass quick access (home/common/programs/quickshell/config/modules/PassQuickAccess.qml)
     (bind "CTRL + SHIFT + Space" (exec "quickshell ipc -c bar call pass toggle"))
+    # Screen recording on the focused monitor (home/common/programs/quickshell/config/services/Recorder.qml)
+    (bind "${mod} + SHIFT + R" (exec "quickshell ipc -c bar call recorder toggle"))
+    # Save the instant replay buffer as a clip (home/common/programs/quickshell/config/services/Replay.qml)
+    (bind "${mod} + SHIFT + C" (exec "quickshell ipc -c bar call replay save"))
 
     # WM Controls
     (bind "${mod} + R" (exec "hyprctl reload"))
@@ -99,12 +103,13 @@ in
     )
   )
   ++ [
-    # Screenshot
+    # Screenshot: Super+Print goes straight to satty; Print copies the area and shows the
+    # popup (home/common/programs/quickshell/config/modules/ScreenshotPopup.qml, scripts/screenshot.sh)
     (bindWith "${mod} + Print"
       (exec "${pkgs.grimblast}/bin/grimblast save area - | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard}/bin/wl-copy")
       { release = true; }
     )
-    (bindWith "Print" (exec "${pkgs.grimblast}/bin/grimblast copy area") {
+    (bindWith "Print" (exec "quickshell-screenshot") {
       release = true;
     })
 

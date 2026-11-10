@@ -66,8 +66,10 @@ Scope {
         // Level meters (pavucontrol's peak detection, passive streams) watch levels without recording.
         if (props["stream.monitor"] === "true" || (props["node.passive"] ?? "false") !== "false")
             return true;
-        // Our own streams, so the shell never flags itself.
-        if (Number(props["application.process.id"]) === Quickshell.processId)
+        // Our own streams, so the shell never flags itself: its recorder and replay buffer
+        // (gpu-screen-recorder, services/Recorder.qml and Replay.qml) have their own signals. Any
+        // gpu-screen-recorder is taken as the shell's: nothing else on atlas runs it.
+        if (Number(props["application.process.id"]) === Quickshell.processId || /^gpu-screen-recorder$/.test(props["application.process.binary"] ?? ""))
             return true;
         // Loopbacks, filter chains and echo cancellation live in the PipeWire daemons: routing, not an app.
         return /^(pipewire|pipewire-pulse|wireplumber)$/.test(props["application.process.binary"] ?? "");

@@ -1,13 +1,14 @@
 import QtQuick
 import QtMultimedia
 import Quickshell.Wayland
+import qs.common
 
 // The wallpaper's aerial clip, looped over the still it starts on (QS_LOCK_VIDEO, made by
-// wallpaper-video in home/common/programs/hypr/paper.nix). It fades in on its first frame, so
-// the still shows until then and wherever the clip can't play. Paused after half a minute
-// without input, and for the unlock: nobody's watching then, and decoding two screens of video
-// isn't free. Loaded by URL from LockSurface, so the greeter, which has no Qt Multimedia, never
-// compiles it.
+// wallpaper-video in home/common/programs/hypr/paper.nix; the greeter plays its copy). It fades
+// in on its first frame, so the still shows until then and wherever the clip can't play. Paused
+// after half a minute without input, and for the unlock or login: nobody's watching then, and
+// decoding two screens of video isn't free. Loaded by URL from LockSurface, so an instance
+// without Qt Multimedia (the greeter, when there is no clip) never compiles it.
 Item {
     id: root
 

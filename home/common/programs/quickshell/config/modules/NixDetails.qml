@@ -6,8 +6,9 @@ import qs.services
 import qs.widgets
 
 // The control panel's Nix view: how last night's cache build went, what the cache holds, and
-// where this computer stands against it (services/NixStatus.qml). Off the home network only the
-// last section remains. Reads every minute while it is showing.
+// where this computer stands against it (services/NixStatus.qml), with any failed systemd units
+// (system and user) listed by name; a click copies the journalctl command for one. Off the home
+// network only the failed units and the last section remain. Reads every minute while it is showing.
 ColumnLayout {
     id: root
 
@@ -74,6 +75,11 @@ ColumnLayout {
                 lines: cacheLines(d)
             });
         }
+        if (d?.failed_units?.length)
+            out.push({
+                title: "Failed units",
+                lines: unitLines(d.failed_units)
+            });
         if (d?.system)
             out.push({
                 title: "This computer",
@@ -82,12 +88,25 @@ ColumnLayout {
         return out;
     }
 
+    property string copiedValue: ""
+
     signal linkOpened
 
     // "Fri 01:00, in 8 h" for an epoch in seconds ahead of the last read.
     function nextRun(epoch: real): string {
         const when = Qt.formatDateTime(new Date(epoch * 1000), "ddd HH:mm");
         return epoch > nowSeconds ? `${when}, in ${NixStatus.span(epoch - nowSeconds)}` : when;
+    }
+
+    // One line per failed unit, scope in the key; a click copies the command that reads its journal.
+    function unitLines(units: var): var {
+        return units.map(u => ({
+                    key: u.scope === "user" ? "User" : "System",
+                    value: u.name,
+                    tone: Theme.alert,
+                    // Quoted: escaped unit names (\x2d) lose their backslash unquoted.
+                    copy: `journalctl ${u.scope === "user" ? "--user " : ""}-u '${u.name}'`
+                }));
     }
 
     function count(n: var): string {
@@ -182,6 +201,12 @@ ColumnLayout {
                 key: "Updates",
                 value: d.upstream.update_available ? "main has a newer lock" : "Matches main's lock"
             });
+        if (d.failed_units)
+            lines.push({
+                key: "Units",
+                value: d.failed_units.length === 0 ? "None failed" : `${d.failed_units.length} failed`,
+                tone: d.failed_units.length === 0 ? undefined : Theme.alert
+            });
         lines.push({
             key: "Reboot",
             value: s.reboot_pending ? "Pending, new kernel or modules" : "Not needed"
@@ -195,6 +220,19 @@ ColumnLayout {
     }
 
     spacing: 4
+
+    function copy(command: string) {
+        Quickshell.clipboardText = command;
+        copiedValue = command;
+        copiedReset.restart();
+    }
+
+    Timer {
+        id: copiedReset
+        interval: 1200
+        onTriggered: root.copiedValue = ""
+    }
+
     Component.onCompleted: NixStatus.acquire()
     // The panel's view Loader destroys this when switching back to the main view.
     Component.onDestruction: NixStatus.release()
@@ -266,56 +304,83 @@ ColumnLayout {
                 Repeater {
                     model: section.modelData.lines
 
-                    ColumnLayout {
+                    Rectangle {
                         id: line
 
                         required property var modelData
+                        readonly property bool copyable: modelData.copy !== undefined
+                        readonly property bool copied: copyable && root.copiedValue === modelData.copy
 
                         Layout.fillWidth: true
-                        Layout.leftMargin: 6
-                        Layout.rightMargin: 6
-                        spacing: 0
+                        implicitHeight: lineColumn.implicitHeight
+                        radius: Theme.radiusRow
+                        color: copyable && lineArea.containsMouse ? Theme.rule : "transparent"
 
-                        RowLayout {
-                            Layout.fillWidth: true
-                            Layout.topMargin: 4
-                            Layout.bottomMargin: line.modelData.fraction === undefined ? 4 : 3
-                            spacing: 8
-
-                            BarText {
-                                Layout.preferredWidth: 88
-                                Layout.alignment: Qt.AlignTop
-                                text: line.modelData.key
-                                color: Theme.text2
-                                font.pixelSize: 12
-                                elide: Text.ElideRight
-                            }
-
-                            BarText {
-                                Layout.fillWidth: true
-                                Layout.alignment: Qt.AlignTop
-                                text: line.modelData.value
-                                color: line.modelData.tone ?? Theme.text
-                                font.pixelSize: 12
-                                wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                        Behavior on color {
+                            ColorAnimation {
+                                duration: Theme.durationState
+                                easing.type: Theme.easing
                             }
                         }
 
-                        // A fill bar, on plate so it shows on the inset section.
-                        Rectangle {
-                            visible: line.modelData.fraction !== undefined
-                            Layout.fillWidth: true
-                            Layout.bottomMargin: 4
-                            implicitHeight: 4
-                            radius: 2
-                            color: Theme.plate
+                        ColumnLayout {
+                            id: lineColumn
+                            anchors.left: parent.left
+                            anchors.right: parent.right
+                            anchors.leftMargin: 6
+                            anchors.rightMargin: 6
+                            spacing: 0
 
-                            Rectangle {
-                                width: parent.width * (line.modelData.fraction ?? 0)
-                                height: parent.height
-                                radius: 2
-                                color: line.modelData.tone ?? Theme.fill
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Layout.topMargin: 4
+                                Layout.bottomMargin: line.modelData.fraction === undefined ? 4 : 3
+                                spacing: 8
+
+                                BarText {
+                                    Layout.preferredWidth: 88
+                                    Layout.alignment: Qt.AlignTop
+                                    text: line.modelData.key
+                                    color: Theme.text2
+                                    font.pixelSize: 12
+                                    elide: Text.ElideRight
+                                }
+
+                                BarText {
+                                    Layout.fillWidth: true
+                                    Layout.alignment: Qt.AlignTop
+                                    text: line.copied ? "Copied journal command" : line.modelData.value
+                                    color: line.copied ? Theme.ok : line.modelData.tone ?? Theme.text
+                                    font.pixelSize: 12
+                                    wrapMode: Text.WrapAtWordBoundaryOrAnywhere
+                                }
                             }
+
+                            // A fill bar, on plate so it shows on the inset section.
+                            Rectangle {
+                                visible: line.modelData.fraction !== undefined
+                                Layout.fillWidth: true
+                                Layout.bottomMargin: 4
+                                implicitHeight: 4
+                                radius: 2
+                                color: Theme.plate
+
+                                Rectangle {
+                                    width: parent.width * (line.modelData.fraction ?? 0)
+                                    height: parent.height
+                                    radius: 2
+                                    color: line.modelData.tone ?? Theme.fill
+                                }
+                            }
+                        }
+
+                        MouseArea {
+                            id: lineArea
+                            anchors.fill: parent
+                            enabled: line.copyable
+                            hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: root.copy(line.modelData.copy)
                         }
                     }
                 }

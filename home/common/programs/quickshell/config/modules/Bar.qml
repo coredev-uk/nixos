@@ -66,6 +66,12 @@ PanelWindow {
         anchors.verticalCenter: parent.verticalCenter
         spacing: 10
 
+        RecordingIndicator {
+            id: recording
+        }
+        Sep {
+            visible: recording.visible
+        }
         PrivacyIndicators {
             id: privacy
         }

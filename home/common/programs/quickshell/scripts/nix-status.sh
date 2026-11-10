@@ -10,7 +10,8 @@
 #   cache     Attic's numbers from Prometheus (nix-cache-exporter); reachable = Prometheus answered
 #   build     the nightly nix-cache-builder CronJob: its last run, targets, oldest flake input;
 #             build.* from the exporter are absent until the first run has finished
-#
+#   failed_units  [{scope, name, description}] from systemctl --failed, system and user
+#             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
 
 prometheus=https://prometheus.hera.ac/api/v1/query
@@ -33,6 +34,13 @@ query kube '{__name__=~"kube_cronjob_status_last_successful_time|kube_cronjob_ne
 query active 'sum(kube_job_status_active{namespace="nix-cache"})'
 query up 'up{namespace="nix-cache"}'
 fetch "$lock_url" >"$tmp/lock" &
+
+# Failed units, both managers; an empty file (no bus, timeout) reads as "unknown" below.
+failed() {
+  timeout 5 /run/current-system/sw/bin/systemctl "${@:2}" --failed --output=json --no-legend >"$tmp/$1" 2>/dev/null || true
+}
+failed system &
+failed user --user &
 
 # The running system's store hash is the narinfo's name; 200 = cached, 404 = not.
 current=$(readlink -f /run/current-system)
@@ -74,6 +82,8 @@ jq -n \
   --rawfile kube "$tmp/kube" \
   --rawfile active "$tmp/active" \
   --rawfile up "$tmp/up" \
+  --rawfile units_system "$tmp/system" \
+  --rawfile units_user "$tmp/user" \
   '
   def prom($raw): ($raw | fromjson? // null) | if .status == "success" then .data.result else null end;
   def gauge($rs; $name): first($rs[]? | select(.metric.__name__ == $name) | .value[1] | tonumber) // null;
@@ -133,6 +143,11 @@ jq -n \
         oldest_input: ($inputs | to_entries | if length == 0 then null else min_by(.value) | {name: .key, modified: .value} end),
         store_used_bytes: gauge($m; "nix_cache_builder_store_used_bytes"),
         store_size_bytes: gauge($m; "nix_cache_builder_store_size_bytes")
-      }
+      },
+      failed_units: (
+        [{scope: "system", raw: $units_system}, {scope: "user", raw: $units_user}]
+        | map(. as $s | ($s.raw | fromjson? // null) | if . == null then null else map({scope: $s.scope, name: .unit, description: .description}) end)
+        | if all(. == null) then null else map(. // []) | add end
+      )
     }
   '

@@ -507,7 +507,7 @@ Scope {
 
                                 BarText {
                                     Layout.fillWidth: true
-                                    text: "Sharing your screen: usernames and vaults stay hidden until you open an item"
+                                    text: `${Privacy.screen.length === 0 && Privacy.recording ? "Recording" : "Sharing"} your screen: usernames and vaults stay hidden until you open an item`
                                     color: Theme.text2
                                     font.pixelSize: 11
                                     elide: Text.ElideRight

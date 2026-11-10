@@ -142,6 +142,22 @@ PanelWindow {
             entry: modelData
             floating: true
             width: list.width
+            countdown: expiry.interval > 0
+            // Full again while hovered: leaving starts the timeout over.
+            onHoveredChanged: {
+                if (hovered)
+                    refill.restart();
+            }
+
+            NumberAnimation {
+                id: refill
+
+                target: card
+                property: "timeLeft"
+                to: 1
+                duration: Theme.durationState
+                easing.type: Theme.easing
+            }
 
             Timer {
                 id: expiry
@@ -151,14 +167,28 @@ PanelWindow {
                 onTriggered: NotificationService.hidePopup(card.entry)
             }
 
+            // The card's countdown track, in step with the timer: both start and stop together.
+            NumberAnimation {
+                id: drain
+
+                target: card
+                property: "timeLeft"
+                from: 1
+                to: 0
+                duration: expiry.interval
+                running: expiry.running
+            }
+
             // A replacement shows for a full timeout again.
             Connections {
                 target: card.entry
 
                 function onTimeChanged() {
                     // Paused while hovered; it starts over on leaving anyway.
-                    if (expiry.running)
+                    if (expiry.running) {
                         expiry.restart();
+                        drain.restart();
+                    }
                 }
             }
         }

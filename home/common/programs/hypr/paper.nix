@@ -68,11 +68,12 @@ let
 
       # The lock screen's clip of the old image no longer matches; wallpaper-video makes or
       # finds the new one in the background.
-      rm -f ${lib.escapeShellArg currentVideo}
+      rm -f ${lib.escapeShellArg currentVideo} /var/lib/greeter-wallpaper/wallpaper.mp4
       systemctl --user start --no-block wallpaper-video.service
 
       # The login screen shows it too; the greeter can't read this cache, so it gets a copy
-      # (hosts/common/desktop/greeter.nix creates the directory).
+      # (hosts/common/desktop/greeter.nix creates the directory). Its clip is copied there by
+      # wallpaper-video, once it has one.
       greeter=/var/lib/greeter-wallpaper
       if [ -w "$greeter" ]; then
         cp -f "$img" "$greeter/wallpaper.jpg.part" && mv -f "$greeter/wallpaper.jpg.part" "$greeter/wallpaper.jpg"
@@ -129,6 +130,8 @@ let
       cache=${lib.escapeShellArg "${config.xdg.cacheHome}/macos-wallpapers"}
       videos=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/videos"}
       link=${lib.escapeShellArg currentVideo}
+      greeter=/var/lib/greeter-wallpaper
+      greeter_clip="$greeter/wallpaper.mp4"
       mkdir -p "$videos"
 
       # The largest screen, and the fastest refresh; then 240 halved until it fits that.
@@ -157,7 +160,7 @@ let
           | sort_by(.preferredOrder // 0) | .[$index]["url-4K-SDR-240FPS"] // empty
         ' "$cache/aerials.json")
         if [ -z "$url" ]; then
-          rm -f "$link"
+          rm -f "$link" "$greeter_clip"
           find "$videos" -mindepth 1 -delete
           exit 0
         fi
@@ -168,7 +171,7 @@ let
         find "$videos" -mindepth 1 ! -name "$slug-*-$size.mp4" ! -name ".$slug-$index.*" -delete
 
         if [ ! -e "$clip" ]; then
-          rm -f "$link"
+          rm -f "$link" "$greeter_clip"
           source="$videos/.$slug-$index.mov"
           part="$videos/.$slug-$index.$size.mp4"
           curl -fsSL --retry 5 --continue-at - --cacert ${appleRootCa} -o "$source" "$url"
@@ -187,7 +190,16 @@ let
 
         if [ "$(readlink -f ${lib.escapeShellArg current})" = "$still" ]; then
           ln -sfn "$clip" "$link"
-          exit 0
+          # The login screen plays it too, from a copy it can read (set-wallpaper has the
+          # reasons; hosts/common/desktop/greeter.nix creates the directory). Skipped when the
+          # copy is already this clip (same size and time), as at every login.
+          if [ -w "$greeter" ] && [ "$(stat -c %s.%Y "$clip")" != "$(stat -c %s.%Y "$greeter_clip" 2>/dev/null || true)" ]; then
+            cp -fp "$clip" "$greeter_clip.part" && mv -f "$greeter_clip.part" "$greeter_clip"
+          fi
+          # set-wallpaper may have moved on during the copy (removing both); go round for it.
+          if [ "$(readlink -f ${lib.escapeShellArg current})" = "$still" ]; then
+            exit 0
+          fi
         fi
       done
     '';

@@ -8,7 +8,7 @@ import qs.widgets
 // (services/Calendar) on a translucent plate, its foot level with the time's baseline; and in
 // the date line under it, what's playing. The power buttons (LockPower) take the music's place
 // while the password is up. While the screen is shared the events show only their times, and
-// the music stays hidden.
+// the music stays hidden (also while the bar records the screen, services/RecordingStatus).
 Item {
     id: root
 
@@ -18,7 +18,7 @@ Item {
     property real lineHeight: 56
 
     readonly property bool engaged: context.active && !context.unlocking
-    readonly property bool onAir: captures.onAir
+    readonly property bool onAir: captures.onAir || RecordingStatus.recording
     readonly property int maxEvents: 4
     readonly property real now: clock.date.getTime()
     // Today's events that aren't over, all-day ones first as Calendar sorts them; done

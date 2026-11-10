@@ -159,7 +159,7 @@ in
           # The shell animates these itself and keeps them mapped between showings; a fade of
           # the whole surface on top would double up on map and come too late on unmap.
           {
-            match.namespace = "^(osd|notifications)$";
+            match.namespace = "^(osd|notifications|screenshot)$";
             no_anim = true;
           }
         ];

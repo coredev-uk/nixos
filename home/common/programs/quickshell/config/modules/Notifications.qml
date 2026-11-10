@@ -56,7 +56,7 @@ Item {
         text: {
             const kept = `${root.count} notification${root.count === 1 ? "" : "s"}`;
             const fresh = root.unread > 0 ? `, ${root.unread} new` : "";
-            const quiet = root.dnd ? " · Do not disturb" : Privacy.onAir ? " · Popups held while sharing" : "";
+            const quiet = root.dnd ? " · Do not disturb" : Privacy.onAir ? ` · Popups held while ${Privacy.screen.length === 0 && Privacy.recording ? "recording" : "sharing"}` : "";
             return kept + fresh + quiet;
         }
     }

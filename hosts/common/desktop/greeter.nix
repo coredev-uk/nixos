@@ -16,9 +16,13 @@ let
   # reuses the lock screen's faces.
   quickshellConfig = ../../../home/common/programs/quickshell/config;
 
-  # set-wallpaper (home/common/programs/hypr/paper.nix) copies each new wallpaper here: the greeter
-  # runs as `greeter` and can't read the cache in the user's home.
+  # set-wallpaper and wallpaper-video (home/common/programs/hypr/paper.nix) copy each new wallpaper
+  # and its clip here: the greeter runs as `greeter` and can't read the cache in the user's home.
   wallpaperDir = "/var/lib/greeter-wallpaper";
+
+  # Qt Multimedia and the VA-API driver for the clip, the same as the lock's (video.nix); built
+  # from unstable like the greeter's quickshell, so the patched Qt matches it.
+  video = import ../../../home/common/programs/quickshell/video.nix { pkgs = unstable; };
 
   monitors =
     let
@@ -53,7 +57,23 @@ let
     export QS_LOCK_WALLPAPER=${wallpaperDir}/wallpaper.jpg
     export QS_LATITUDE=${lib.escapeShellArg location.latitude}
     export QS_LONGITUDE=${lib.escapeShellArg location.longitude}
-    ${lib.getExe unstable.quickshell} --path ${quickshellConfig}/greeter.qml
+    greeter() {
+      ${lib.getExe unstable.quickshell} --path ${quickshellConfig}/greeter.qml
+    }
+    # The wallpaper's aerial clip, when there is one (set-wallpaper and wallpaper-video copy it
+    # here); without it the still shows and Qt Multimedia isn't even loaded. If the greeter dies
+    # with the clip playing, it starts again with the still alone rather than leave no login.
+    if [ -s ${wallpaperDir}/wallpaper.mp4 ]; then
+      (
+        export QS_LOCK_VIDEO=${wallpaperDir}/wallpaper.mp4
+        # The lock's session sets this; the greeter's has no such profile.
+        export LIBVA_DRIVER_NAME=nvidia
+        ${video.environment}
+        greeter
+      ) || greeter
+    else
+      greeter
+    fi
     ${hyprland}/bin/hyprctl dispatch 'hl.dsp.exit()'
   '';
 

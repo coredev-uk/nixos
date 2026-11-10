@@ -23,6 +23,10 @@ Plate {
     // How many more of the app's notifications sit collapsed behind this one in the centre: shown
     // as a badge, and clicking the card asks to expand them instead of running its action.
     property int stacked: 0
+    // A popup's timeout (NotificationPopups): when it counts down, a thin track along the
+    // bottom shows the share of it still to run.
+    property bool countdown: false
+    property real timeLeft: 1
 
     signal expand
 
@@ -82,6 +86,27 @@ Plate {
                 root.expand();
             else
                 NotificationService.activate(root.entry);
+        }
+    }
+
+    // Decorative: muted on an inset track, in the bottom padding, so it never reads as a control.
+    Rectangle {
+        anchors.left: parent.left
+        anchors.right: parent.right
+        anchors.bottom: parent.bottom
+        anchors.leftMargin: 12
+        anchors.rightMargin: 12
+        anchors.bottomMargin: 5
+        visible: root.countdown
+        height: 2
+        radius: 1
+        color: Theme.inset
+
+        Rectangle {
+            width: Math.round(parent.width * root.timeLeft)
+            height: parent.height
+            radius: 1
+            color: Theme.muted
         }
     }
 
