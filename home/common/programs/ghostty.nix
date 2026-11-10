@@ -72,6 +72,8 @@ in
       clipboard-paste-protection = false;
       # Close windows without asking, even with a running process (zellij keeps sessions).
       confirm-close-surface = false;
+      # Option as Alt on macOS, so zellij's Alt chords work.
+      macos-option-as-alt = lib.mkIf meta.isDarwin true;
       # Wrap ssh to install xterm-ghostty terminfo on remotes, falling back to
       # TERM=xterm-256color where that fails.
       shell-integration-features = "ssh-env,ssh-terminfo";

@@ -48,6 +48,8 @@
   security = {
     polkit.enable = true;
     rtkit.enable = true;
+    # Only wheel members can execute the setuid sudo binary at all.
+    sudo.execWheelOnly = true;
   };
 
   # Create dirs for home-manager

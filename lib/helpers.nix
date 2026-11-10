@@ -22,7 +22,11 @@ let
         inputs
         outputs
         ;
-      unstable = inputs.unstable.legacyPackages.${system};
+      # Imported rather than legacyPackages, which has no config, so unfree packages evaluate.
+      unstable = import inputs.unstable {
+        inherit system;
+        config.allowUnfree = true;
+      };
       meta = {
         inherit
           hostname

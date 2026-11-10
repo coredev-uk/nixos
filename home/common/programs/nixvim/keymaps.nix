@@ -186,6 +186,21 @@
         options.desc = "Quickfix list";
       }
 
+      {
+        key = "<leader>xx";
+        mode = "n";
+        options.silent = true;
+        action.__raw = "function() Snacks.picker.diagnostics() end";
+        options.desc = "Diagnostics";
+      }
+      {
+        key = "<leader>xX";
+        mode = "n";
+        options.silent = true;
+        action.__raw = "function() Snacks.picker.diagnostics_buffer() end";
+        options.desc = "Buffer diagnostics";
+      }
+
       #------------------------------------------------------------------------
       # FILE EXPLORER
       #------------------------------------------------------------------------
@@ -386,7 +401,7 @@
         key = "<leader>lf";
         mode = "n";
         options.silent = true;
-        action.__raw = "function() vim.lsp.buf.format({ async = true }) end";
+        action.__raw = "function() require('conform').format({ async = true, lsp_format = 'fallback' }) end";
         options.desc = "Format";
       }
       {
@@ -453,20 +468,6 @@
         options.silent = true;
         action.__raw = "function() Snacks.picker.lsp_type_definitions() end";
         options.desc = "Type definition";
-      }
-      {
-        key = "]d";
-        mode = "n";
-        options.silent = true;
-        action.__raw = "function() vim.diagnostic.goto_next() end";
-        options.desc = "Next diagnostic";
-      }
-      {
-        key = "[d";
-        mode = "n";
-        options.silent = true;
-        action.__raw = "function() vim.diagnostic.goto_prev() end";
-        options.desc = "Previous diagnostic";
       }
 
       #------------------------------------------------------------------------

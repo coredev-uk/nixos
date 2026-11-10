@@ -1,14 +1,42 @@
-{ pkgs, ... }:
+{ config, pkgs, ... }:
 {
   programs.nixvim = {
     plugins = {
       # Treesitter
       treesitter = {
         enable = true;
-        settings = {
-          highlight.enable = true;
-          indent.enable = true;
-        };
+        highlight.enable = true;
+        indent.enable = true;
+        # Only the languages this config has servers, formatters or filetypes for; the
+        # default builds every grammar.
+        grammarPackages = with config.programs.nixvim.plugins.treesitter.package.builtGrammars; [
+          astro
+          bash
+          css
+          diff
+          gitcommit
+          gotmpl
+          helm
+          html
+          javascript
+          json
+          just
+          lua
+          markdown
+          markdown_inline
+          nix
+          python
+          query
+          regex
+          rust
+          toml
+          tsx
+          typescript
+          vim
+          vimdoc
+          vue
+          yaml
+        ];
       };
 
       # LSP
@@ -23,26 +51,11 @@
           tailwindcss.enable = true;
 
           # TypeScript / JavaScript
-          vtsls = {
-            enable = true;
-            filetypes = [
-              "typescript"
-              "javascript"
-              "typescriptreact"
-              "javascriptreact"
-            ];
-          };
+          vtsls.enable = true;
 
-          # Vue (hybrid mode - volar handles .vue, vtsls handles .ts/.js)
-          vue_ls = {
-            enable = true;
-            filetypes = [
-              "vue"
-              "typescript"
-              "javascript"
-            ];
-            extraOptions.init_options.vue.hybridMode = true;
-          };
+          # Vue: nixvim wires vtsls to the @vue/typescript-plugin itself, so vue_ls only
+          # handles the .vue template/style side (hybrid mode is the server's only mode).
+          vue_ls.enable = true;
 
           # Shell
           bashls.enable = true;
@@ -92,10 +105,7 @@
       render-markdown = {
         enable = true;
         settings = {
-          file_types = [
-            "markdown"
-            "Avante"
-          ];
+          file_types = [ "markdown" ];
         };
       };
 
@@ -133,6 +143,7 @@
     # Extra packages for LSP servers and tools
     extraPackages = with pkgs; [
       fd # Required by snacks.picker / snacks.explorer
+      ripgrep # Required by snacks.picker grep (not in PATH on darwin)
       prettierd # conform formatter (formatting.nix)
       eslint_d # conform formatter + nvim-lint linter
     ];

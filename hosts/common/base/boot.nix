@@ -14,6 +14,9 @@ _: {
       systemd-boot = {
         enable = true;
         consoleMode = "max"; # or auto
+        # No editing the kernel command line at the boot menu; the LUKS root unlocks via TPM2.
+        # lanzaboote copies this into loader.conf.
+        editor = false;
       };
       efi.canTouchEfiVariables = true;
     };

@@ -7,23 +7,29 @@ let
   pinned = nvidiaPackages.mkDriver {
     version = "610.57.04";
     sha256_64bit = "sha256-suk1xmuDuwDAyFe8jg7g/VLekoa0DJzB7sKafOfrEW0=";
-    # Also needed with open = false: the GSP firmware is extracted from it.
+    # The open kernel modules' source (hardware.nvidia.open).
     openSha256 = "sha256-rQHOOOY4KL92Ww3KDwh+j4eGU7oNAH8LutZC5wmFnPo=";
     settingsSha256 = "sha256-ZEMo8I8Zc2Tq6RVDNYpAH+f094dUaZiBqO+5f6lIjRI=";
     persistencedSha256 = "sha256-aXmD2VY1RLlgAnlHhOUMWzvMyhI6JTClcFLm4imF/mA=";
   };
 in
 {
-  warnings = lib.optional (lib.versionAtLeast nvidiaPackages.stable.version pinned.version) ''
-    hosts/common/hardware/nvidia.nix: nixpkgs' stable NVIDIA driver (${nvidiaPackages.stable.version})
+  # The kernel 7.2 build fix shipped in the 610 branch, which nixpkgs carries as `latest`
+  # (`stable` stays on 595, so comparing against it would never fire).
+  warnings = lib.optional (lib.versionAtLeast nvidiaPackages.latest.version pinned.version) ''
+    hosts/common/hardware/nvidia.nix: nixpkgs' latest NVIDIA driver (${nvidiaPackages.latest.version})
     has caught up with the pinned ${pinned.version}. Check NixOS/nixpkgs#554125 and drop the pin.
   '';
 
   hardware.nvidia = {
-    # Force use the proprietary Nvidia drivers
-    open = false;
+    # Open kernel modules: NVIDIA's recommended path for Turing and newer (the RTX 3080 is
+    # Ampere). Set back to false if the VFIO hook can no longer unload the driver.
+    open = true;
 
     package = pinned;
+
+    # PAT instead of MTRR for write-combined mappings.
+    moduleParams.nvidia.NVreg_UsePageAttributeTable = 1;
 
     # Required for proper refresh rate handling afaik
     # forceFullCompositionPipeline = true;
@@ -31,10 +37,7 @@ in
     # Wayland
     modesetting.enable = true;
 
-    powerManagement = {
-      enable = true;
-      finegrained = false;
-    };
+    powerManagement.enable = true;
 
     nvidiaSettings = true;
   };

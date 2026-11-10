@@ -96,6 +96,10 @@ in
 
     theme = theme.gtkTheme;
 
+    # Also sets the portal/dconf colour scheme and the GTK 3/4 dark preference; GTK 2 gets
+    # nothing from it, so its line below stays.
+    colorScheme = "dark";
+
     # Papirus with its folders in paleorange, the papirus-folders colour nearest gilt.
     iconTheme = {
       name = "Papirus-Dark";
@@ -113,20 +117,8 @@ in
       '';
     };
 
-    gtk3 = {
-      extraConfig = {
-        gtk-application-prefer-dark-theme = true;
-      };
-      extraCss = gtk3Css;
-    };
+    gtk3.extraCss = gtk3Css;
 
     gtk4.extraCss = gtk4Css;
-  };
-
-  # Set color scheme for portals (modern standard)
-  dconf.settings = {
-    "org/gnome/desktop/interface" = {
-      color-scheme = "prefer-dark";
-    };
   };
 }

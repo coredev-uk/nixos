@@ -610,10 +610,11 @@ in
       };
     };
 
+    # The GPU's HDA function is unbound per device by the hook, so snd_hda_intel stays loaded
+    # and keeps driving the host's own audio controllers.
     unloadModules = mkOption {
       type = types.listOf types.str;
       default = [
-        "snd_hda_intel"
         "nvidia_drm"
         "nvidia_modeset"
         "nvidia_uvm"
@@ -635,7 +636,6 @@ in
         "nvidia_uvm"
         "nvidia_modeset"
         "nvidia_drm"
-        "snd_hda_intel"
       ];
       description = "Kernel modules to reload after the VM stops.";
     };
@@ -657,9 +657,13 @@ in
     ];
 
     boot.extraModulePackages = [ config.boot.kernelPackages.kvmfr ];
-    boot.kernelParams = optionals cfg.iommu.enableKernelParams iommuKernelParams ++ [
-      "kvmfr.static_size_mb=${toString cfg.lookingGlassMemoryMb}"
-    ];
+    boot.kernelParams = optionals cfg.iommu.enableKernelParams iommuKernelParams;
+    # ignore_msrs: Windows guests probe MSRs KVM doesn't emulate; injecting #GP crashes some
+    # apps and games, and the reports would flood the journal.
+    boot.extraModprobeConfig = ''
+      options kvmfr static_size_mb=${toString cfg.lookingGlassMemoryMb}
+      options kvm ignore_msrs=1 report_ignored_msrs=0
+    '';
 
     services.udev.packages = lib.singleton (
       pkgs.writeTextFile {
@@ -676,7 +680,6 @@ in
       [
         looking-glass-client
         startVfio
-        swtpm
         virt-viewer
       ]
       ++ optional nativeBootEnabled startNativeBoot;
@@ -738,6 +741,11 @@ in
 
     virtualisation.libvirtd = {
       enable = true;
+
+      # The default suspend (managed save) fails for a domain with PCI hostdevs, and onBoot
+      # "start" would rerun the passthrough hook at boot and take the GPU from the session.
+      onShutdown = "shutdown";
+      onBoot = "ignore";
 
       qemu = {
         package = pkgs.qemu_kvm;

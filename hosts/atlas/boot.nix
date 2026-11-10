@@ -92,11 +92,6 @@ in
       };
     };
 
-    extraModprobeConfig = ''
-      # PAT Support
-      options nvidia NVreg_UsePageAttributeTable=1
-    '';
-
     # Use the Xanmod Kernel for gaming-related optimisations.
     kernelPackages = pkgs.linuxPackages_xanmod_latest;
   };

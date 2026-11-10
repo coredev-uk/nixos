@@ -40,7 +40,10 @@
           ghost_text.enabled = true;
           menu = {
             border = "rounded";
-            draw.treesitter = [ "lsp" ];
+            draw.components.label = {
+              text.__raw = "function(ctx) return require('colorful-menu').blink_components_text(ctx) end";
+              highlight.__raw = "function(ctx) return require('colorful-menu').blink_components_highlight(ctx) end";
+            };
           };
         };
         signature = {
@@ -62,8 +65,7 @@
     # Auto-pairs
     nvim-autopairs.enable = true;
 
-    # Comments
-    comment.enable = true;
+    # Comments (gc/gcc are built into Neovim)
     todo-comments.enable = true;
   };
 }

@@ -41,6 +41,8 @@ in
 
                 settings = {
                   allowDiscards = true;
+                  # Skip dm-crypt's kernel workqueues: lower latency on NVMe.
+                  bypassWorkqueues = true;
                   crypttabExtraOpts = [
                     "tpm2-device=auto"
                     "tpm2-measure-pcr=yes"

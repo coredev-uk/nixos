@@ -20,6 +20,7 @@ in
       "plugdev"
       "render"
       "lxd"
+      "gamemode" # polkit only lets this group change the governor, GPU and procsys
       "i2c" # For RGB
     ];
 

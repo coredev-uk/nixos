@@ -16,7 +16,18 @@
     enableZshIntegration = false;
   };
 
-  security.pam.services.sudo_local.touchIdAuth = true;
+  # reattach: Touch ID also works inside zellij/tmux, which run outside the GUI session.
+  security.pam.services.sudo_local = {
+    touchIdAuth = true;
+    reattach = true;
+  };
+
+  # The flake's name for the machine, so `nh darwin switch` and darwin-rebuild find
+  # darwinConfigurations.poseidon by hostname. computerName (Finder, AirDrop) stays as is.
+  networking = {
+    hostName = meta.hostname;
+    localHostName = meta.hostname;
+  };
 
   system.defaults = {
     finder = {

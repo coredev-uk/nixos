@@ -4,6 +4,7 @@
 # while it plays the pipe, so the bar calls this on every track change and every few seconds:
 # the full set (with artwork) goes out when the track changed or OwnTone just started reading,
 # otherwise only the progress. $fifo (the metadata pipe) is set by the Nix wrapper.
+# shellcheck disable=SC2154 # $fifo
 
 title=$1 artist=$2 album=$3 art_url=$4 position_ms=$5 length_ms=$6
 state=${XDG_RUNTIME_DIR:-/tmp}/airplay-metadata.state

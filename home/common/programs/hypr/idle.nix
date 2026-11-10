@@ -25,6 +25,8 @@ in
       general = {
         # home/common/programs/quickshell/default.nix; exits at once if a lock is already up.
         lock_cmd = "quickshell-lock";
+        # Delay suspend until the session is locked (inhibit via logind, not just before_sleep_cmd).
+        inhibit_sleep = 3;
         before_sleep_cmd = "${pkgs.systemd}/bin/loginctl lock-session";
         after_sleep_cmd = dpms "enable";
         on_unlock_cmd = "set-brightness-all 100%";

@@ -18,6 +18,9 @@
       download = config.home.homeDirectory + "/downloads";
       pictures = config.home.homeDirectory + "/pictures";
 
+      # Nothing here uses ~/Projects; null stops home-manager creating it empty.
+      projects = null;
+
       desktop = config.home.homeDirectory;
       documents = config.home.homeDirectory;
       music = config.home.homeDirectory;

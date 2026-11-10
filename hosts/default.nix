@@ -7,14 +7,13 @@
   ...
 }:
 let
-  # Shared between nix.settings below and Determinate's nix.custom.conf.
+  # Shared between nix.settings below and Determinate's nix.custom.conf. cache.nixos.org is
+  # already the default substituter on both.
   substituters = [
-    "https://cache.nixos.org"
     "https://nix-citizen.cachix.org"
     "https://nix-community.cachix.org"
   ];
   trustedPublicKeys = [
-    "cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY="
     "nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo="
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
   ];
@@ -47,15 +46,24 @@ in
     config = {
       allowUnfree = true;
       joypixels.acceptLicense = true;
-      permittedInsecurePackages = [ ];
     };
   };
 
   nix = lib.mkIf config.nix.enable {
     # Register every other flake input so nix3 commands (`nix run home-manager`, …)
     # use the locked revisions. `nixpkgs` itself, and NIX_PATH's `nixpkgs=flake:nixpkgs`,
-    # come from the nixpkgs.flake.setFlakeRegistry/setNixPath defaults.
-    registry = lib.mapAttrs (_: flake: { inherit flake; }) (removeAttrs inputs [ "nixpkgs" ]);
+    # come from the nixpkgs.flake.setFlakeRegistry/setNixPath defaults. The non-flake inputs
+    # have nothing to run.
+    registry = lib.mapAttrs (_: flake: { inherit flake; }) (
+      removeAttrs inputs [
+        "nixpkgs"
+        "impeccable"
+        "taste-skill"
+      ]
+    );
+
+    # Flakes only: no root channel or channel NIX_PATH entries.
+    channel.enable = false;
 
     optimise.automatic = true;
     settings = {
