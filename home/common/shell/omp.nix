@@ -63,7 +63,15 @@ in
   # oh-my-pi coding agent (https://omp.sh)
   # Node runs taste-skill's scripts (direction draw, lint, browser inspector).
   home.packages = [
-    pkgs.omp
+    # Since nixos-unstable f4a03c0 (2026-11-07) its onig_sys and zstd-sys crates link the system
+    # libraries, which nixpkgs' omp 18.16.0 doesn't provide, so it fails to build ("The system
+    # library `oniguruma` required by crate `onig_sys` was not found"). Drop once nixpkgs adds them.
+    (pkgs.omp.overrideAttrs (old: {
+      buildInputs = old.buildInputs ++ [
+        pkgs.oniguruma
+        pkgs.zstd
+      ];
+    }))
     pkgs.nodejs
   ];
 
