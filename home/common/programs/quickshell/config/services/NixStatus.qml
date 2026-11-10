@@ -32,10 +32,10 @@ Singleton {
     //
     // "loading" before the first read, "unreachable" while Prometheus doesn't answer (off the home
     // network), then, first match wins: "failed" (main's latest commit didn't build into the cache,
-    // so a switch would build it here), "update-failing" (a lock update pull request, one per
-    // flake input, has a failed check), "update-pending" (updates are open and their checks still
-    // running), "running" (a builder Job is active), "ok", or "never" (the exporter has no result
-    // yet).
+    // so a switch would build it here), "update-failing" (a lock update has a failed check: one of
+    // the nightly trials, one per flake input, or the landing pull request that merges the passing
+    // ones), "update-pending" (updates are open and their checks still running, or landing),
+    // "running" (a builder Job is active), "ok", or "never" (the exporter has no result yet).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
@@ -85,11 +85,26 @@ Singleton {
         return times.length === 0 ? null : Math.min(...times);
     }
 
+    // The open landing pull request (the passing trials merged together), or null.
+    function landingOf(d: var): var {
+        return (d?.updates ?? []).find(u => u.kind === "landing") ?? null;
+    }
+
+    // The open trials (one draft pull request per flake input).
+    function trialsOf(d: var): var {
+        return (d?.updates ?? []).filter(u => u.kind === "trial");
+    }
+
+    // "unstable", "the lock update" for the landing pull request.
+    function nameOf(update: var): string {
+        return update.kind === "landing" ? "the lock update" : update.input;
+    }
+
     // "unstable and sona", "3 updates" past two.
     function inputs(updates: var): string {
         if (updates.length > 2)
             return `${updates.length} updates`;
-        return updates.map(u => u.input).join(" and ");
+        return updates.map(nameOf).join(" and ");
     }
 
     // "nix-cache and poseidon", "3 checks" past two.
@@ -115,13 +130,21 @@ Singleton {
             {
                 const failing = failingUpdates(d);
                 const since = updateFailingSince(failing[0]);
-                parts.push(`${failing.length === 1 ? `${failing[0].input} update` : inputs(failing)} failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
+                const what = failing.length > 1 ? inputs(failing) : failing[0].kind === "landing" ? "Lock update" : `${failing[0].input} update`;
+                parts.push(`${what} failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
                 break;
             }
         case "update-pending":
             {
-                const count = d.updates.length;
-                parts.push(count === 1 ? `${d.updates[0].input} update pending` : `${count} updates pending`);
+                const landing = landingOf(d);
+                const trials = trialsOf(d);
+                const testing = trials.filter(t => pendingChecks(t).length > 0 || t.checks === null);
+                if (landing !== null)
+                    parts.push(landing.inputs.length === 1 ? `Landing ${landing.inputs[0]}` : `Landing ${landing.inputs.length} updates`);
+                else if (testing.length > 0)
+                    parts.push(testing.length === 1 ? `Testing ${testing[0].input}` : `Testing ${testing.length} updates`);
+                else
+                    parts.push(trials.length === 1 ? `${trials[0].input} update passed` : `${trials.length} updates passed`);
                 break;
             }
         case "running":

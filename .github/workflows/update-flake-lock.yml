@@ -1,15 +1,15 @@
 name: "Update flake inputs"
 
-# One pull request per flake input that has an update, from BOT Cecil (bot-cecil[bot]), each on its
-# own branch (flake-update/<input>) and merging itself (auto-merge, squash) once the checks main's
-# ruleset requires have passed: Flake Checks, the poseidon build, and nix-cache, the status
-# home-ops' builder (kubernetes/apps/nix-cache) sets once it has built atlas's system and home into
-# the binary cache. An input that breaks the build stays open on its own while the rest land.
+# Nightly, one trial pull request per flake input that has an update, from BOT Cecil
+# (bot-cecil[bot]): a draft on its own branch (flake-update/<input>) that gets the checks main's
+# ruleset requires, all of them in parallel: Flake Checks, the poseidon build, and nix-cache, the
+# status home-ops' builder (kubernetes/apps/nix-cache) sets once it has built atlas's system and
+# home into the binary cache. Trials never merge: once every one has a result, land-flake-updates.yml
+# merges the passing ones into one pull request that does, so main only ever gets a combination
+# that was checked as a whole. A failing trial stays open, redone each night, without holding the
+# others back.
 #
-# Runs nightly, and whenever a push to main changes the flake: every open update is then redone on
-# top of the new main, so their flake.locks never conflict and an input that depends on another's
-# update (nixvim following unstable) passes once that one has merged. An update main already has
-# is closed.
+# A push to main that changes flake.lock closes the trials whose revision it now has.
 on:
   schedule:
     - cron: "30 23 * * *" # before the night, so the builder has them built by morning
@@ -18,19 +18,20 @@ on:
       - main
     paths:
       - "flake.lock"
-      - "flake.nix"
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# One run at a time; a push while one runs queues the next, which sees the newest main.
+# One run of each kind at a time; trials and the clean-up after a push queue separately, so
+# neither replaces the other while it waits.
 concurrency:
-  group: ${{ github.workflow }}
+  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'landed' || 'trials' }}
   cancel-in-progress: false
 
 jobs:
   plan:
+    if: github.event_name != 'push'
     runs-on: ubuntu-26.04
     outputs:
       inputs: ${{ steps.plan.outputs.inputs }}
@@ -109,35 +110,29 @@ jobs:
 
       # sign-commits: the commit goes through GitHub's API, so it is BOT Cecil's and Verified.
       # With nothing left to change (main already has it), the branch and its PR are removed.
-      - name: Open or refresh the pull request
-        id: pr
+      - name: Open or refresh the trial
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           sign-commits: true
           branch: flake-update/${{ matrix.input }}
           delete-branch: true
+          draft: always-true
           add-paths: flake.lock
           commit-message: |
             chore(flake): update ${{ matrix.input }}
 
             ${{ steps.update.outputs.change }}
-          title: "chore(flake): update ${{ matrix.input }}"
+          title: "chore(flake): try ${{ matrix.input }}"
           body: |
             ${{ steps.update.outputs.change }}
 
-            Merges itself once Flake Checks, the poseidon build and `nix-cache` (atlas's system and home built into the binary cache by home-ops' nix-cache-builder) pass. Redone on top of main whenever main's flake changes.
+            A trial: it gets the required checks but doesn't merge. Once every open trial has a result, the passing ones land together in the `flake-update` pull request; this one closes when main has its revision, and is redone each night until then.
 
-      - name: Merge once the required checks pass
-        if: steps.pr.outputs.pull-request-number != '' && steps.pr.outputs.pull-request-operation != 'closed'
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          PR: ${{ steps.pr.outputs.pull-request-number }}
-        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --squash
-
-  # Open update PRs for inputs that no longer have an update (main caught up some other way).
+  # Trials for inputs that no longer have an update (main caught up some other way).
   close-stale:
     needs: plan
+    if: github.event_name != 'push'
     runs-on: ubuntu-26.04
     steps:
       - name: Generate BOT Cecil token
@@ -154,11 +149,46 @@ jobs:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
           INPUTS: ${{ needs.plan.outputs.inputs }}
         run: |
-          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --json number,headRefName \
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --author app/bot-cecil --json number,headRefName \
             --jq '.[] | select(.headRefName | startswith("flake-update/")) | "\(.number) \(.headRefName)"' |
             while read -r number branch; do
               if ! jq -e --arg i "${branch#flake-update/}" 'index($i) != null' <<<"$INPUTS" >/dev/null; then
                 gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
                   --comment "main already has this input's latest revision."
+              fi
+            done
+
+  # After a push to main: the trials whose input main now has at the revision they tried.
+  close-landed:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-26.04
+    steps:
+      - name: Generate BOT Cecil token
+        id: app-token
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
+          permission-contents: write
+          permission-pull-requests: write
+
+      - name: Close the trials main has landed
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          MAIN: ${{ github.sha }}
+        run: |
+          # The locked narHash of the root input $1 in flake.lock at commit $2.
+          locked() {
+            gh api "repos/$GITHUB_REPOSITORY/contents/flake.lock?ref=$2" --jq .content | base64 -d |
+              jq -r --arg k "$1" '.nodes[.nodes.root.inputs[$k]].locked.narHash // empty'
+          }
+          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --author app/bot-cecil --json number,headRefName,headRefOid \
+            --jq '.[] | select(.headRefName | startswith("flake-update/")) | "\(.number) \(.headRefName) \(.headRefOid)"' |
+            while read -r number branch sha; do
+              input=${branch#flake-update/}
+              tried=$(locked "$input" "$sha")
+              if [ -n "$tried" ] && [ "$tried" = "$(locked "$input" "$MAIN")" ]; then
+                gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
+                  --comment "Landed: main has this revision ($MAIN)."
               fi
             done

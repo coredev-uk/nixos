@@ -11,12 +11,15 @@
 #   build     the nix-cache-builder (polls every 30 minutes, builds new commits on main and on open
 #             pull requests): its last run, and main's latest built commit (success, failing_since,
 #             targets); build.* from the exporter are absent until the first run has finished
-#   updates   the open lock updates: BOT Cecil's nightly pull requests, one per flake input
-#             (flake-update/<input>), each merging itself once its checks pass: [{input, number,
-#             url, opened_at, auto_merge, checks: [{name, state: success|failure|pending, since}],
-#             failing_since}]; checks (two requests a pull request) only with gh's token, else
-#             null; failing_since is since when the builder has failed it across its refreshes;
-#             null when GitHub didn't answer
+#   updates   the open lock updates from BOT Cecil: the nightly trials, one draft pull request per
+#             flake input (flake-update/<input>, kind "trial", which never merge), and the landing
+#             pull request that merges the passing ones together (flake-update, kind "landing",
+#             merging itself once its checks pass): [{kind, input (null for the landing one),
+#             inputs (the landing one's, else null), landing (a trial in the landing pull
+#             request), number, url, opened_at, auto_merge, checks: [{name, state:
+#             success|failure|pending, since}], failing_since}]; checks (two requests a pull
+#             request) only with gh's token, else null; failing_since is since when the builder
+#             has failed it across its refreshes; null when GitHub didn't answer
 #   failed_units  [{scope, name, description}] from systemctl --failed, system and user
 #             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
@@ -51,11 +54,13 @@ fi
 github() {
 	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
 }
-# The update pull requests, then each one's check runs and statuses.
+# The update pull requests (BOT Cecil's, from this repository), then each one's check runs and
+# statuses.
 : >"$tmp/updates"
 updates() {
 	github '/pulls?state=open&per_page=100' |
-		jq -c '[.[] | select(.head.ref | startswith("flake-update/"))]' >"$tmp/updates" 2>/dev/null || return 0
+		jq -c '[.[] | select(.user.login == "bot-cecil[bot]" and .head.repo.full_name == .base.repo.full_name
+			and (.head.ref == "flake-update" or (.head.ref | startswith("flake-update/"))))]' >"$tmp/updates" 2>/dev/null || return 0
 	# No answer from GitHub: leave it empty, which reads as unknown below.
 	[ -s "$tmp/updates" ] || return 0
 	local number sha
@@ -195,11 +200,18 @@ jq -n \
         store_size_bytes: gauge($m; "nix_cache_builder_store_size_bytes")
       },
       # Every check the ruleset on main requires is listed, as pending until it first reports
-      # (nix-cache only does once the builder picks the commit up on its next poll).
+      # (nix-cache only does once the builder picks the commit up on its next poll); a re-run
+      # check counts by its latest run.
       updates: (
         if ($ups | type) != "array" then null
-        else [$ups[] | .pr as $pr | {
-          input: ($pr.head.ref | ltrimstr("flake-update/")),
+        else
+          ($ups | map(.pr | select(.head.ref == "flake-update")) | first // null) as $landing
+          | ($landing | if . == null then [] else (.body // "") | [capture("<!-- trials: (?<t>[^>]*) -->").t | splits(" +") | select(. != "") | split("@")[0]] end) as $landed
+          | [$ups[] | .pr as $pr | ($pr.head.ref == "flake-update") as $is_landing | {
+          kind: (if $is_landing then "landing" else "trial" end),
+          input: (if $is_landing then null else $pr.head.ref | ltrimstr("flake-update/") end),
+          inputs: (if $is_landing then $landed else null end),
+          landing: ((if $is_landing then null else $pr.head.ref | ltrimstr("flake-update/") end) as $i | $i != null and ($landed | index($i) != null)),
           number: $pr.number,
           url: $pr.html_url,
           opened_at: ($pr.created_at | epoch),
@@ -218,7 +230,8 @@ jq -n \
                 name: .context,
                 state: (if .state == "success" then "success" elif .state == "pending" then "pending" else "failure" end),
                 since: (.updated_at | epoch)
-              }]) as $reported
+              }]
+              | group_by(.name) | map(max_by(.since // 0))) as $reported
               | $reported + [["evaluate", "flake-checker", "poseidon", "nix-cache"][]
                   | select(. as $n | $reported | all(.name != $n))
                   | {name: ., state: "pending", since: null}]
@@ -226,7 +239,7 @@ jq -n \
             end
           ),
           failing_since: labelled($m; "nix_cache_ref_failing_since_timestamp_seconds"; {ref: "pr-\($pr.number)"})
-        }] | sort_by(.input)
+        }] | sort_by(.kind != "landing", .input)
         end
       ),
       failed_units: (
