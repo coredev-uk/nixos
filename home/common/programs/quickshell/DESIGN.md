@@ -181,7 +181,7 @@ Night slate and enamel, with one warm metal and a short list of state colours (`
 - **Gilt Hover** (#d8b468): the primary button and the lock's submit under the pointer.
 
 ### Tertiary (state)
-- **Alert** (#e06c5a): errors, destructive actions, critical notifications (their 1px border), recording, a disconnected network, a wrong password, Shut down, a failed systemd unit in the Nix view (its section lists only when something has failed; the Nix row's glyph shares the alert with main failing to build and with a failed check on the lock update).
+- **Alert** (#e06c5a): errors, destructive actions, critical notifications (their 1px border), recording, a disconnected network, a wrong password, Shut down, a failed systemd unit in the Nix view (its section lists only when something has failed; the Nix row's glyph shares the alert with main failing to build and with a failed check on a lock update).
 - **Caution** (#e0954f): a value near its limit (system stats, low-ish battery), Caps Lock on the lock, Log out and Reboot while armed, a signed-out Pass in the calendar, a peripheral at 15% or below in the bar (the battery-alert glyph) and on its chip at 25% or below (the same glyph). Caution and gilt are almost equally bright, so caution never reports by hue alone: a stat near its limit is also underlined and its tooltip says "high" or "low"; a low battery adds the battery-alert glyph; Caps Lock and the armed power rows say their state in words.
 - **Ok** (#6fb39a): a success that just happened: copied, accepted on the lock (the field edge and dots turn ok before everything sinks), the confirm check.
 - **Link** (#8fb0d3): links in notification bodies.

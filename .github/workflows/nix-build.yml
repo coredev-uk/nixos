@@ -2,7 +2,7 @@ name: "Flake Builds"
 
 # poseidon's full build. atlas's system and home are built by home-ops' nix-cache-builder
 # (kubernetes/apps/nix-cache), which can't build darwinConfigurations. Runs on pull requests (the
-# nightly flake-update one among them; main's ruleset requires this job), when flake.lock changes
+# nightly per-input flake updates among them; main's ruleset requires this job), when flake.lock changes
 # on main, weekly to catch anything else, and on demand from the Actions tab.
 on:
   pull_request:
