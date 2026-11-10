@@ -24,7 +24,7 @@
     gnome = {
       gnome-keyring.enable = true;
       # Enabled by default with gnome-keyring; it would claim SSH_AUTH_SOCK, but the SSH agent
-      # is 1Password's (home/common/shell/ssh.nix).
+      # is the password manager's (home/common/shell/ssh.nix).
       gcr-ssh-agent.enable = false;
       sushi.enable = true;
     };
