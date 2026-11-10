@@ -19,7 +19,30 @@
 
   nixpkgs.hostPlatform = "x86_64-linux";
 
+  # amd-pstate-epp in active mode: powersave lets the energy-performance preference pick
+  # between idle and boost (xanmod's default, performance, pins EPP to performance). GameMode
+  # switches to performance while a game runs.
+  powerManagement.cpuFreqGovernor = "powersave";
+  systemd.services.cpu-epp = {
+    description = "Set the CPU energy-performance preference";
+    after = [ "cpufreq.service" ];
+    wantedBy = [ "multi-user.target" ];
+    serviceConfig.Type = "oneshot";
+    script = ''
+      for epp in /sys/devices/system/cpu/cpu*/cpufreq/energy_performance_preference; do
+        echo balance_performance > "$epp"
+      done
+    '';
+  };
+
   services = {
+    # sched_ext scheduler tuned for interactive and gaming latency; stopping the service
+    # (`systemctl stop scx`) falls back to the kernel's EEVDF.
+    scx = {
+      enable = true;
+      scheduler = "scx_lavd";
+    };
+
     # Monthly checksum verification; the default list is de-duplicated per device, so the
     # single LUKS/btrfs filesystem is scrubbed once despite its many subvolume mounts.
     btrfs.autoScrub.enable = true;

@@ -51,7 +51,8 @@
     # Agent skills from the skills.sh registry by name (home/common/shell/omp.nix).
     skills-nix.url = "github:z1-0/skills-nix";
 
-    # Sona, the Apple Music client (home/common/programs/sona.nix).
+    # Sona, the Apple Music client (home/common/programs/sona.nix). No nixpkgs follows on
+    # purpose: its flake pins the nixpkgs Sona is developed against (Go, GTK3, GStreamer).
     sona.url = "github:coredev-uk/sona-go";
 
     taste-skill.url = "github:Leonxlnx/taste-skill";
@@ -90,6 +91,12 @@
           username
           ;
       };
+
+      # Same formatter versions as the editor's (home-manager uses unstable).
+      treefmtFor =
+        system:
+        inputs.treefmt-nix.lib.evalModule inputs.unstable.legacyPackages.${system}
+          ./home/common/dev/treefmt.nix;
     in
     {
       # Home Manager configurations
@@ -140,13 +147,11 @@
         import ./shell.nix { inherit pkgs; }
       );
 
-      formatter = libx.forAllSystems (
-        system:
-        let
-          pkgs = nixpkgs.legacyPackages.${system};
-          treefmtEval = inputs.treefmt-nix.lib.evalModule pkgs ./home/common/dev/treefmt.nix;
-        in
-        treefmtEval.config.build.wrapper
-      );
+      formatter = libx.forAllSystems (system: (treefmtFor system).config.build.wrapper);
+
+      # `nix flake check` fails on unformatted files.
+      checks = libx.forAllSystems (system: {
+        formatting = (treefmtFor system).config.build.check self;
+      });
     };
 }

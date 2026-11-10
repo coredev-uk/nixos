@@ -27,6 +27,7 @@ let
 
   exec = command: "hl.dsp.exec_cmd(${builtins.toJSON command})";
   focus = direction: "hl.dsp.focus({ direction = ${builtins.toJSON direction} })";
+  moveWindow = direction: "hl.dsp.window.move({ direction = ${builtins.toJSON direction} })";
   workspace = workspace: "hl.dsp.focus({ workspace = ${builtins.toJSON workspace} })";
   moveToWorkspace = workspace: "hl.dsp.window.move({ workspace = ${builtins.toJSON workspace} })";
   resize = x: y: "hl.dsp.window.resize({ x = ${toString x}, y = ${toString y}, relative = true })";
@@ -34,16 +35,20 @@ in
 {
   bind = [
     # Media Keys (on-screen display: home/common/programs/quickshell/config/modules/Osd.qml)
-    (bind "XF86AudioMicMute" (exec "quickshell ipc -c bar call osd micMute"))
-    (bind "XF86AudioMute" (exec "quickshell ipc -c bar call osd mute"))
-    (bind "XF86AudioPlay" (exec "quickshell ipc -c bar call osd media play-pause"))
-    (bind "XF86AudioPause" (exec "quickshell ipc -c bar call osd media play-pause"))
-    (bind "XF86AudioNext" (exec "quickshell ipc -c bar call osd media next"))
-    (bind "XF86AudioPrev" (exec "quickshell ipc -c bar call osd media previous"))
+    (bindWith "XF86AudioMicMute" (exec "quickshell ipc -c bar call osd micMute") { locked = true; })
+    (bindWith "XF86AudioMute" (exec "quickshell ipc -c bar call osd mute") { locked = true; })
+    (bindWith "XF86AudioPlay" (exec "quickshell ipc -c bar call osd media play-pause") {
+      locked = true;
+    })
+    (bindWith "XF86AudioPause" (exec "quickshell ipc -c bar call osd media play-pause") {
+      locked = true;
+    })
+    (bindWith "XF86AudioNext" (exec "quickshell ipc -c bar call osd media next") { locked = true; })
+    (bindWith "XF86AudioPrev" (exec "quickshell ipc -c bar call osd media previous") { locked = true; })
 
     # Main Apps
     (bind "${mod} + L" (exec lock))
-    (bind "${mod} + B" (exec browser))
+    (bind "${mod} + B" (exec "uwsm app -- ${browser}"))
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
     # Wallpaper picker (home/common/programs/quickshell/config/modules/WallpaperPicker.qml)
@@ -65,7 +70,7 @@ in
     (bind "${mod} + Q" "hl.dsp.window.close()")
     (bind "${mod} + SHIFT + Space" "hl.dsp.window.float()")
     (bind "${mod} + P" "hl.dsp.window.pseudo()") # dwindle
-    # "${mod}, S, togglesplit" # dwindle
+    (bind "${mod} + J" "hl.dsp.layout(\"togglesplit\")") # dwindle
     (bind "${mod} + F" "hl.dsp.window.fullscreen()")
 
     # Focus
@@ -73,6 +78,12 @@ in
     (bind "${mod} + right" (focus "r"))
     (bind "${mod} + up" (focus "u"))
     (bind "${mod} + down" (focus "d"))
+
+    # Move the window in a direction, across monitors at the edge
+    (bind "${mod} + SHIFT + left" (moveWindow "l"))
+    (bind "${mod} + SHIFT + right" (moveWindow "r"))
+    (bind "${mod} + SHIFT + up" (moveWindow "u"))
+    (bind "${mod} + SHIFT + down" (moveWindow "d"))
 
     # Resize
     (bind "${mod} + CTRL + left" (resize (-20) 0))
@@ -118,17 +129,21 @@ in
     (bindWith "${mod} + mouse:272" "hl.dsp.window.drag()" { mouse = true; }) # Left-Click
     (bindWith "${mod} + mouse:273" "hl.dsp.window.resize()" { mouse = true; }) # Right-Click
 
-    # MultiMedia: Volume Up/Down
+    # MultiMedia: Volume and brightness repeat while held and work over the lock screen
     (bindWith "XF86AudioRaiseVolume" (exec "quickshell ipc -c bar call osd volume +5") {
       repeating = true;
+      locked = true;
+    })
+    (bindWith "XF86AudioLowerVolume" (exec "quickshell ipc -c bar call osd volume -5") {
+      repeating = true;
+      locked = true;
     })
     (bindWith "XF86MonBrightnessDown" (exec "quickshell ipc -c bar call osd brightness -10") {
       repeating = true;
+      locked = true;
     })
     (bindWith "XF86MonBrightnessUp" (exec "quickshell ipc -c bar call osd brightness +10") {
       repeating = true;
-    })
-    (bindWith "XF86AudioLowerVolume" (exec "quickshell ipc -c bar call osd volume -5") {
       locked = true;
     })
   ];

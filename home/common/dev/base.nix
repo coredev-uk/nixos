@@ -143,6 +143,7 @@ in
     direnv = {
       enable = true;
       nix-direnv.enable = true;
+      silent = true;
     };
     # No shell hook: it runs `devenv hook-should-activate` before every prompt (~60ms).
     # devenv projects load through direnv instead (`use devenv` in their .envrc).
@@ -151,8 +152,6 @@ in
       enableZshIntegration = false;
     };
 
-    # Git
-    git.enable = true;
     lazygit = {
       enable = true;
       settings = {
@@ -178,7 +177,6 @@ in
     nixfmt
     nurl
     statix
-    treefmt
 
     # Python tooling
     (pkgs.python3.withPackages (

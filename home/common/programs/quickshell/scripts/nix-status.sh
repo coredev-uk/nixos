@@ -22,11 +22,11 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
 fetch() {
-  curl --silent --location --connect-timeout 3 --max-time 8 "$@" 2>/dev/null || true
+	curl --silent --location --connect-timeout 3 --max-time 8 "$@" 2>/dev/null || true
 }
 
 query() {
-  fetch --get "$prometheus" --data-urlencode "query=$2" >"$tmp/$1" &
+	fetch --get "$prometheus" --data-urlencode "query=$2" >"$tmp/$1" &
 }
 
 query metrics '{__name__=~"nix_cache_.+"}'
@@ -37,7 +37,7 @@ fetch "$lock_url" >"$tmp/lock" &
 
 # Failed units, both managers; an empty file (no bus, timeout) reads as "unknown" below.
 failed() {
-  timeout 5 /run/current-system/sw/bin/systemctl "${@:2}" --failed --output=json --no-legend >"$tmp/$1" 2>/dev/null || true
+	timeout 5 /run/current-system/sw/bin/systemctl "${@:2}" --failed --output=json --no-legend >"$tmp/$1" 2>/dev/null || true
 }
 failed system &
 failed user --user &
@@ -55,36 +55,36 @@ generation=${generation#system-}
 generation=${generation%-link}
 generation_time=
 if [ -n "$generation" ]; then
-  generation_time=$(stat --format %Y "/nix/var/nix/profiles/system-$generation-link" || true)
+	generation_time=$(stat --format %Y "/nix/var/nix/profiles/system-$generation-link" || true)
 fi
 
 # A new generation switched in is not a reboot; a different kernel, initrd or module tree is.
 reboot_pending=false
 if [ -e /run/booted-system ]; then
-  for part in kernel initrd kernel-modules; do
-    if [ "$(readlink -f "/run/booted-system/$part")" != "$(readlink -f "/run/current-system/$part")" ]; then
-      reboot_pending=true
-    fi
-  done
+	for part in kernel initrd kernel-modules; do
+		if [ "$(readlink -f "/run/booted-system/$part")" != "$(readlink -f "/run/current-system/$part")" ]; then
+			reboot_pending=true
+		fi
+	done
 fi
 
 wait
 
 jq -n \
-  --argjson now "$(date +%s)" \
-  --argjson os "$os" \
-  --arg generation "$generation" \
-  --arg generation_time "$generation_time" \
-  --argjson reboot_pending "$reboot_pending" \
-  --arg narinfo "$(cat "$tmp/narinfo")" \
-  --rawfile lock "$tmp/lock" \
-  --rawfile metrics "$tmp/metrics" \
-  --rawfile kube "$tmp/kube" \
-  --rawfile active "$tmp/active" \
-  --rawfile up "$tmp/up" \
-  --rawfile units_system "$tmp/system" \
-  --rawfile units_user "$tmp/user" \
-  '
+	--argjson now "$(date +%s)" \
+	--argjson os "$os" \
+	--arg generation "$generation" \
+	--arg generation_time "$generation_time" \
+	--argjson reboot_pending "$reboot_pending" \
+	--arg narinfo "$(cat "$tmp/narinfo")" \
+	--rawfile lock "$tmp/lock" \
+	--rawfile metrics "$tmp/metrics" \
+	--rawfile kube "$tmp/kube" \
+	--rawfile active "$tmp/active" \
+	--rawfile up "$tmp/up" \
+	--rawfile units_system "$tmp/system" \
+	--rawfile units_user "$tmp/user" \
+	'
   def prom($raw): ($raw | fromjson? // null) | if .status == "success" then .data.result else null end;
   def gauge($rs; $name): first($rs[]? | select(.metric.__name__ == $name) | .value[1] | tonumber) // null;
   def flag($v): if $v == null then null else $v == 1 end;

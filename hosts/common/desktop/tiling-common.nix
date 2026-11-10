@@ -40,13 +40,10 @@
     upower.enable = true;
   };
 
+  # programs.hyprland already adds xdg-desktop-portal-gtk.
   xdg.portal = {
     enable = true;
     xdgOpenUsePortal = true;
-
-    extraPortals = [
-      pkgs.xdg-desktop-portal-gtk
-    ];
 
     config = {
       common = {

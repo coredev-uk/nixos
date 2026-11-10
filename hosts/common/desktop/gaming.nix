@@ -53,16 +53,23 @@ in
       };
     };
 
-    # Enable GameMode
+    # GameMode; the user needs the gamemode group (hosts/common/users) for the governor,
+    # GPU and procsys changes, which polkit only allows that group.
     gamemode = {
       enable = true;
+      settings.general = {
+        renice = 10;
+        softrealtime = "auto";
+      };
     };
 
     # gamescope
     gamescope.enable = true;
   };
 
-  # Required for Esync (https://github.com/lutris/docs/blob/master/HowToEsync.md)
+  # Soft and hard open-file limit for every unit, including the user manager and so the
+  # whole uwsm session (Esync, https://github.com/lutris/docs/blob/master/HowToEsync.md).
+  # systemd's default soft limit is 1024.
   systemd.settings.Manager = {
     DefaultLimitNOFILE = 524288;
   };

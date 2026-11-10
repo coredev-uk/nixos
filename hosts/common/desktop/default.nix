@@ -32,6 +32,10 @@ in
   # VA-API on NVIDIA (nvidia-vaapi-driver) comes from hardware.nvidia.videoAcceleration.
   hardware.graphics.enable = true;
 
+  # services.graphical-desktop turns on speech-dispatcher (and espeak) by default; nothing
+  # here uses text-to-speech.
+  services.speechd.enable = false;
+
   # A YubiKey touch instead of the password (pam_u2f), wherever it's enabled below; the password
   # still follows if the key isn't touched or plugged in. The keys are registered in
   # /etc/u2f_mappings, one line per user (`pamu2fcfg` for the first key, `pamu2fcfg -n` appended

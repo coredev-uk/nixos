@@ -1,17 +1,11 @@
 _: {
   window = [
-    # Floating Windows
+    # XWayland dialogs/menus without class or title: leave focus where it is
     {
       match = {
         class = "^$";
         title = "^$";
-      };
-      float = true;
-    }
-    {
-      match = {
-        class = "^$";
-        title = "^$";
+        xwayland = true;
       };
       no_focus = true;
     }
@@ -47,27 +41,18 @@ _: {
       center = true;
     }
 
-    # Picture-in-Picture
+    # Picture-in-Picture: bottom-right corner, 50px in from the monitor edges
     {
-      match.title = "^(Picture-in-Picture|Firefox)$";
+      match.title = "^(Picture-in-Picture)$";
       float = true;
-    }
-    {
-      match.title = "^(Picture-in-Picture|Firefox)$";
+      pin = true;
       size = [
         800
         450
       ];
-    }
-    {
-      match.title = "^(Picture-in-Picture|Firefox)$";
-      pin = true;
-    }
-    {
-      match.title = "^(Picture-in-Picture|Firefox)$";
       move = [
-        "100%-850"
-        "100%-500"
+        "monitor_w-window_w-50"
+        "monitor_h-window_h-50"
       ];
     }
 
@@ -155,6 +140,12 @@ _: {
     {
       match.class = "^(steam_app_\\d+)$";
       immediate = true;
+    }
+
+    # Keep the password managers out of screen shares and recordings
+    {
+      match.class = "^(1Password|Proton Pass|proton-pass|proton-pass-desktop)$";
+      no_screen_share = true;
     }
 
     # Keep Discord fully opaque when unfocused (general:inactive_opacity), e.g. while screensharing

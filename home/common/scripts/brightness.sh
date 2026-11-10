@@ -1,4 +1,3 @@
-#!/usr/bin/env bash
 # Set brightness on all DDC/CI monitors.
 # Takes an absolute percentage ("65", "65%") or a relative step ("10%+", "10%-");
 # "get" prints the current percentage instead.
@@ -10,7 +9,7 @@ declare -A scale=([GN800]=118)
 devices=(/sys/class/backlight/ddcci*)
 [ -e "${devices[0]}" ] || exit 0
 
-model() { cat "$1/device/idModel" 2>/dev/null; }
+model() { cat "$1/device/idModel" 2>/dev/null || true; }
 percent() { echo $(($(cat "$1/brightness") * 100 / $(cat "$1/max_brightness"))); }
 
 # Read from an unscaled monitor: a scaled one sits at 100 well before the setting does.

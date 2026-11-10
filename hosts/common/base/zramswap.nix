@@ -1,6 +1,10 @@
 _: {
-  # Balance lz4 latency/throughput
-  boot.kernel.sysctl."vm.page-cluster" = 1;
+  # zram is the only swap: no readahead (pages are decompressed one at a time anyway), and
+  # swapping to RAM is cheaper than dropping page cache, hence swappiness above 100.
+  boot.kernel.sysctl = {
+    "vm.page-cluster" = 0;
+    "vm.swappiness" = 180;
+  };
 
   # Hibernate and hybrid-sleep won't work correctly without
   # an on-disk swap.

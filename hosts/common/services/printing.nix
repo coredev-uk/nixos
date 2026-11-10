@@ -6,6 +6,10 @@ _: {
     openFirewall = true;
   };
 
-  # cups-filters is always in the CUPS bindir; cups-browsed runs because avahi is on.
-  services.printing.enable = true;
+  # No cups-browsed: CUPS itself lists driverless (IPP Everywhere/AirPrint) printers found over
+  # mDNS as temporary queues, so the network-facing browse daemon adds nothing.
+  services.printing = {
+    enable = true;
+    browsed.enable = false;
+  };
 }

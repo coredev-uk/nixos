@@ -73,7 +73,7 @@ case "${1:-}" in
 --status) status ;;
 --countries) countries ;;
 --connect)
-	if [[ -n "${2:-}" ]]; then
+	if [[ -n ${2:-} ]]; then
 		connect --country "$2"
 	else
 		connect

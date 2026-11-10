@@ -37,15 +37,22 @@
         zstyle ':fzf-tab:*' use-fzf-default-opts yes
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'
-
-        export GIO_MODULE_DIR=${pkgs.glib-networking}/lib/gio/modules/ # Patch for webkit2gtk ssl error (https://github.com/tauri-apps/wry/issues/605#issuecomment-1215756032)
+      ''
+      # webkit2gtk (Tauri apps) needs glib-networking for TLS
+      # (https://github.com/tauri-apps/wry/issues/605#issuecomment-1215756032). Added to GIO's
+      # search path rather than replacing it, so dconf and the other GIO modules still load.
+      + lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
+        export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules''${GIO_EXTRA_MODULES:+:$GIO_EXTRA_MODULES}"
       '';
 
       oh-my-zsh = {
         enable = true;
         # Skip compaudit's permission scan of every completion dir (~20ms per shell): they're
-        # in the read-only nix store.
-        extraConfig = "ZSH_DISABLE_COMPFIX=true";
+        # in the read-only nix store, which also has no git checkout to self-update.
+        extraConfig = ''
+          ZSH_DISABLE_COMPFIX=true
+          zstyle ':omz:update' mode disabled
+        '';
         plugins = [
           "sudo"
           "ssh"
@@ -77,7 +84,7 @@
         gac = "git add -A && git commit";
         gst = "git status -sb";
 
-        speedtest = "curl -s https://raw.githubusercontent.com/sivel/speedtest-cli/master/speedtest.py | python -";
+        speedtest = "speedtest-go";
 
         k = "kubectl";
       }
@@ -97,4 +104,6 @@
       );
     };
   };
+
+  home.packages = [ pkgs.speedtest-go ];
 }

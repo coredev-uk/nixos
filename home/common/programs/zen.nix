@@ -36,13 +36,12 @@ in
           # YouTube
           "sponsorBlocker@ajay.app" = "sponsorblock";
           # Cookies
-          "jid1-KKzOGWgsW3Ao4Q@jetpack" = "i-dont-care-about-cookies";
           "idcac-pub@guus.ninja" = "istilldontcareaboutcookies";
           # Proton
           "78272b6fa58f4a1abaac99321d503a20@proton.me" = "proton-pass";
           "vpn@proton.ch" = "proton-vpn";
-          # Refined GitHub
-          "{a4c4eda4-fb84-4a84-b4a1-f7c1cbf2a1ad}" = "refined-github";
+          # Refined GitHub: off, it made GitHub's pages noticeably slower. Uncomment to try again.
+          # "{a4c4eda4-fb84-4a84-b4a1-f7c1cbf2a1ad}" = "refined-github";
           # Wappalyzer
           "wappalyzer@crunchlabz.com" = "wappalyzer";
           # AdBlocker
@@ -463,7 +462,6 @@ in
         DisableAppUpdate = true;
         DisableFeedbackCommands = true;
         DisableFirefoxStudies = true;
-        DisablePocket = true;
         DisableTelemetry = true;
         DontCheckDefaultBrowser = true;
         NoDefaultBookmarks = true;

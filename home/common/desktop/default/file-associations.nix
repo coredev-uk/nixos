@@ -9,11 +9,34 @@ in
 {
   # XDG MIME types
   associations = {
-    "audio/*" = videoPlayer;
-    "video/*" = videoPlayer;
-    "image/*" = imageViewer;
-
     "inode/directory" = fileBrowser;
+
+    # Audio and video (mimeapps.list has no wildcards, so the common types are listed)
+    "audio/mpeg" = videoPlayer;
+    "audio/mp4" = videoPlayer;
+    "audio/aac" = videoPlayer;
+    "audio/flac" = videoPlayer;
+    "audio/x-flac" = videoPlayer;
+    "audio/ogg" = videoPlayer;
+    "audio/opus" = videoPlayer;
+    "audio/wav" = videoPlayer;
+    "audio/x-wav" = videoPlayer;
+    "audio/webm" = videoPlayer;
+    "audio/x-matroska" = videoPlayer;
+    "audio/x-ms-wma" = videoPlayer;
+    "audio/x-aiff" = videoPlayer;
+    "audio/x-mpegurl" = videoPlayer;
+    "video/mp4" = videoPlayer;
+    "video/x-matroska" = videoPlayer;
+    "video/webm" = videoPlayer;
+    "video/mpeg" = videoPlayer;
+    "video/ogg" = videoPlayer;
+    "video/quicktime" = videoPlayer;
+    "video/x-msvideo" = videoPlayer;
+    "video/x-flv" = videoPlayer;
+    "video/x-ms-wmv" = videoPlayer;
+    "video/3gpp" = videoPlayer;
+    "video/mp2t" = videoPlayer;
 
     # "application/json" = browser;
     "application/pdf" = documentViewer;

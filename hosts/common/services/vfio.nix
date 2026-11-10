@@ -78,6 +78,28 @@ let
     fi
   '';
 
+  # Started by the hook once the domain runs: the host has no display then, so this is the only
+  # record of how the guest came up. Every 10 s for 3 minutes: guest CPU time (a guest stuck in
+  # firmware spins or sits at zero) and its DHCP lease (Windows got as far as its network), each
+  # line flushed to disk at once, so a hard reset after a black screen still leaves them.
+  watchVfio = pkgs.writeShellScript "${cfg.vmName}-vfio-watch" ''
+    VIRSH="${pkgs.libvirt}/bin/virsh -c ${escapeShellArg cfg.libvirtUri}"
+    VM=${escapeShellArg cfg.vmName}
+
+    for i in $(${pkgs.coreutils}/bin/seq 1 18); do
+      ${pkgs.coreutils}/bin/sleep 10
+      state=$($VIRSH domstate "$VM" 2>/dev/null || echo gone)
+      if [ "$state" != running ]; then
+        echo "+$((i * 10))s: domain $state"
+        break
+      fi
+      cpu=$($VIRSH domstats --cpu-total "$VM" 2>/dev/null | ${pkgs.gnused}/bin/sed -n 's/^ *cpu.time=//p')
+      lease=$($VIRSH domifaddr --source lease "$VM" 2>/dev/null | ${pkgs.gawk}/bin/awk 'NR > 2 && $4 { print $4; exit }')
+      echo "+$((i * 10))s: guest cpu $(( ''${cpu:-0} / 1000000000 ))s, lease ''${lease:-none}"
+      ${pkgs.systemd}/bin/journalctl --sync
+    done
+  '';
+
   launchVfio = pkgs.writeShellScript "${cfg.vmName}-vfio-launch" ''
     set -euo pipefail
 
@@ -467,6 +489,9 @@ let
         ;;
       started:begin)
         ${optionalString cfg.cancelRecoveryOnStarted "cancel_recovery"}
+        # Detached: the watcher calls back into libvirtd, which waits for this hook to return.
+        ${pkgs.systemd}/bin/systemd-run --quiet --collect --unit=${escapeShellArg "${cfg.vmName}-vfio-watch"} \
+          ${watchVfio} || log "could not start the watcher"
         ;;
       release:end)
         cancel_recovery
@@ -610,6 +635,9 @@ in
       };
     };
 
+    # snd_hda_intel first: left bound to the GPU's HDA function while the GPU is unbound, it
+    # logs "GPU sound probed, but not operational" and holds the function through the reset.
+    # The host's audio is USB, so nothing on it needs the module while the VM runs.
     unloadModules = mkOption {
       type = types.listOf types.str;
       default = [
@@ -657,9 +685,10 @@ in
     ];
 
     boot.extraModulePackages = [ config.boot.kernelPackages.kvmfr ];
-    boot.kernelParams = optionals cfg.iommu.enableKernelParams iommuKernelParams ++ [
-      "kvmfr.static_size_mb=${toString cfg.lookingGlassMemoryMb}"
-    ];
+    boot.kernelParams = optionals cfg.iommu.enableKernelParams iommuKernelParams;
+    boot.extraModprobeConfig = ''
+      options kvmfr static_size_mb=${toString cfg.lookingGlassMemoryMb}
+    '';
 
     services.udev.packages = lib.singleton (
       pkgs.writeTextFile {
@@ -676,7 +705,6 @@ in
       [
         looking-glass-client
         startVfio
-        swtpm
         virt-viewer
       ]
       ++ optional nativeBootEnabled startNativeBoot;
@@ -738,6 +766,11 @@ in
 
     virtualisation.libvirtd = {
       enable = true;
+
+      # The default suspend (managed save) fails for a domain with PCI hostdevs, and onBoot
+      # "start" would rerun the passthrough hook at boot and take the GPU from the session.
+      onShutdown = "shutdown";
+      onBoot = "ignore";
 
       qemu = {
         package = pkgs.qemu_kvm;

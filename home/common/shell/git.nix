@@ -10,10 +10,18 @@
 
   programs.gh = {
     enable = true;
+    # Every GitHub URL is rewritten to SSH, so the HTTPS credential helper is never used.
+    gitCredentialHelper.enable = false;
     settings = {
       git_protocol = "ssh";
       aliases.co = "pr checkout";
     };
+  };
+
+  # Structural diffs as `git diff`'s external tool.
+  programs.difftastic = {
+    enable = true;
+    git.enable = true;
   };
 
   programs.git =
@@ -68,9 +76,17 @@
           autoupdate = 1;
         };
 
-        push = {
-          default = "simple";
+        push.autoSetupRemote = true;
+        fetch.prune = true;
+        rebase = {
+          autoStash = true;
+          autoSquash = true;
         };
+        merge.conflictStyle = "zdiff3";
+        diff.algorithm = "histogram";
+        help.autocorrect = "prompt";
+        tag.sort = "version:refname";
+        column.ui = "auto";
 
         branch.sort = "-committerdate";
 
@@ -93,18 +109,18 @@
       ignores = [
         ".vscode"
         ".npm"
-        ".cache"
-        ".icons"
-        ".mozilla"
-        ".local"
-        ".electron-gyp"
+        # Home-directory junk, anchored so nested directories of the same name stay visible.
+        "/.cache"
+        "/.icons"
+        "/.mozilla"
+        "/.local"
+        "/.electron-gyp"
         ".idea"
-        ".lock"
         ".DS_Store"
 
         # Application Development
         "node_modules"
-        "dist"
+        "/dist"
         "yarn-error.log"
         ".yarnclean"
 
@@ -112,8 +128,7 @@
         "doc/tags"
         "*.vim-flavor"
         "*.swp"
-        "*.bundle"
-        "vendor"
+        "/vendor"
       ];
     };
 }

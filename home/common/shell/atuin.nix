@@ -7,8 +7,7 @@ _: {
     enableZshIntegration = true;
 
     settings = {
-      auto_sync = true;
-      sync_frequency = "5m";
+      update_check = false;
       sync_address = "https://atuin.hera.ac";
     };
   };

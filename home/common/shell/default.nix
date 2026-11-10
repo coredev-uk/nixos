@@ -43,7 +43,8 @@
         "--color=16,bg+:0,gutter:0,hl:3,hl+:3,pointer:3,marker:3,prompt:3,info:8,spinner:8,scrollbar:8"
       ];
     };
-    home-manager.enable = true;
+    # Standalone Home Manager only; the darwin module manages itself.
+    home-manager.enable = !meta.isDarwin;
   };
 
 }

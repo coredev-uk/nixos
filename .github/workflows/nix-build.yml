@@ -1,50 +1,57 @@
 name: "Flake Builds"
 
-# Full builds of every host. Evaluation alone (nix-check.yml) misses build failures, which
-# mostly arrive with input updates, so build when flake.lock changes, weekly to catch
-# anything else, and on demand from the Actions tab.
+# poseidon's full build. atlas's system and home are built by home-ops' nix-cache-builder
+# (kubernetes/apps/nix-cache), which can't build darwinConfigurations. Runs on pull requests (the
+# nightly flake-update one among them; main's ruleset requires this job), when flake.lock changes
+# on main, weekly to catch anything else, and on demand from the Actions tab.
 on:
+  pull_request:
   push:
+    branches:
+      - main
     paths:
       - "flake.lock"
   schedule:
     - cron: "0 4 * * 1" # Mondays 04:00 UTC
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  atlas:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Install nix
-        uses: DeterminateSystems/nix-installer-action@v23
-        with:
-          extra-conf: |
-            extra-substituters = https://catppuccin.cachix.org https://nix-citizen.cachix.org https://nix-community.cachix.org
-            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU= nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
-
-      - name: Build atlas system and home
-        run: |
-          nix build --no-link \
-            .#nixosConfigurations.atlas.config.system.build.toplevel \
-            '.#homeConfigurations."paul@atlas".activationPackage'
-
   poseidon:
-    runs-on: macos-14
+    runs-on: macos-26
+    permissions:
+      contents: read
+      actions: write # cache-nix-action purges superseded caches
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
 
+      # The caches hosts/default.nix configures (not a flake nixConfig: that would warn on
+      # every local nix command run by an untrusted user).
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
         with:
           extra-conf: |
-            extra-substituters = https://catppuccin.cachix.org https://nix-community.cachix.org
-            extra-trusted-public-keys = catppuccin.cachix.org-1:noG/4HkbhJb+lUAdKrph6LaozJvAeEEZj4N732IysmU= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+            extra-substituters = https://nix-citizen.cachix.org https://nix-community.cachix.org
+            extra-trusted-public-keys = nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
+
+      - name: Restore Nix store cache
+        uses: nix-community/cache-nix-action@v7
+        with:
+          primary-key: nix-${{ runner.os }}-${{ hashFiles('flake.lock') }}
+          restore-prefixes-first-match: nix-${{ runner.os }}-
+          gc-max-store-size-macos: 4G
+          purge: true
+          purge-prefixes: nix-${{ runner.os }}-
+          purge-created: 0
+          purge-primary-key: never
 
       - name: Build poseidon
-        run: nix build --no-link .#darwinConfigurations.poseidon.system
+        run: nix build --keep-going -L --out-link result-poseidon .#darwinConfigurations.poseidon.system

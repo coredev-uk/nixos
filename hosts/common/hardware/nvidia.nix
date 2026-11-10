@@ -14,16 +14,24 @@ let
   };
 in
 {
-  warnings = lib.optional (lib.versionAtLeast nvidiaPackages.stable.version pinned.version) ''
-    hosts/common/hardware/nvidia.nix: nixpkgs' stable NVIDIA driver (${nvidiaPackages.stable.version})
+  # The kernel 7.2 build fix shipped in the 610 branch, which nixpkgs carries as `latest`
+  # (`stable` stays on 595, so comparing against it would never fire).
+  warnings = lib.optional (lib.versionAtLeast nvidiaPackages.latest.version pinned.version) ''
+    hosts/common/hardware/nvidia.nix: nixpkgs' latest NVIDIA driver (${nvidiaPackages.latest.version})
     has caught up with the pinned ${pinned.version}. Check NixOS/nixpkgs#554125 and drop the pin.
   '';
 
   hardware.nvidia = {
-    # Force use the proprietary Nvidia drivers
+    # Proprietary kernel modules. The open ones (tried 2026-11-10) broke the single-GPU VM: it
+    # started, but the passed-through card stayed black with its fans at full. Open 610.57.04
+    # also has Ampere + Hyprland lockups (NVIDIA/open-gpu-kernel-modules#1411) and VFIO ROM
+    # reads failing (#955).
     open = false;
 
     package = pinned;
+
+    # PAT instead of MTRR for write-combined mappings.
+    moduleParams.nvidia.NVreg_UsePageAttributeTable = 1;
 
     # Required for proper refresh rate handling afaik
     # forceFullCompositionPipeline = true;
@@ -31,10 +39,7 @@ in
     # Wayland
     modesetting.enable = true;
 
-    powerManagement = {
-      enable = true;
-      finegrained = false;
-    };
+    powerManagement.enable = true;
 
     nvidiaSettings = true;
   };

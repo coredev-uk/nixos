@@ -48,7 +48,7 @@ in
             "hyprland.start"
             (lua ''
               function()
-                hl.exec_cmd("1password --silent")
+                hl.exec_cmd("uwsm app -- 1password --silent")
               end
             '')
           ];
@@ -144,6 +144,21 @@ in
             # If the lock screen crashes, `quickshell-lock` from a TTY (with WAYLAND_DISPLAY and
             # HYPRLAND_INSTANCE_SIGNATURE set) can take the session over again.
             allow_session_lock_restore = true;
+            # Input wakes monitors that hypridle switched off.
+            key_press_enables_dpms = true;
+            mouse_move_enables_dpms = true;
+            # Games and long loads stall for seconds; the dialog only gets in the way.
+            enable_anr_dialog = false;
+          };
+
+          dwindle.preserve_split = true;
+
+          # Direct scanout for fullscreen windows with the game content type only (2 = auto).
+          render.direct_scanout = 2;
+
+          ecosystem = {
+            no_update_news = true;
+            no_donation_nag = true;
           };
 
           # debug = {
@@ -155,6 +170,12 @@ in
           {
             match.namespace = "bar";
             blur = true;
+            ignore_alpha = 0.5;
+          }
+          # Secrets-bearing surfaces stay black in screen shares and recordings.
+          {
+            match.namespace = "^(notifications|pass-quick-access|polkit)$";
+            no_screen_share = true;
           }
           # The shell animates these itself and keeps them mapped between showings; a fade of
           # the whole surface on top would double up on map and come too late on unmap.
@@ -163,6 +184,15 @@ in
             no_anim = true;
           }
         ];
+
+        # Primary (DP-1) takes workspaces 1-5, the secondary (DP-2) 6-10 (config/monitors.nix).
+        workspace_rule = lib.optionals (meta.hostname == "atlas") (
+          lib.genList (i: {
+            workspace = toString (i + 1);
+            monitor = if i < 5 then "DP-1" else "DP-2";
+            default = i == 0 || i == 5;
+          }) 10
+        );
 
         inherit (animations) curve animation;
 
@@ -190,5 +220,4 @@ in
 
   # Nvidia Variables
   home.sessionVariables.LIBVA_DRIVER_NAME = "nvidia";
-  home.sessionVariables.__GLX_VENDOR_LIBRARY_NAME = "nvidia";
 }

@@ -319,16 +319,12 @@ in
         enable = true;
       };
 
-      # Web devicons
-      web-devicons.enable = true;
-
       # Syntax-highlighted completion menu
       colorful-menu = {
         enable = true;
         settings = {
           ls = {
-            lua_ls.arguments_hl = "@comment";
-            ts_ls.extra_info_hl = "@comment";
+            vtsls.extra_info_hl = "@comment";
           };
           fallback_highlight = "@variable";
           max_width = 60;
@@ -338,6 +334,8 @@ in
       # Mini modules
       mini = {
         enable = true;
+        # Stands in for nvim-web-devicons for plugins that expect it.
+        mockDevIcons = true;
         modules = {
           basics = { };
           statusline = { };

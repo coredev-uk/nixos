@@ -1,7 +1,6 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
-import Quickshell.Hyprland
 import Quickshell.Io
 import qs.common
 import qs.widgets
@@ -43,7 +42,7 @@ BarPopup {
             icon: Icons.logout,
             color: Theme.caution,
             confirm: true,
-            run: () => Hyprland.dispatch(Hyprland.usingLua ? "hl.dsp.exit()" : "exit")
+            run: () => Quickshell.execDetached(["uwsm", "stop"])
         },
         {
             id: "reboot",
