@@ -203,6 +203,7 @@ in
             (import ./config/keybindings.nix {
               inherit
                 browser
+                lib
                 lock
                 menu
                 mod

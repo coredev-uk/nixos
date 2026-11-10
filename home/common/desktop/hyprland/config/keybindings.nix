@@ -1,5 +1,6 @@
 {
   browser,
+  lib,
   lock,
   menu,
   mod,
@@ -100,17 +101,21 @@ in
     (bind "${mod} + mouse_up" (workspace "e-1")) # Scroll-Down
   ]
   ++ (
-    # workspaces
-    # binds ${mod} + [shift +] {1..9} to [move to] workspace {1..9}
+    # Workspaces by screen (workspace_rule in ../default.nix): ${mod} + {1..5} focuses 1-5 on
+    # DP-1 and ${mod} + SHIFT + {1..5} focuses 6-10 on DP-2; with CTRL added, the window moves
+    # there instead. ${mod} + {6..9,0} still focus 6-10.
     builtins.concatLists (
       builtins.genList (
         i:
         let
+          key = "code:1${toString i}";
           ws = i + 1;
         in
-        [
-          (bind "${mod} + code:1${toString i}" (workspace ws))
-          (bind "${mod} + SHIFT + code:1${toString i}" (moveToWorkspace ws))
+        [ (bind "${mod} + ${key}" (workspace ws)) ]
+        ++ lib.optionals (i < 5) [
+          (bind "${mod} + SHIFT + ${key}" (workspace (ws + 5)))
+          (bind "${mod} + CTRL + ${key}" (moveToWorkspace ws))
+          (bind "${mod} + CTRL + SHIFT + ${key}" (moveToWorkspace (ws + 5)))
         ]
       ) 10
     )
