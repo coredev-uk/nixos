@@ -2,6 +2,7 @@
   lib,
   outputs,
   meta,
+  osConfig ? null,
   ...
 }:
 {
@@ -21,7 +22,8 @@
     inherit (meta) homeDirectory;
   };
 
-  nixpkgs = {
+  # Standalone home-manager only; under nix-darwin, useGlobalPkgs hands HM the system's pkgs.
+  nixpkgs = lib.mkIf (osConfig == null) {
     overlays = [
       # Add overlays your own flake exports (from overlays and pkgs dir):
       outputs.overlays.additions

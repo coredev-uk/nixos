@@ -142,7 +142,9 @@ in
         ../hosts
         {
           home-manager = {
-            #useGlobalPkgs = true;
+            # Reuse the system's pkgs (hosts/default.nix sets the same overlays and config)
+            # instead of evaluating a second nixpkgs.
+            useGlobalPkgs = true;
             useUserPackages = true;
             users."${user}" = mkHomeManager {
               flakeInputs = inputs;

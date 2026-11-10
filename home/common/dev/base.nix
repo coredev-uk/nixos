@@ -144,7 +144,12 @@ in
       enable = true;
       nix-direnv.enable = true;
     };
-    devenv.enable = true;
+    # No shell hook: it runs `devenv hook-should-activate` before every prompt (~60ms).
+    # devenv projects load through direnv instead (`use devenv` in their .envrc).
+    devenv = {
+      enable = true;
+      enableZshIntegration = false;
+    };
 
     # Git
     git.enable = true;

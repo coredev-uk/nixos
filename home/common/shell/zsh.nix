@@ -43,6 +43,9 @@
 
       oh-my-zsh = {
         enable = true;
+        # Skip compaudit's permission scan of every completion dir (~20ms per shell): they're
+        # in the read-only nix store.
+        extraConfig = "ZSH_DISABLE_COMPFIX=true";
         plugins = [
           "sudo"
           "ssh"

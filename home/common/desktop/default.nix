@@ -34,7 +34,6 @@ in
   ];
 
   home.packages = with pkgs; [
-    brave
     desktop-file-utils
     file-roller
     plexDesktop
@@ -42,9 +41,8 @@ in
     mpv
     nautilus
     papers
-    # `proton-drive auth login` signs in through the browser; the session goes to the Secret
-    # Service (gnome-keyring), like pass-cli's.
-    proton-drive-cli
+    # proton-drive-cli is out until nixpkgs builds it again: 0.9.0's build demands Bun 1.4.2
+    # exactly and nixpkgs ships 1.4.4.
     protonmail-desktop
     proton-pass
     proton-pass-cli
