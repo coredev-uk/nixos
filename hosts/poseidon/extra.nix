@@ -41,8 +41,6 @@
     };
   };
 
-  services.tailscale.enable = true;
-
   programs._1password.enable = true;
   programs._1password-gui.enable = true;
 
@@ -74,6 +72,9 @@
       "proton-drive"
       "proton-pass"
       "mediamate"
+      # Standalone variant (menu bar app). Not alongside services.tailscale: two tailscaleds
+      # fight over the tunnel and DNS. Login server: home/common/programs/darwin-apps.nix.
+      "tailscale-app"
     ];
   };
 }
