@@ -37,6 +37,7 @@ The shell is built for one machine and one person, so it can use atlas specifics
 - Some runtime tools come from the user's or host's PATH, not from Nix inputs: `pass-cli` shares the user's signed-in session, and `headsetcontrol` comes with its udev rules from `hosts/atlas/extra.nix`.
 - The config is a read-only store symlink, and fonts are read only at startup, so changes take effect only when the service restarts on switch.
 - The lock refuses to start without `/etc/pam.d/quickshell-lock`. Authentication is password only, with no U2F prompt. Hyprland's `allow_session_lock_restore` lets `quickshell-lock` take a session over again from a TTY if the lock crashes.
+- Idle locks (hypridle's 5-minute timeout, `quickshell-lock --grace 10`) have a 10-second grace period: any key or pointer input in that window unlocks without the password. Locks from Super+L, the power menu or sleep have none, and the window is measured on the wall clock, so it can't outlast a suspend.
 - The greeter runs as `greeter` and can't read the user's home, so the wallpaper is copied to a system path. Location comes from the wlsunset module, read as-is.
 - On NVIDIA, the lock's video depends on a patched Qt Multimedia and nvidia-vaapi-driver from master (`default.nix`). The cost was measured: roughly 75% → 45% of a core for two 1440p120 players.
 - Terminology: "control panel", "on air", "Pass quick access", "notification centre", "power menu", "OSD", "Horizon" lock screen.

@@ -112,16 +112,40 @@ let
   };
 
   # Session lock (config/lockscreen.qml): its own one-shot instance, run by hypridle's lock_cmd
-  # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down.
+  # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down. The idle
+  # timeout runs `quickshell-lock --grace SECONDS` instead, for a lock that input in its first
+  # SECONDS dismisses without the password.
   quickshellLock = pkgs.writeShellApplication {
     name = "quickshell-lock";
     runtimeInputs = [
       config.programs.quickshell.package
+      pkgs.coreutils
       pkgs.libnotify
+      pkgs.systemd
       # Today's events under the clock (config/lock/LockToday.qml).
       quickshellCalendar
     ];
     text = ''
+      # `--grace SECONDS`: leave a note for the lock logind is about to start (lock_cmd runs this
+      # again, without arguments) and go through logind like every other lock, so whatever else
+      # listens for it still hears. Locks for sleep or by hand never write one.
+      grace_note="$XDG_RUNTIME_DIR/quickshell-lock-grace"
+      if [ "''${1:-}" = --grace ]; then
+        printf '%s\n' "''${2:?--grace needs a number of seconds}" > "$grace_note"
+        exec loginctl lock-session
+      fi
+
+      # Read the note once, and only if it was just left: a stale one (lock-session never got
+      # here) mustn't soften a later lock.
+      grace=0
+      if [ -f "$grace_note" ]; then
+        if [ $(( $(date +%s) - $(stat -c %Y "$grace_note") )) -le 5 ]; then
+          grace=$(cat "$grace_note")
+        fi
+        rm -f "$grace_note"
+      fi
+      export QS_LOCK_GRACE="$grace"
+
       # Without its PAM service the lock could never be dismissed; it comes from the NixOS
       # config (hosts/common/desktop/hyprland.nix), so refuse to lock on a system without it.
       if [ ! -e /etc/pam.d/quickshell-lock ]; then

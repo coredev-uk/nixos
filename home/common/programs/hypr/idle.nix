@@ -38,7 +38,9 @@ in
         }
         {
           timeout = 300; # 5 minutes
-          on-timeout = "${pkgs.systemd}/bin/loginctl lock-session";
+          # Through logind like the other locks; input in the first 10 s resumes without the
+          # password (home/common/programs/quickshell/default.nix).
+          on-timeout = "quickshell-lock --grace 10";
         }
         {
           timeout = 330; # 5.5 minutes
