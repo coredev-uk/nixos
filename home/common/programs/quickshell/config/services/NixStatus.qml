@@ -1,0 +1,221 @@
+pragma Singleton
+
+import QtQuick
+import Quickshell
+import Quickshell.Io
+
+// atlas's Nix state and the home-lab binary cache, from the quickshell-nix-status helper: one JSON
+// object (schema in scripts/nix-status.sh) with every source optional, so off the home network the
+// local fields still arrive and the cache's are null. Read every 5 minutes in the background, again
+// when the control panel opens, and every minute while the Nix view is showing (acquire()/release(),
+// like Batteries); a read is never started on top of a running one.
+Singleton {
+    id: root
+
+    // The helper's last object, null until the first read has finished.
+    property var data: null
+    // The helper printed nothing usable; the last good `data` stays.
+    property bool failed: false
+    // When `data`'s remote parts were read: fetchedAt only moves when Prometheus answered, so
+    // "Checked HH:mm" tells how old a kept cache and build section is.
+    property double fetchedAt: 0
+    // Prometheus, GitHub and the cache answer slowly at times (a busy builder), and one timed-out
+    // read would otherwise turn the view to "Cache unreachable" until the next one. A miss keeps
+    // the last good section of each source this long, and retries soon; past it, off the home
+    // network, the view goes to unreachable as before.
+    readonly property int staleFor: 15 * 60 * 1000
+    property int users: 0
+    readonly property bool active: users > 0
+
+    // The properties below are each derived from `data` alone; a view that combines several of
+    // them reads `data` through stateOf() instead, since they update one after another.
+    //
+    // "loading" before the first read, "unreachable" while Prometheus doesn't answer (off the home
+    // network), then the cache builder's own state: "running" (a builder Job is active, which
+    // takes precedence over the last result it will replace), "failed", "ok", or "never" (the
+    // exporter has no result yet).
+    readonly property string state: stateOf(data)
+    readonly property bool updateAvailable: data?.upstream?.update_available ?? false
+    readonly property bool rebootPending: data?.system?.reboot_pending ?? false
+    // The last finished build failed, whether or not another is running now.
+    readonly property bool lastFailed: data?.build?.success === false
+    // One line for the panel row.
+    readonly property string summary: summaryOf(data)
+
+    function stateOf(d: var): string {
+        if (d === null || d === undefined)
+            return failed ? "unreachable" : "loading";
+        if (!(d.cache?.reachable ?? false))
+            return "unreachable";
+        if (d.build?.running ?? false)
+            return "running";
+        if (d.build?.success === false)
+            return "failed";
+        if (d.build?.last_run !== null && d.build?.last_run !== undefined)
+            return "ok";
+        return "never";
+    }
+
+    function summaryOf(d: var): string {
+        const build = d?.build;
+        const parts = [];
+        switch (stateOf(d)) {
+        case "loading":
+            return "Checking…";
+        case "unreachable":
+            parts.push("Cache unreachable");
+            break;
+        case "running":
+            parts.push(build.success === false ? "Build running, last failed" : "Build running");
+            break;
+        case "failed":
+            parts.push(`Failed${build.failed_phase ? ` at ${build.failed_phase} step` : ""}, ${ago(build.last_run)}`);
+            break;
+        case "ok":
+            parts.push(`Built ${ago(build.last_run)}`);
+            break;
+        case "never":
+            parts.push("No build yet");
+            break;
+        }
+        if (d.upstream?.update_available)
+            parts.push("update on main");
+        if (d.system?.reboot_pending)
+            parts.push("reboot pending");
+        return parts.join(" · ");
+    }
+
+    // Times are relative to when the data was read, so a shown value never ticks under the pointer.
+    readonly property double now: fetchedAt > 0 ? fetchedAt : Date.now()
+
+    // "3 h ago" for an epoch in seconds.
+    function ago(epoch: var): string {
+        if (epoch === null || epoch === undefined)
+            return "";
+        const seconds = Math.max(0, now / 1000 - epoch);
+        return seconds < 60 ? "just now" : `${span(seconds)} ago`;
+    }
+
+    // "5 min", "3 h", "12 d" for a number of seconds.
+    function span(seconds: real): string {
+        if (seconds < 60)
+            return `${Math.round(seconds)} s`;
+        const minutes = Math.round(seconds / 60);
+        if (minutes < 60)
+            return `${minutes} min`;
+        const hours = Math.round(seconds / 3600);
+        if (hours < 48)
+            return `${hours} h`;
+        return `${Math.round(seconds / 86400)} d`;
+    }
+
+    // "38 min", "1 h 4 min" for a run's wall time.
+    function duration(seconds: var): string {
+        if (seconds === null || seconds === undefined)
+            return "";
+        const minutes = Math.round(seconds / 60);
+        if (minutes < 1)
+            return `${Math.round(seconds)} s`;
+        if (minutes < 60)
+            return `${minutes} min`;
+        const rest = minutes % 60;
+        return rest === 0 ? `${Math.floor(minutes / 60)} h` : `${Math.floor(minutes / 60)} h ${rest} min`;
+    }
+
+    function bytes(n: var): string {
+        if (n === null || n === undefined)
+            return "";
+        const units = ["B", "KiB", "MiB", "GiB", "TiB"];
+        let value = n;
+        let unit = 0;
+        while (value >= 1024 && unit < units.length - 1) {
+            value /= 1024;
+            unit++;
+        }
+        return unit === 0 ? `${Math.round(value)} B` : `${value.toFixed(value >= 100 ? 0 : 1)} ${units[unit]}`;
+    }
+
+    function acquire() {
+        users++;
+    }
+
+    function release() {
+        users = Math.max(0, users - 1);
+    }
+
+    // `soon`: skip when the last read is that recent (ms), for the panel opening on every screen.
+    function refresh(soon = 0) {
+        if (proc.running || (soon > 0 && Date.now() - fetchedAt < soon))
+            return;
+        proc.running = true;
+    }
+
+    onActiveChanged: {
+        if (active)
+            refresh(20000);
+    }
+    Component.onCompleted: refresh()
+
+    Process {
+        id: proc
+        command: ["quickshell-nix-status"]
+        stdout: StdioCollector {
+            id: out
+            onStreamFinished: {
+                let parsed;
+                try {
+                    parsed = JSON.parse(out.text);
+                } catch (e) {
+                    root.failed = true;
+                    return;
+                }
+                root.failed = false;
+                root.accept(parsed);
+            }
+        }
+    }
+
+    // `next`'s local fields always win; a remote section that came back unreachable is replaced by
+    // the previous one while that is recent (see staleFor). Prometheus gives both cache and build.
+    function accept(next: var) {
+        const prev = root.data;
+        const recent = prev !== null && Date.now() - root.fetchedAt < root.staleFor;
+        const merged = Object.assign({}, next);
+        let missed = false;
+        if (next.cache?.reachable) {
+            root.fetchedAt = next.fetched_at * 1000;
+        } else if (recent && prev.cache?.reachable) {
+            merged.cache = prev.cache;
+            merged.build = prev.build;
+            missed = true;
+        } else {
+            root.fetchedAt = next.fetched_at * 1000;
+        }
+        if (!(next.upstream?.reachable) && recent && prev.upstream?.reachable) {
+            merged.upstream = prev.upstream;
+            missed = true;
+        }
+        if (next.system && next.system.cached === null && recent && prev.system?.cached !== null && prev.system?.cached !== undefined) {
+            merged.system = Object.assign({}, next.system, {
+                cached: prev.system.cached
+            });
+            missed = true;
+        }
+        root.data = merged;
+        if (missed)
+            retry.restart();
+    }
+
+    Timer {
+        id: retry
+        interval: 30000
+        onTriggered: root.refresh()
+    }
+
+    Timer {
+        interval: root.active ? 60000 : 300000
+        repeat: true
+        running: true
+        onTriggered: root.refresh()
+    }
+}

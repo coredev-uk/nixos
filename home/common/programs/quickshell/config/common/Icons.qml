@@ -117,4 +117,8 @@ Singleton {
     readonly property string castConnected: String.fromCodePoint(0xF0119) // cast_connected
     readonly property string speaker: String.fromCodePoint(0xF04C3) // speaker
     readonly property string speakerWireless: String.fromCodePoint(0xF071F) // speaker_wireless
+
+    // Nix view (nf-linux-nixos is not a Material Design glyph)
+    readonly property string nixos: String.fromCodePoint(0xF313) // linux_nixos
+    readonly property string openInNew: String.fromCodePoint(0xF03CC) // open_in_new
 }

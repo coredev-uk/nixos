@@ -574,16 +574,15 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1793900175,
+        "lastModified": 1793909898,
         "narHash": "sha256-OHKZZLYv5wOQ/RJzkx3xwwd8+Z7lnCI0WjQ98u9GWIM=",
         "owner": "coredev-uk",
         "repo": "sona-go",
-        "rev": "5e664fd5cd123fed724070ef8ec45b5e9b0f5374",
+        "rev": "0383eb5838cfcaabd8f4d5cf6855ba6647ac2083",
         "type": "github"
       },
       "original": {
         "owner": "coredev-uk",
-        "ref": "build/nix-flake",
         "repo": "sona-go",
         "type": "github"
       }

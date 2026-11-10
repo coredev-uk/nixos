@@ -65,9 +65,13 @@ in
         "flakes"
       ];
 
-      # Binary caches
-      inherit substituters;
-      trusted-public-keys = trustedPublicKeys;
+      # Binary caches. nix-cache.hera.ac (coredev-uk/home-ops kubernetes/apps/nix-cache) holds
+      # what the nightly cluster build makes that no public cache has; LAN-only, so it stays out
+      # of the shared list that Determinate hosts get.
+      substituters = substituters ++ [ "https://nix-cache.hera.ac/coredev" ];
+      trusted-public-keys = trustedPublicKeys ++ [
+        "coredev:uXQ+8TCkbXeHBUfTQDwtDSsLqKlf8A4fsqOVmeX23sE="
+      ];
     };
   };
 

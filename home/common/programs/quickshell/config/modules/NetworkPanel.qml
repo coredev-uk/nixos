@@ -9,8 +9,9 @@ import qs.services
 import qs.widgets
 
 // The control panel behind the network glyph: volume (its chevron opens the outputs and per-app
-// volumes), brightness and night light, then Ethernet, WiFi and VPN, then Bluetooth, casting the
-// screen and the peripherals' batteries, then what's playing.
+// volumes), brightness and night light, then Ethernet, WiFi and VPN, then Nix (the binary cache's
+// nightly build and this computer's state, in its own view), then Bluetooth, casting the screen
+// and the peripherals' batteries, then what's playing.
 BarPopup {
     id: root
 
@@ -19,7 +20,8 @@ BarPopup {
         Wifi,
         Ethernet,
         Vpn,
-        Bluetooth
+        Bluetooth,
+        Nix
     }
 
     property int view: NetworkPanel.View.Main
@@ -97,6 +99,7 @@ BarPopup {
         Brightness.refresh();
         NightLight.refresh();
         AirPlay.refresh();
+        NixStatus.refresh(20000);
     }
     onVisibleChanged: updateScanner()
     onViewChanged: {
@@ -129,7 +132,7 @@ BarPopup {
             id: content
             anchors.fill: parent
             anchors.margins: 12
-            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView][root.view]
+            sourceComponent: [mainView, wifiView, ethernetView, vpnView, bluetoothView, nixView][root.view]
             onLoaded: viewFade.restart()
         }
 
@@ -230,6 +233,20 @@ BarPopup {
                 color: Theme.alert
                 font.pixelSize: 11
                 wrapMode: Text.Wrap
+            }
+
+            SectionLabel {
+                Layout.topMargin: 8
+                text: "System"
+            }
+
+            PanelRow {
+                icon: Icons.nixos
+                iconColor: NixStatus.lastFailed ? Theme.alert : Theme.muted
+                label: "Nix"
+                sublabel: NixStatus.summary
+                canToggle: false
+                onOpened: root.view = NetworkPanel.View.Nix
             }
 
             SectionLabel {
@@ -491,6 +508,24 @@ BarPopup {
                         }
                     }
                 }
+            }
+        }
+    }
+
+    Component {
+        id: nixView
+
+        ColumnLayout {
+            spacing: 4
+
+            BackButton {
+                title: "Nix"
+                onClicked: root.view = NetworkPanel.View.Main
+            }
+
+            NixDetails {
+                Layout.fillWidth: true
+                onLinkOpened: root.visible = false
             }
         }
     }

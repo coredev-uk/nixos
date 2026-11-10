@@ -38,6 +38,20 @@ let
     text = builtins.readFile ./scripts/batteries.sh;
   };
 
+  # atlas's Nix state and the home-lab binary cache for the panel's Nix view
+  # (config/services/NixStatus.qml): Prometheus, main's flake.lock and the cache's narinfo,
+  # fetched in parallel with short timeouts into one JSON object. nixos-version comes from the
+  # running system by absolute path.
+  quickshellNixStatus = pkgs.writeShellApplication {
+    name = "quickshell-nix-status";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      jq
+    ];
+    text = builtins.readFile ./scripts/nix-status.sh;
+  };
+
   # Proton Pass quick access (config/modules/PassQuickAccess.qml). pass-cli is not a runtime
   # input: it comes from the user's PATH (home/common/desktop/default.nix), sharing the session
   # the user signs in to.
@@ -243,6 +257,7 @@ in
     gnomeNetworkDisplays
     quickshellVpn
     quickshellBatteries
+    quickshellNixStatus
     quickshellLock
     quickshellPass
     quickshellCalendar
