@@ -43,8 +43,11 @@ jobs:
           persist-credentials: false
 
       # The runner's disk holds atlas's closure (about 20 GiB) only once the preinstalled
-      # toolchains are gone; this also gives /nix the rest of the disk.
+      # toolchains are gone; this also gives /nix the rest of the disk. In the foreground: the
+      # purge empties /opt/hostedtoolcache, where niks3-action installs its post-build hook.
       - uses: wimpysworld/nothing-but-nix@v12
+        with:
+          witness-carnage: true
 
       # The caches hosts/default.nix configures; niks3-action adds nix-cache.hera.ac.
       - name: Install nix
