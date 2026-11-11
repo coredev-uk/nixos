@@ -215,20 +215,24 @@ copy() {
 	jq -nc --argjson clearAfter "$clear_after" '{clearAfter: $clearAfter}'
 }
 
-# Website icons for the list, from DuckDuckGo's favicon service (Proton's own needs the app's
-# session, which pass-cli doesn't hand out), kept for a month in the cache. A website without one
-# falls back to its parent (signin.aws.amazon.com → aws.amazon.com → amazon.com); one with none
-# at all is remembered as such for the month too. Prints a {domain, path} line per website that
-# has an icon, as soon as it's there; failures are left for the next run.
+# Website icons for the list, from DuckDuckGo's favicon service, else Bitwarden's (Proton's own
+# needs the app's session, which pass-cli doesn't hand out), kept for a month in the cache. A
+# website neither has falls back to its parent (signin.aws.amazon.com → aws.amazon.com →
+# amazon.com); one with none at all is remembered as such for the month too, and takes the icon
+# of another website on the same site (example.com that of login.example.com). Prints a
+# {domain, path} line per website that has an icon, its own as soon as it's there; failures are
+# left for the next run.
 icons() {
 	local dir=${XDG_CACHE_HOME:-$HOME/.cache}/quickshell-pass/icons domain json_dir
+	local -a wanted=() missing=()
 	mkdir -p "$dir"
 	find "$dir" -type f -mtime +30 -delete
 	json_dir=$(jq -rn --arg dir "$dir" '$dir | tojson | .[1:-1]')
 	for domain; do
 		[[ $domain =~ ^[a-z0-9-]+(\.[a-z0-9-]+)+$ ]] || continue
+		wanted+=("$domain")
 		if [[ -e $dir/$domain.ico ]]; then
-			found_icon
+			found_icon "$domain"
 		elif [[ ! -e $dir/$domain.none ]]; then
 			fetch_icon &
 			while (($(jobs -rp | wc -l) >= 8)); do
@@ -237,42 +241,108 @@ icons() {
 		fi
 	done
 	wait
+
+	for domain in "${wanted[@]}"; do
+		[[ -e $dir/$domain.none ]] && missing+=("$domain")
+	done
+	((${#missing[@]} > 0)) || return 0
+	# Of the icons on each site, the site's own, else the shortest website's.
+	local file name
+	local -A suffixes=() best=()
+	load_suffixes
+	for file in "$dir"/*.ico; do
+		[[ -e $file ]] || continue
+		name=${file##*/}
+		name=${name%.ico}
+		site "$name"
+		if [[ -z ${best[$REPLY]-} || $name == "$REPLY" ||
+			(${best[$REPLY]} != "$REPLY" && ${#name} -lt ${#best[$REPLY]}) ]]; then
+			best[$REPLY]=$name
+		fi
+	done
+	for domain in "${missing[@]}"; do
+		site "$domain"
+		if [[ -n ${best[$REPLY]-} ]]; then
+			found_icon "$domain" "${best[$REPLY]}"
+		fi
+	done
 }
 
 # Helpers of icons, which sets $dir, $json_dir (escaped for a JSON string) and $domain.
+# found_icon DOMAIN [ICON_DOMAIN]: DOMAIN's icon is ICON_DOMAIN's (its own by default).
 found_icon() {
-	printf '{"domain":"%s","path":"%s/%s.ico"}\n' "$domain" "$json_dir" "$domain"
+	printf '{"domain":"%s","path":"%s/%s.ico"}\n' "$1" "$json_dir" "${2:-$1}"
+}
+
+# The public suffix list's rules into icons' `suffixes`.
+load_suffixes() {
+	local rule
+	while IFS= read -r rule; do
+		[[ -z $rule || $rule == //* ]] || suffixes[$rule]=1
+	done <"$PUBLIC_SUFFIX_LIST"
+}
+
+# The site a host belongs to (REPLY): the label before its public suffix (login.example.co.uk →
+# example.co.uk), by the longest matching rule; "!" rules are exceptions to a "*." one.
+site() {
+	local name=$1 above=$1
+	REPLY=$1
+	while :; do
+		if [[ -n ${suffixes["!$name"]-} ]]; then
+			REPLY=$name
+			return
+		fi
+		if [[ -n ${suffixes[$name]-} || ($name == *.* && -n ${suffixes["*.${name#*.}"]-}) ]]; then
+			REPLY=$above
+			return
+		fi
+		# No rule at all: the top-level domain is the suffix.
+		if [[ $name != *.* ]]; then
+			REPLY=$above
+			return
+		fi
+		above=$name
+		name=${name#*.}
+	done
 }
 
 fetch_icon() {
-	local host=$domain part=$dir/.$domain.part code
+	local host=$domain part=$dir/.$domain.part url code
 	while :; do
-		code=$(curl -s --max-time 10 -o "$part" -w '%{http_code}' \
-			"https://icons.duckduckgo.com/ip3/$host.ico") || code=000
-		if [[ $code == 200 && -s $part ]]; then
-			# A few are WebP, which the shell's Qt can't read.
-			if [[ $(head -c 12 "$part" | tail -c 4) == WEBP ]]; then
-				if ! dwebp -quiet "$part" -o "$part.png"; then
-					rm -f "$part" "$part.png"
-					return
+		for url in "https://icons.duckduckgo.com/ip3/$host.ico" "https://icons.bitwarden.net/$host/icon.png"; do
+			code=$(curl -s --max-time 10 -o "$part" -w '%{http_code}' "$url") || code=000
+			if [[ $code == 200 && -s $part ]] && ! placeholder "$part"; then
+				# A few are WebP, which the shell's Qt can't read.
+				if [[ $(head -c 12 "$part" | tail -c 4 | tr -d '\0') == WEBP ]]; then
+					if ! dwebp -quiet "$part" -o "$part.png"; then
+						rm -f "$part" "$part.png"
+						return
+					fi
+					mv "$part.png" "$part"
 				fi
-				mv "$part.png" "$part"
+				mv "$part" "$dir/$domain.ico"
+				found_icon "$domain"
+				return
 			fi
-			mv "$part" "$dir/$domain.ico"
-			found_icon
-			return
-		fi
-		rm -f "$part"
-		# 404 is no icon (an empty 200 too); anything else may work next time.
-		if [[ $code != 404 && $code != 200 ]]; then
-			return
-		elif [[ $host == *.*.* ]]; then
+			rm -f "$part"
+			# 404 is no icon (an empty 200 or a placeholder too); anything else may work next time.
+			if [[ $code != 404 && $code != 200 ]]; then
+				return
+			fi
+		done
+		if [[ $host == *.*.* ]]; then
 			host=${host#*.}
 		else
 			: >"$dir/$domain.none"
 			return
 		fi
 	done
+}
+
+# Bitwarden's stand-in for a website it has no icon for, sent with a 200: a 19×19 PNG (its IHDR
+# chunk, from byte 12, gives the size).
+placeholder() {
+	[[ $(od -An -tx1 -j12 -N12 "$1" | tr -d ' \n') == 494844520000001300000013 ]]
 }
 
 case "${1:-}" in
