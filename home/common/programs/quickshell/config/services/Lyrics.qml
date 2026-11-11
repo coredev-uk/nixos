@@ -4,23 +4,25 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Sona's lyrics for the bar's now playing. `sona lyrics --follow --json` prints one JSON object
-// each time the line, the song or the playback state changes, from Sona's own lyrics sources and
-// cache (docs/cli.md in sona-go); `sona lyrics --json` gives the whole song once. Both run only
-// while the bar follows Sona, so nothing is spawned for other players or while Sona is closed.
+// Sona's lyrics for now playing's popup (modules/MediaPopup.qml). `sona lyrics --follow --json`
+// prints one JSON object each time the line, the song or the playback state changes, from Sona's
+// own lyrics sources and cache (docs/cli.md in sona-go); `sona lyrics --json` gives the whole
+// song once. They run only while the popup is open on Sona, so nothing is spawned otherwise.
 Singleton {
     id: root
 
-    readonly property bool wanted: Media.player !== null && Media.clientName(Media.player) === "sona"
+    // Set by the popup while it is open.
+    property bool watched: false
+    readonly property bool sona: Media.player !== null && Media.clientName(Media.player) === "sona"
+    readonly property bool wanted: watched && sona
 
-    // The playing song's timed lyrics, every line in order: [{ start, text }]; [] until fetched,
-    // and for a song with plain lyrics or none.
+    // "loading", "ready" (timed lines), "plain" (lyrics without timing) or "none".
+    property string status: "loading"
+    // The playing song's timed lyrics, every line in order: [{ start, text }]; [] until fetched.
     property var lines: []
     // The line being sung, -1 while the voice rests, before the first line and after the last.
     property int index: -1
-    // Its text, "" whenever index is -1 (and for plain lyrics or none).
-    property string line: ""
-    // The line the popup's lyrics centre: the one being sung, else the one coming next, else the last.
+    // The line the popup centres: the one being sung, else the one coming next, else the last.
     readonly property int focus: {
         if (lines.length === 0)
             return -1;
@@ -37,29 +39,23 @@ Singleton {
     property string trackId: ""
     // The song the lyrics follow, to tell when Sona's MPRIS metadata has moved on before them.
     property string title: ""
-    readonly property bool following: follow.running
-    // False from a song change until it is known whether the song has timed lyrics and, if it
-    // does, until their lines are in: the bar changes its width once per song, not twice.
-    property bool settled: true
-    property bool fetched: false
 
     function clear() {
+        status = "loading";
         lines = [];
         index = -1;
-        line = "";
         nextStart = -1;
         trackId = "";
         title = "";
-        fetched = false;
-        settled = true;
     }
 
     onWantedChanged: {
         follow.running = wanted;
-        if (!wanted)
+        if (!wanted) {
+            retry.stop();
             clear();
+        }
     }
-    Component.onCompleted: follow.running = wanted
 
     Process {
         id: follow
@@ -77,17 +73,15 @@ Singleton {
                 if (id !== root.trackId) {
                     root.lines = [];
                     root.trackId = "";
-                    root.fetched = false;
                 }
                 if (timed && root.trackId === "" && id !== "") {
                     root.trackId = id;
                     all.running = true;
                 }
-                root.settled = now.lyrics !== "loading" && (!timed || root.fetched);
+                root.status = now.lyrics === "loading" ? "loading" : timed ? "ready" : now.lyrics === "ready" ? "plain" : "none";
                 root.title = now.track?.title ?? "";
                 root.nextStart = now.next?.start ?? -1;
                 root.index = now.index ?? -1;
-                root.line = now.text ?? "";
             }
         }
         // 3 when Sona isn't running yet, 0 when it quit.
@@ -108,7 +102,7 @@ Singleton {
     }
 
     // The whole song's lines, once per song. A fetch that finishes for a song already skipped
-    // starts again for the one playing; one that fails leaves the lines empty and settles anyway.
+    // starts again for the one playing.
     Process {
         id: all
         command: ["sona", "lyrics", "--json"]
@@ -129,8 +123,6 @@ Singleton {
                             start: l.start,
                             text: l.text ?? ""
                         }));
-                root.fetched = true;
-                root.settled = true;
             }
         }
     }

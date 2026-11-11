@@ -1,119 +1,161 @@
 import QtQuick
-import Quickshell.Widgets
 import qs.common
 import qs.services
 import qs.widgets
 
-// The playing song's lyrics under the media card in now playing's popup (Music.qml), while Sona
-// has timed lyrics for it (services/Lyrics.qml). An inset well with the line being sung centred
-// in text, the lines either side in text2 and the ones further off in muted, wrapping to the
-// well's width; the list's ends fade into the well. Each new line glides the list up (Move) as
-// the colours step (State); between lines the next one waits at the centre in text2. Opening
-// the popup places the list without gliding.
-ClippingRectangle {
+// The playing song's timed lyrics in now playing's popup (MediaPopup.qml), flush left, read
+// downward like a score: the sung line in 15px Medium text; the line coming next in text2 and
+// the one just gone in muted, both drawn at 85% so their places don't move as a line takes or
+// gives up the weight; a line further off is faded out rather than cut at the edge. A new line
+// moves the list up (Move) while the size and colour change (State). Between lines the next one
+// waits in the sung line's place, in text2 until it is sung. A sung line too long for the column
+// wraps onto a second. Without timed lyrics, one line in their place says why.
+Item {
     id: root
 
-    // Whether the popup is showing; the list only glides while it is.
-    property bool active: false
+    readonly property int textSize: 15
+    // Lines shown above and below the one in the sung line's place.
+    readonly property int context: 1
+    readonly property bool ready: Lyrics.status === "ready" && Lyrics.lines.length > 0 && Lyrics.title === (Media.player?.trackTitle ?? "")
+    readonly property int pad: 6
+    readonly property real lineHeight: Math.ceil(metrics.height) + pad
 
-    readonly property bool shown: Lyrics.title === (Media.player?.trackTitle ?? "") && Lyrics.lines.some(line => line.text !== "")
-
-    implicitHeight: 176
-    radius: Theme.radiusInset
-    color: Theme.inset
-
-    // A new song's lines, or a popup that has just opened, are placed rather than glided.
-    property bool glide: false
-
-    function settle() {
-        glide = false;
-        glideOn.restart();
-    }
-    onActiveChanged: settle()
-
-    Connections {
-        target: Lyrics
-        function onLinesChanged() {
-            root.settle();
-        }
+    FontMetrics {
+        id: metrics
+        font.family: Theme.fontFamily
+        font.pixelSize: root.textSize
     }
 
-    Timer {
-        id: glideOn
-        interval: 100
-        onTriggered: root.glide = root.active
-    }
-
-    Column {
+    ListView {
         id: list
 
-        readonly property Item focusItem: lineItems.count > 0 && Lyrics.focus >= 0 ? lineItems.itemAt(Lyrics.focus) : null
+        anchors.fill: parent
+        visible: root.ready
+        clip: true
+        interactive: false
+        model: Lyrics.lines
+        // Set, not bound: ListView resets currentIndex to 0 when its model changes, which would
+        // break a binding for good.
+        function follow() {
+            currentIndex = Math.max(0, Math.min(count - 1, Lyrics.focus));
+        }
 
-        x: 14
-        width: root.width - 28
-        spacing: 10
-        y: focusItem ? Math.round(root.height / 2 - focusItem.y - focusItem.height / 2) : 0
-
-        Behavior on y {
-            enabled: root.glide
-            NumberAnimation {
-                duration: Theme.durationMove
-                easing.type: Theme.easing
+        Connections {
+            target: Lyrics
+            function onFocusChanged() {
+                list.follow();
             }
         }
 
-        Repeater {
-            id: lineItems
-            model: Lyrics.lines
+        // The sung line, however many lines it wraps to, keeps one place: a third of the way
+        // down, so the next line reads below it. Its height is read after the list has laid out
+        // (Qt.callLater): bound to currentItem directly, the range would move the current item
+        // and the current item the range.
+        property real sungHeight: root.lineHeight
+
+        function syncSung() {
+            sungHeight = currentItem?.height ?? root.lineHeight;
+        }
+
+        onCurrentItemChanged: Qt.callLater(syncSung)
+
+        highlightRangeMode: ListView.StrictlyEnforceRange
+        preferredHighlightBegin: Math.round(height / 3 - sungHeight / 2)
+        preferredHighlightEnd: preferredHighlightBegin + sungHeight
+        // Opening the strip or a new song's lines are placed at once; only a new line glides.
+        highlightMoveDuration: placed ? Theme.durationMove : 0
+
+        property bool placed: false
+
+        function place() {
+            placed = false;
+            settle.restart();
+        }
+
+        onVisibleChanged: {
+            place();
+            follow();
+        }
+        onCountChanged: {
+            place();
+            Qt.callLater(follow);
+        }
+
+        Timer {
+            id: settle
+            interval: 150
+            onTriggered: list.placed = true
+        }
+
+        delegate: Item {
+            id: line
+
+            required property var modelData
+            required property int index
+            readonly property bool sung: index === Lyrics.index
+            readonly property bool coming: index >= Lyrics.focus && !sung
+            readonly property bool near: index >= list.currentIndex - root.context && index <= list.currentIndex + root.context + 1
+
+            width: ListView.view.width
+            height: modelData.text !== "" ? label.implicitHeight + root.pad : 0
+
+            onHeightChanged: {
+                if (index === list.currentIndex)
+                    Qt.callLater(list.syncSung);
+            }
 
             BarText {
-                required property var modelData
-                required property int index
-
-                readonly property int distance: Math.abs(index - Lyrics.focus)
-
-                width: list.width
-                // An empty line (an instrumental break in some lyrics) takes no room.
-                height: text !== "" ? implicitHeight : 0
-                visible: text !== ""
-                text: modelData.text
+                id: label
+                anchors.verticalCenter: parent.verticalCenter
+                width: parent.width
+                text: line.modelData.text
                 wrapMode: Text.WordWrap
-                lineHeight: 1.15
-                font.pixelSize: 15
-                color: index === Lyrics.index ? Theme.text : distance <= 1 ? Theme.text2 : Theme.muted
+                maximumLineCount: line.sung ? 2 : 1
+                elide: Text.ElideRight
+                color: line.sung ? Theme.text : line.coming ? Theme.text2 : Theme.muted
+                font.pixelSize: root.textSize
+                font.weight: line.sung ? Font.Medium : Font.Normal
+                // Outlines, so the scaled lines stay sharp.
+                renderType: Text.QtRendering
+                transformOrigin: Item.Left
+                scale: line.sung ? 1 : 0.85
+                opacity: line.near ? 1 : 0
+
+                Behavior on scale {
+                    NumberAnimation {
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
+                    }
+                }
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
+                    }
+                }
             }
         }
     }
 
-    // The list's ends fade into the well rather than cutting a line in half.
-    Rectangle {
+    BarText {
         anchors.top: parent.top
+        anchors.topMargin: Math.round(parent.height / 3 - height / 2)
         width: parent.width
-        height: 36
-        gradient: Gradient {
-            GradientStop {
-                position: 0
-                color: Theme.inset
-            }
-            GradientStop {
-                position: 1
-                color: Theme.tint(Theme.inset, 0)
-            }
-        }
-    }
-
-    Rectangle {
-        anchors.bottom: parent.bottom
-        width: parent.width
-        height: 36
-        gradient: Gradient {
-            GradientStop {
-                position: 0
-                color: Theme.tint(Theme.inset, 0)
-            }
-            GradientStop {
-                position: 1
-                color: Theme.inset
+        visible: !root.ready
+        elide: Text.ElideRight
+        color: Theme.text2
+        font.pixelSize: 13
+        text: {
+            if (!Lyrics.sona)
+                return "Lyrics show for songs playing in Sona";
+            switch (Lyrics.status) {
+            case "none":
+                return "No lyrics for this song";
+            case "plain":
+                return "This song's lyrics have no timing";
+            default:
+                return "Finding lyrics…";
             }
         }
     }
