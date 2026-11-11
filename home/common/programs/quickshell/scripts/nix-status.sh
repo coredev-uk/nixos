@@ -18,7 +18,7 @@
 #             unbroken streak of failed ones up to it; null when it succeeded), url}
 #   updates   the open lock updates from BOT Cecil: the nightly trials, one draft pull request per
 #             flake input (flake-update/<input>, kind "trial", which never merge), and the landing
-#             pull request that merges the passing ones together (flake-update, kind "landing",
+#             pull request that merges the passing ones together (flake-landing, kind "landing",
 #             merging itself once its checks pass): [{kind, input (null for the landing one),
 #             inputs (the landing one's, else null), landing (a trial in the landing pull
 #             request), number, url, opened_at, auto_merge, checks: [{name, state:
@@ -62,7 +62,7 @@ github "/actions/workflows/hosts.yml/runs?branch=main&event=push&per_page=20" >"
 updates() {
 	github '/pulls?state=open&per_page=100' |
 		jq -c '[.[] | select(.user.login == "bot-cecil[bot]" and .head.repo.full_name == .base.repo.full_name
-			and (.head.ref == "flake-update" or (.head.ref | startswith("flake-update/"))))]' >"$tmp/updates" 2>/dev/null || return 0
+			and (.head.ref == "flake-landing" or (.head.ref | startswith("flake-update/"))))]' >"$tmp/updates" 2>/dev/null || return 0
 	# No answer from GitHub: leave it empty, which reads as unknown below.
 	[ -s "$tmp/updates" ] || return 0
 	local number sha
@@ -182,9 +182,9 @@ jq -n \
       updates: (
         if ($ups | type) != "array" then null
         else
-          ($ups | map(.pr | select(.head.ref == "flake-update")) | first // null) as $landing
+          ($ups | map(.pr | select(.head.ref == "flake-landing")) | first // null) as $landing
           | ($landing | if . == null then [] else (.body // "") | [capture("<!-- trials: (?<t>[^>]*) -->").t | splits(" +") | select(. != "") | split("@")[0]] end) as $landed
-          | [$ups[] | .pr as $pr | ($pr.head.ref == "flake-update") as $is_landing | {
+          | [$ups[] | .pr as $pr | ($pr.head.ref == "flake-landing") as $is_landing | {
           kind: (if $is_landing then "landing" else "trial" end),
           input: (if $is_landing then null else $pr.head.ref | ltrimstr("flake-update/") end),
           inputs: (if $is_landing then $landed else null end),

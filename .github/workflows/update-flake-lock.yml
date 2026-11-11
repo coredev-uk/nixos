@@ -126,7 +126,7 @@ jobs:
           body: |
             ${{ steps.update.outputs.change }}
 
-            A trial: it gets the required checks but doesn't merge. Once every open trial has a result, the passing ones land together in the `flake-update` pull request; this one closes when main has its revision, and is redone each night until then.
+            A trial: it gets the required checks but doesn't merge. Once every open trial has a result, the passing ones land together in the `flake-landing` pull request; this one closes when main has its revision, and is redone each night until then.
 
   # Trials for inputs that no longer have an update (main caught up some other way).
   close-stale:
