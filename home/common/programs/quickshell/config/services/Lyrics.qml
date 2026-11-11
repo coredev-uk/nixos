@@ -20,11 +20,21 @@ Singleton {
     // song instead of moving with each line; [] until fetched and for a song without them.
     property var lines: []
     property string trackId: ""
+    // The song the lyrics follow, to tell when Sona's MPRIS metadata has moved on before them.
+    property string title: ""
+    readonly property bool following: follow.running
+    // False from a song change until it is known whether the song has timed lyrics and, if it
+    // does, until their lines are in: the bar moves to the new song's width once, not twice.
+    property bool settled: true
+    property bool fetched: false
 
     function clear() {
         line = "";
         lines = [];
         trackId = "";
+        title = "";
+        fetched = false;
+        settled = true;
     }
 
     onWantedChanged: {
@@ -46,14 +56,18 @@ Singleton {
                     return;
                 }
                 const id = now.track?.id ?? "";
+                const timed = now.lyrics === "ready" && now.synced;
                 if (id !== root.trackId) {
                     root.lines = [];
                     root.trackId = "";
+                    root.fetched = false;
                 }
-                if (now.lyrics === "ready" && now.synced && root.trackId === "" && id !== "") {
+                if (timed && root.trackId === "" && id !== "") {
                     root.trackId = id;
                     all.running = true;
                 }
+                root.settled = now.lyrics !== "loading" && (!timed || root.fetched);
+                root.title = now.track?.title ?? "";
                 root.line = now.text ?? "";
             }
         }
@@ -74,18 +88,27 @@ Singleton {
         }
     }
 
-    // The whole song's lines, once per song.
+    // The whole song's lines, once per song. A fetch that finishes for a song already skipped
+    // starts again for the one playing; one that fails leaves the lines empty and settles anyway.
     Process {
         id: all
         command: ["sona", "lyrics", "--json"]
         stdout: StdioCollector {
             id: allOut
             onStreamFinished: {
+                let lyrics = null;
                 try {
-                    const lyrics = JSON.parse(allOut.text);
-                    if ((lyrics.track?.id ?? "") === root.trackId)
-                        root.lines = lyrics.lines.map(l => l.text).filter(t => t);
+                    lyrics = JSON.parse(allOut.text);
                 } catch (e) {}
+                if (root.trackId === "")
+                    return;
+                if (lyrics && (lyrics.track?.id ?? "") !== root.trackId) {
+                    Qt.callLater(() => all.running = true);
+                    return;
+                }
+                root.lines = (lyrics?.lines ?? []).map(l => l.text).filter(t => t);
+                root.fetched = true;
+                root.settled = true;
             }
         }
     }
