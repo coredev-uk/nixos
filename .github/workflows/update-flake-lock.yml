@@ -2,8 +2,8 @@ name: "Update flake inputs"
 
 # Nightly, one trial pull request per flake input that has an update, from BOT Cecil
 # (bot-cecil[bot]): a draft on its own branch (flake-update/<input>) that gets the checks main's
-# ruleset requires, all of them in parallel: Flake Checks, the poseidon build, and the atlas build
-# (atlas.yml), which also puts atlas's system and home into the binary cache. Trials never merge:
+# ruleset requires, all of them in parallel: Flake Checks, and the poseidon and atlas builds
+# (hosts.yml), which also put both systems into the binary cache. Trials never merge:
 # once every one has a result, land-flake-updates.yml merges the passing ones into one pull
 # request that does, so main only ever gets a combination that was checked as a whole. A failing
 # trial stays open, redone each night, without holding the others back.

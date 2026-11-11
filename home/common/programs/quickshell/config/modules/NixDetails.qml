@@ -7,7 +7,7 @@ import qs.widgets
 
 // The control panel's Nix view: the lock updates waiting to land (BOT Cecil's pull requests, one
 // per flake input, with how their checks go and how long a broken one has been failing), how
-// main's atlas builds are going, what the cache holds, and where this computer stands against
+// main's host builds are going, what the cache holds, and where this computer stands against
 // them (services/NixStatus.qml), with any failed systemd units (system and user) listed by
 // name; a click copies the journalctl command for one, or opens an update's pull request or main's
 // latest run. Offline only the failed units and the last section remain. Reads every minute while it is
@@ -16,7 +16,7 @@ ColumnLayout {
     id: root
 
     readonly property string dashboard: "https://grafana.hera.ac/d/niks3"
-    readonly property string history: "https://github.com/coredev-uk/nixos/actions/workflows/atlas.yml"
+    readonly property string history: "https://github.com/coredev-uk/nixos/actions/workflows/hosts.yml"
     readonly property double nowSeconds: NixStatus.now / 1000
     readonly property string checkedText: NixStatus.fetchedAt === 0 ? "" : `Checked ${Qt.formatTime(new Date(NixStatus.fetchedAt), "HH:mm")}`
 
@@ -77,7 +77,7 @@ ColumnLayout {
             return {
                 tone: Theme.muted,
                 title: "No build result",
-                detail: "No finished atlas run on main"
+                detail: "No finished build of main"
             };
         case "unreachable":
             return {
@@ -172,7 +172,7 @@ ColumnLayout {
         };
     }
 
-    // main's latest atlas run; a click opens it.
+    // main's latest Hosts run (atlas and poseidon); a click opens it.
     function buildLines(d: var): var {
         const b = d.build;
         const lines = [];

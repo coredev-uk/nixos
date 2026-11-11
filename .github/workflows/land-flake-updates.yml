@@ -9,14 +9,14 @@ name: "Land flake updates"
 # out until it is redone on top of main. With no trial passing, an open landing pull request is
 # closed.
 #
-# Runs when a trial's checks finish (Flake Checks, Flake Builds and Atlas), and hourly in case
+# Runs when a trial's checks finish (Flake Checks and Hosts), and hourly in case
 # one of those went unseen. A trial still pending after six hours is left out, so a stuck check
 # doesn't hold the rest back.
 on:
   # Safe here: the job runs nothing from a pull request, only merges flake.lock from BOT Cecil's own
   # branches in this repository.
   workflow_run: # zizmor: ignore[dangerous-triggers]
-    workflows: ["Flake Checks", "Flake Builds", "Atlas"]
+    workflows: ["Flake Checks", "Hosts"]
     types:
       - completed
   schedule:
