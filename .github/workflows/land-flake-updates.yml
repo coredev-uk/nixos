@@ -3,7 +3,7 @@ name: "Land flake updates"
 # Lands the nightly trials (update-flake-lock.yml: one draft pull request per flake input, each
 # with the checks main's ruleset requires) together: once every open trial has a result, the
 # passing ones are git-merged, at the commits that passed, into one pull request on the
-# flake-update branch from BOT Cecil (bot-cecil[bot]), which merges itself (auto-merge, squash)
+# flake-landing branch from BOT Cecil (bot-cecil[bot]), which merges itself (auto-merge, squash)
 # once its own checks pass. Two rounds of builds a night, however many inputs moved, and main only
 # gets a combination that was checked as a whole. A trial that conflicts with the others is left
 # out until it is redone on top of main. With no trial passing, an open landing pull request is
@@ -98,7 +98,7 @@ jobs:
           # The trials that passed, at the commits that did, in one line the landing PR records,
           # so a run with nothing new leaves it (and its checks) alone.
           marker="<!-- trials: $(printf '%s\n' "${passing[@]}" | awk '{print $2 "@" $3}' | sort | xargs) -->"
-          current=$(jq -r '.[] | select(.headRefName == "flake-update") | .body' "$RUNNER_TEMP/prs.json")
+          current=$(jq -r '.[] | select(.headRefName == "flake-landing") | .body' "$RUNNER_TEMP/prs.json")
           if [ ${#passing[@]} -gt 0 ] && grep -qF -- "$marker" <<<"$current"; then
             echo "The landing pull request already has these trials"
             echo "land=wait" >>"$GITHUB_OUTPUT"
@@ -159,7 +159,8 @@ jobs:
         with:
           token: ${{ steps.app-token.outputs.token }}
           sign-commits: true
-          branch: flake-update
+          # Not flake-update: Git can't hold that branch beside the trials' flake-update/<input>.
+          branch: flake-landing
           delete-branch: true
           add-paths: flake.lock
           commit-message: |
