@@ -57,12 +57,16 @@ let
 
   # Proton Pass quick access (config/modules/PassQuickAccess.qml). pass-cli is not a runtime
   # input: it comes from the user's PATH (home/common/desktop/default.nix), sharing the session
-  # the user signs in to.
+  # the user signs in to. curl fetches the logins' website icons, dwebp (libwebp) turns the WebP
+  # ones into PNGs for the shell's Qt.
   quickshellPass = pkgs.writeShellApplication {
     name = "quickshell-pass";
     runtimeInputs = with pkgs; [
       coreutils
+      curl
+      findutils
       jq
+      libwebp # dwebp
       util-linux # flock
       wl-clipboard
     ];

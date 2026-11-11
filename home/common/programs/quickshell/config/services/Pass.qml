@@ -13,8 +13,10 @@ Singleton {
     property bool known: false
     property bool signedIn: false
     property string account: ""
-    // [{ share, id, title, type, vault }] by title.
+    // [{ share, id, title, type, vault, domain }] by title; `domain` is a login's website.
     property var items: []
+    // Website -> its icon's file URL, for the domains that have one (scripts/pass.sh icons).
+    property var icons: ({})
     property bool loaded: false
     // Why the items couldn't be listed; cleared by the next successful refresh.
     property string error: ""
@@ -97,6 +99,18 @@ Singleton {
         return text.trim().split("\n").pop() ?? "";
     }
 
+    // The listed websites' icons not here yet. Those without one are asked for again on each
+    // refresh; the helper remembers which have none, so only failed fetches are tried again.
+    function loadIcons() {
+        if (iconsProc.running)
+            return;
+        const wanted = [...new Set(items.map(item => item.domain).filter(domain => domain && icons[domain] === undefined))];
+        if (wanted.length === 0)
+            return;
+        iconsProc.command = ["quickshell-pass", "icons", ...wanted];
+        iconsProc.running = true;
+    }
+
     Process {
         id: statusProc
 
@@ -148,6 +162,7 @@ Singleton {
                 root.items = JSON.parse(listOut.text);
                 root.loaded = true;
                 root.error = "";
+                root.loadIcons();
                 return;
             }
             // Signed out elsewhere, or locked: the status check tells which.
@@ -244,6 +259,20 @@ Singleton {
                 root.copied(what, JSON.parse(copyOut.text).clearAfter);
             else
                 root.failed(root.lastLine(copyErr.text) || `Couldn't copy the ${what}`);
+        }
+    }
+
+    // Icons are only decoration: a failure leaves the type's glyph in place.
+    Process {
+        id: iconsProc
+
+        stdout: SplitParser {
+            onRead: line => {
+                const icon = JSON.parse(line);
+                root.icons = Object.assign({}, root.icons, {
+                    [icon.domain]: `file://${icon.path}`
+                });
+            }
         }
     }
 }

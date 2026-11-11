@@ -1,4 +1,4 @@
-# quickshell-pass status|login|logout|list|details SHARE ITEM|copy SHARE ITEM FIELD
+# quickshell-pass status|login|logout|list|details SHARE ITEM|copy SHARE ITEM FIELD|icons DOMAIN…
 # Proton Pass for the quick-access window (modules/PassQuickAccess.qml): JSON on stdout, one
 # error line on stderr and a non-zero exit on failure. Secrets only ever go to the clipboard.
 
@@ -108,16 +108,35 @@ logout() {
 	jq -nc '{signedIn: false}'
 }
 
-# Every active item of every vault, without secrets: [{share, id, title, type, vault}] by title.
+# Every active item of every vault, without secrets: [{share, id, title, type, vault, domain}] by
+# title. `domain` is a login's website for its icon (the host of its first web address, without
+# "www."), "" without one or for a private address, which stays off the icon service. Only
+# --show-secrets lists the addresses; as in details below, the secrets stop at jq.
 list() {
 	local vaults share
 	vaults=$(cli vault list --output json)
 	while IFS= read -r share; do
-		cli item list --share-id "$share" --filter-state active --output json
+		cli item list --share-id "$share" --filter-state active --output json --show-secrets
 	done < <(jq -r '.vaults[].share_id' <<<"$vaults") |
 		jq -sc --argjson vaults "$vaults" '
+			def domain:
+				[.content.content | objects | .Login.urls[]? | strings | ascii_downcase
+					| capture("^https?://([^/?#@]*@)?(?<host>[^/?#:]+)").host][0] // ""
+				| ltrimstr("www.")
+				| if test("^[a-z0-9-]+(\\.[a-z0-9-]+)+$") and (test("^[0-9.]+$") | not)
+					and (test("\\.(local|lan|home|internal|arpa|localhost|test)$") | not)
+				then . else "" end;
 			($vaults.vaults | map({(.share_id): .name}) | add // {}) as $names
-			| [.[].items[] | {share: .share_id, id, title, type: (.item_type // ""), vault: ($names[.share_id] // "")}]
+			| [.[].items[]
+				| (.content.content | if type == "object" then keys_unsorted[0] // "" else tostring end) as $tag
+				| {
+					share: .share_id,
+					id,
+					title: (.content.title // ""),
+					type: ($tag | gsub("(?<a>[a-z0-9])(?<b>[A-Z])"; "\(.a)_\(.b)") | ascii_downcase),
+					vault: ($names[.share_id] // ""),
+					domain: domain
+				}]
 			| sort_by(.title | ascii_downcase)'
 }
 
@@ -196,6 +215,66 @@ copy() {
 	jq -nc --argjson clearAfter "$clear_after" '{clearAfter: $clearAfter}'
 }
 
+# Website icons for the list, from DuckDuckGo's favicon service (Proton's own needs the app's
+# session, which pass-cli doesn't hand out), kept for a month in the cache. A website without one
+# falls back to its parent (signin.aws.amazon.com → aws.amazon.com → amazon.com); one with none
+# at all is remembered as such for the month too. Prints a {domain, path} line per website that
+# has an icon, as soon as it's there; failures are left for the next run.
+icons() {
+	local dir=${XDG_CACHE_HOME:-$HOME/.cache}/quickshell-pass/icons domain json_dir
+	mkdir -p "$dir"
+	find "$dir" -type f -mtime +30 -delete
+	json_dir=$(jq -rn --arg dir "$dir" '$dir | tojson | .[1:-1]')
+	for domain; do
+		[[ $domain =~ ^[a-z0-9-]+(\.[a-z0-9-]+)+$ ]] || continue
+		if [[ -e $dir/$domain.ico ]]; then
+			found_icon
+		elif [[ ! -e $dir/$domain.none ]]; then
+			fetch_icon &
+			while (($(jobs -rp | wc -l) >= 8)); do
+				wait -n || true
+			done
+		fi
+	done
+	wait
+}
+
+# Helpers of icons, which sets $dir, $json_dir (escaped for a JSON string) and $domain.
+found_icon() {
+	printf '{"domain":"%s","path":"%s/%s.ico"}\n' "$domain" "$json_dir" "$domain"
+}
+
+fetch_icon() {
+	local host=$domain part=$dir/.$domain.part code
+	while :; do
+		code=$(curl -s --max-time 10 -o "$part" -w '%{http_code}' \
+			"https://icons.duckduckgo.com/ip3/$host.ico") || code=000
+		if [[ $code == 200 && -s $part ]]; then
+			# A few are WebP, which the shell's Qt can't read.
+			if [[ $(head -c 12 "$part" | tail -c 4) == WEBP ]]; then
+				if ! dwebp -quiet "$part" -o "$part.png"; then
+					rm -f "$part" "$part.png"
+					return
+				fi
+				mv "$part.png" "$part"
+			fi
+			mv "$part" "$dir/$domain.ico"
+			found_icon
+			return
+		fi
+		rm -f "$part"
+		# 404 is no icon (an empty 200 too); anything else may work next time.
+		if [[ $code != 404 && $code != 200 ]]; then
+			return
+		elif [[ $host == *.*.* ]]; then
+			host=${host#*.}
+		else
+			: >"$dir/$domain.none"
+			return
+		fi
+	done
+}
+
 case "${1:-}" in
 status | logout | list | details | copy) lock shared ;;
 login) lock exclusive ;;
@@ -208,8 +287,9 @@ logout) logout ;;
 list) list ;;
 details) details "$2" "$3" ;;
 copy) copy "$2" "$3" "$4" ;;
+icons) icons "${@:2}" ;;
 *)
-	echo "usage: quickshell-pass status|login|logout|list|details SHARE ITEM|copy SHARE ITEM FIELD" >&2
+	echo "usage: quickshell-pass status|login|logout|list|details SHARE ITEM|copy SHARE ITEM FIELD|icons DOMAIN…" >&2
 	exit 2
 	;;
 esac

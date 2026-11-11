@@ -20,6 +20,7 @@ import qs.widgets
 // which clears them again after 45s; services/Pass.qml holds only titles and non-secret details.
 // While the screen is shared (Privacy.onAir) the list shows titles only, without usernames,
 // vaults or the account; an item shows its details once opened.
+// Logins show their website's icon (services/Pass.qml fetches them), other items their type.
 Scope {
     id: root
 
@@ -617,10 +618,9 @@ Scope {
                                     anchors.rightMargin: 12
                                     spacing: 10
 
-                                    Icon {
-                                        Layout.preferredWidth: 18
-                                        text: root.typeIcon(row.modelData.type)
-                                        color: row.isCurrent ? Theme.gilt : rowArea.containsMouse ? Theme.text2 : Theme.muted
+                                    ItemIcon {
+                                        item: row.modelData
+                                        glyphColor: row.isCurrent ? Theme.gilt : rowArea.containsMouse ? Theme.text2 : Theme.muted
                                     }
 
                                     ColumnLayout {
@@ -690,18 +690,12 @@ Scope {
                             visible: Pass.signedIn && root.openedItem !== null
                             spacing: 12
 
-                            Rectangle {
-                                implicitWidth: 32
-                                implicitHeight: 32
-                                radius: Theme.radiusRow
-                                color: Theme.inset
-
-                                Icon {
-                                    anchors.centerIn: parent
-                                    text: root.typeIcon(root.openedItem?.type ?? "")
-                                    color: Theme.gilt
-                                    font.pixelSize: 16
-                                }
+                            ItemIcon {
+                                item: root.openedItem
+                                size: 32
+                                iconSize: 20
+                                glyphColor: Theme.gilt
+                                glyphTile: Theme.inset
                             }
 
                             ColumnLayout {
@@ -884,6 +878,50 @@ Scope {
                     }
                 }
             }
+        }
+    }
+
+    // A login's website icon, on a light tile since favicons are drawn for light pages; else the
+    // glyph of the item's type, also until the icon has been fetched.
+    component ItemIcon: Item {
+        id: itemIcon
+
+        property var item: null
+        property int size: 20
+        property int iconSize: 16
+        property color glyphColor: Theme.muted
+        // Behind the glyph; the icon always has its light tile.
+        property color glyphTile: "transparent"
+
+        readonly property bool hasIcon: favicon.status === Image.Ready
+
+        implicitWidth: size
+        implicitHeight: size
+
+        Rectangle {
+            anchors.fill: parent
+            radius: Theme.radiusRow
+            color: itemIcon.hasIcon ? Theme.text : itemIcon.glyphTile
+        }
+
+        // Local and tiny, so loaded in step: rows scrolled into view don't flash the glyph.
+        Image {
+            id: favicon
+
+            anchors.centerIn: parent
+            width: itemIcon.iconSize
+            height: itemIcon.iconSize
+            visible: itemIcon.hasIcon
+            source: Pass.icons[itemIcon.item?.domain ?? ""] ?? ""
+            fillMode: Image.PreserveAspectFit
+            mipmap: true
+        }
+
+        Icon {
+            anchors.centerIn: parent
+            visible: !itemIcon.hasIcon
+            text: root.typeIcon(itemIcon.item?.type ?? "")
+            color: itemIcon.glyphColor
         }
     }
 
