@@ -28,7 +28,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # The caches hosts/default.nix configures but nix-cache.hera.ac, which only holds atlas's builds.
+      # The caches hosts/default.nix configures but nix-cache.hera.ac, which only holds builds.
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
         with:
