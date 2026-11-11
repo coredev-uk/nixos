@@ -10,9 +10,9 @@
 #     "icloud": {"username": "pass://Vault/iCloud/email",
 #                "password": "pass://Vault/iCloud/password"},
 #     "sonarr": {"url": "http://host:8989",
-#                "apiKey": "pass://Vault/Sonarr/password"},
+#                "apiKey": "pass://Vault/Sonarr/SONARR_API_KEY"},
 #     "radarr": {"url": "http://host:7878",
-#                "apiKey": "pass://Vault/Radarr/password"}
+#                "apiKey": "pass://Vault/Radarr/RADARR_API_KEY"}
 #   }
 #
 # The iCloud password is an app-specific one (account.apple.com, Sign-In and

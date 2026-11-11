@@ -26,8 +26,10 @@ in
 
     linger = true;
 
+    # The Atlas key in Proton Pass (Development vault), served by its SSH agent
+    # (home/common/shell/ssh.nix); only for logging in here, separate from the GitHub key.
     openssh.authorizedKeys.keys = [
-      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINQpQFDxvGq+x6sHldr81kFtftS6KFEzbOtoRKKTXFR7"
+      "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFkaCsF9IeeIU3ScdvVlUMfWw6Km4i6uImVoUfZWB2vq paul@atlas"
     ];
 
     packages = [ pkgs.home-manager ];

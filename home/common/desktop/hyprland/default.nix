@@ -49,6 +49,20 @@ in
             (lua ''
               function()
                 hl.exec_cmd("uwsm app -- 1password --silent")
+
+                -- Proton Pass serves the SSH agent (home/common/shell/ssh.nix), so it runs from login.
+                -- It has no hidden start on Linux and always shows its window, so close that first
+                -- one: closing only hides it to the tray. The minute's limit keeps a launch of
+                -- yours from being closed if this one never gets a window.
+                local passWindow
+                passWindow = hl.on("window.open", function(w)
+                  if w.class == "proton-pass" then
+                    passWindow:remove()
+                    hl.dispatch(hl.dsp.window.close({ window = w }))
+                  end
+                end)
+                hl.timer(function() passWindow:remove() end, { timeout = 60000, type = "oneshot" })
+                hl.exec_cmd("uwsm app -- proton-pass")
               end
             '')
           ];
