@@ -5,8 +5,8 @@ import Quickshell
 import Quickshell.Io
 
 // atlas's Nix state and the home-lab binary cache, from the quickshell-nix-status helper: one JSON
-// object (schema in scripts/nix-status.sh) with every source optional, so off the home network the
-// local fields still arrive and the cache's are null. Read every 5 minutes in the background, again
+// object (schema in scripts/nix-status.sh) with every source optional, so offline the local
+// fields still arrive and the cache's and the builds' are null. Read every 5 minutes in the background, again
 // when the control panel opens, and every minute while the Nix view is showing (acquire()/release(),
 // like Batteries); a read is never started on top of a running one.
 Singleton {
@@ -16,13 +16,12 @@ Singleton {
     property var data: null
     // The helper printed nothing usable; the last good `data` stays.
     property bool failed: false
-    // When `data`'s remote parts were read: fetchedAt only moves when Prometheus answered, so
-    // "Checked HH:mm" tells how old a kept cache and build section is.
+    // When `data`'s remote parts were read: fetchedAt only moves when the cache and GitHub's builds
+    // were both read fresh, so "Checked HH:mm" tells how old a kept cache or build section is.
     property double fetchedAt: 0
-    // Prometheus, GitHub and the cache answer slowly at times (a busy builder), and one timed-out
-    // read would otherwise turn the view to "Cache unreachable" until the next one. A miss keeps
-    // the last good section of each source this long, and retries soon; past it, off the home
-    // network, the view goes to unreachable as before.
+    // GitHub and the cache answer slowly at times, and one timed-out read would otherwise turn the
+    // view to "unreachable" until the next one. A miss keeps the last good section of each source
+    // this long, and retries soon; past it, offline, the view goes to unreachable.
     readonly property int staleFor: 15 * 60 * 1000
     property int users: 0
     readonly property bool active: users > 0
@@ -30,12 +29,13 @@ Singleton {
     // The properties below are each derived from `data` alone; a view that combines several of
     // them reads `data` through stateOf() instead, since they update one after another.
     //
-    // "loading" before the first read, "unreachable" while Prometheus doesn't answer (off the home
-    // network), then, first match wins: "failed" (main's latest commit didn't build into the cache,
-    // so a switch would build it here), "update-failing" (a lock update has a failed check: one of
+    // "loading" before the first read, "unreachable" while neither the cache nor GitHub's builds
+    // answer (offline), then, first match wins: "failed" (main's latest atlas run failed, so a
+    // switch would build it here), "update-failing" (a lock update has a failed check: one of
     // the nightly trials, one per flake input, or the landing pull request that merges the passing
     // ones), "update-pending" (updates are open and their checks still running, or landing),
-    // "running" (a builder Job is active), "ok", or "never" (the exporter has no result yet).
+    // "running" (an atlas run on main is in progress), "ok", or "never" (no finished atlas run on
+    // main to go by, or GitHub didn't answer).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
@@ -50,7 +50,7 @@ Singleton {
     function stateOf(d: var): string {
         if (d === null || d === undefined)
             return failed ? "unreachable" : "loading";
-        if (!(d.cache?.reachable ?? false))
+        if (!(d.cache?.reachable ?? false) && !(d.build?.reachable ?? false))
             return "unreachable";
         if (d.build?.main?.success === false)
             return "failed";
@@ -60,7 +60,7 @@ Singleton {
             return "update-pending";
         if (d.build?.running ?? false)
             return "running";
-        if (d.build?.last_run !== null && d.build?.last_run !== undefined)
+        if (d.build?.main?.success === true)
             return "ok";
         return "never";
     }
@@ -78,10 +78,9 @@ Singleton {
         return (d?.updates ?? []).filter(u => failingChecks(u).length > 0).sort((a, b) => (updateFailingSince(a) ?? 0) - (updateFailingSince(b) ?? 0));
     }
 
-    // When an update started failing: the builder's record for nix-cache, kept across the pull
-    // request's refreshes, else the earliest failed check on its current commit.
+    // When an update started failing: the earliest failed check on its current commit.
     function updateFailingSince(update: var): var {
-        const times = failingChecks(update).map(c => c.name === "nix-cache" && update.failing_since ? update.failing_since : c.since).filter(t => t !== null && t !== undefined);
+        const times = failingChecks(update).map(c => c.since).filter(t => t !== null && t !== undefined);
         return times.length === 0 ? null : Math.min(...times);
     }
 
@@ -107,7 +106,7 @@ Singleton {
         return updates.map(nameOf).join(" and ");
     }
 
-    // "nix-cache and poseidon", "3 checks" past two.
+    // "atlas and poseidon", "3 checks" past two.
     function names(checks: var): string {
         if (checks.length > 2)
             return `${checks.length} checks`;
@@ -121,7 +120,7 @@ Singleton {
         case "loading":
             return "Checking…";
         case "unreachable":
-            parts.push("Cache unreachable");
+            parts.push("Cache and GitHub unreachable");
             break;
         case "failed":
             parts.push(`main failing${build.main.failing_since ? ` for ${span(now / 1000 - build.main.failing_since)}` : ""}`);
@@ -151,10 +150,10 @@ Singleton {
             parts.push("Build running");
             break;
         case "ok":
-            parts.push(`Built ${ago(build.last_run)}`);
+            parts.push(`Built ${ago(build.main.finished)}`);
             break;
         case "never":
-            parts.push("No build yet");
+            parts.push("No build result");
             break;
         }
         if (d.upstream?.update_available)
@@ -189,19 +188,6 @@ Singleton {
         if (hours < 48)
             return `${hours} h`;
         return `${Math.round(seconds / 86400)} d`;
-    }
-
-    // "38 min", "1 h 4 min" for a run's wall time.
-    function duration(seconds: var): string {
-        if (seconds === null || seconds === undefined)
-            return "";
-        const minutes = Math.round(seconds / 60);
-        if (minutes < 1)
-            return `${Math.round(seconds)} s`;
-        if (minutes < 60)
-            return `${minutes} min`;
-        const rest = minutes % 60;
-        return rest === 0 ? `${Math.floor(minutes / 60)} h` : `${Math.floor(minutes / 60)} h ${rest} min`;
     }
 
     function bytes(n: var): string {
@@ -258,18 +244,23 @@ Singleton {
     }
 
     // `next`'s local fields always win; a remote section that came back unreachable is replaced by
-    // the previous one while that is recent (see staleFor). Prometheus gives both cache and build,
-    // GitHub upstream and update.
+    // the previous one while that is recent (see staleFor). The cache, GitHub's builds, upstream and the
+    // updates each stand alone.
     function accept(next: var) {
         const prev = root.data;
         const recent = prev !== null && Date.now() - root.fetchedAt < root.staleFor;
         const merged = Object.assign({}, next);
         let missed = false;
-        if (next.cache?.reachable) {
-            root.fetchedAt = next.fetched_at * 1000;
-        } else if (recent && prev.cache?.reachable) {
+        let kept = false;
+        if (!(next.cache?.reachable) && recent && prev.cache?.reachable) {
             merged.cache = prev.cache;
+            kept = true;
+        }
+        if (!(next.build?.reachable) && recent && prev.build?.reachable) {
             merged.build = prev.build;
+            kept = true;
+        }
+        if (kept) {
             missed = true;
         } else {
             root.fetchedAt = next.fetched_at * 1000;
@@ -282,11 +273,16 @@ Singleton {
             merged.updates = prev.updates;
             missed = true;
         }
-        if (next.system && next.system.cached === null && recent && prev.system?.cached !== null && prev.system?.cached !== undefined) {
-            merged.system = Object.assign({}, next.system, {
-                cached: prev.system.cached
-            });
-            missed = true;
+        if (next.system) {
+            const keep = {};
+            for (const key of ["cached", "matches_main"]) {
+                if (next.system[key] === null && recent && prev.system?.[key] !== null && prev.system?.[key] !== undefined)
+                    keep[key] = prev.system[key];
+            }
+            if (Object.keys(keep).length > 0) {
+                merged.system = Object.assign({}, next.system, keep);
+                missed = true;
+            }
         }
         root.data = merged;
         if (missed)

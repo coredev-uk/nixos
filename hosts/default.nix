@@ -8,12 +8,16 @@
 }:
 let
   # Shared between nix.settings below and Determinate's nix.custom.conf. cache.nixos.org is
-  # already the default substituter on both.
+  # already the default substituter on both. nix-cache.hera.ac holds what GitHub Actions builds
+  # for atlas (.github/workflows/atlas.yml): an R2 bucket written through niks3 in
+  # coredev-uk/home-ops (kubernetes/apps/nix-cache), public and reachable from anywhere.
   substituters = [
+    "https://nix-cache.hera.ac"
     "https://nix-citizen.cachix.org"
     "https://nix-community.cachix.org"
   ];
   trustedPublicKeys = [
+    "nix-cache.hera.ac-1:Ayl31um+15Mbnobqt2XavEoQp1VJs3E5utf457d6NFY="
     "nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo="
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
   ];
@@ -73,13 +77,8 @@ in
         "flakes"
       ];
 
-      # Binary caches. nix-cache.hera.ac (coredev-uk/home-ops kubernetes/apps/nix-cache) holds
-      # what the nightly cluster build makes that no public cache has; LAN-only, so it stays out
-      # of the shared list that Determinate hosts get.
-      substituters = substituters ++ [ "https://nix-cache.hera.ac/coredev" ];
-      trusted-public-keys = trustedPublicKeys ++ [
-        "coredev:uXQ+8TCkbXeHBUfTQDwtDSsLqKlf8A4fsqOVmeX23sE="
-      ];
+      inherit substituters;
+      trusted-public-keys = trustedPublicKeys;
     };
   };
 

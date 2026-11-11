@@ -39,10 +39,10 @@ let
   };
 
   # atlas's Nix state and the home-lab binary cache for the panel's Nix view
-  # (config/services/NixStatus.qml): Prometheus, main's flake.lock, the open lock update pull
-  # requests (the nightly trials, one per flake input, and the landing one) and their checks
-  # (GitHub's API, with `gh auth token` from the user's PATH when it has one) and the cache's
-  # narinfo, fetched in parallel with short timeouts into one JSON object.
+  # (config/services/NixStatus.qml): main's flake.lock, the open lock update pull requests
+  # (the nightly trials, one per flake input, and the landing one) and their checks, and the Atlas
+  # workflow's runs on main (GitHub's API, with `gh auth token` from the user's PATH when it has
+  # one), and the cache's narinfo, pin for main and stats, fetched in parallel with short timeouts into one JSON object.
   # nixos-version comes from the running system by absolute path, as does systemctl (failed units,
   # system and user).
   quickshellNixStatus = pkgs.writeShellApplication {
