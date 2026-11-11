@@ -51,9 +51,10 @@
     # Agent skills from the skills.sh registry by name (home/common/shell/omp.nix).
     skills-nix.url = "github:z1-0/skills-nix";
 
-    # Sona, the Apple Music client (home/common/programs/sona.nix). No nixpkgs follows on
+    # Sona, the Apple Music client (home/common/programs/sona.nix). Its `nix` branch carries the
+    # published builds CI pins after each release and nightly rc. No nixpkgs follows on
     # purpose: its flake pins the nixpkgs Sona is developed against (Go, GTK3, GStreamer).
-    sona.url = "github:coredev-uk/sona-go";
+    sona.url = "github:coredev-uk/sona-go/nix";
 
     taste-skill.url = "github:Leonxlnx/taste-skill";
     taste-skill.flake = false;
