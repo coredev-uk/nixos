@@ -230,7 +230,7 @@ Item {
 
                 LevelTrace {
                     Layout.fillWidth: true
-                    Layout.preferredHeight: 14
+                    Layout.preferredHeight: 20
                     node: root.stream
                     running: root.active && root.playing
                 }

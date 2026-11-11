@@ -47,10 +47,10 @@ Item {
             }
         }
 
-        // The sung line, however many lines it wraps to, keeps one place: a third of the way
-        // down, so the next line reads below it. Its height is read after the list has laid out
-        // (Qt.callLater): bound to currentItem directly, the range would move the current item
-        // and the current item the range.
+        // The sung line, however many lines it wraps to, keeps one place: one line down, so the
+        // line just gone shows whole above it and the next one below. Its height is read after
+        // the list has laid out (Qt.callLater): bound to currentItem directly, the range would
+        // move the current item and the current item the range.
         property real sungHeight: root.lineHeight
 
         function syncSung() {
@@ -60,7 +60,7 @@ Item {
         onCurrentItemChanged: Qt.callLater(syncSung)
 
         highlightRangeMode: ListView.StrictlyEnforceRange
-        preferredHighlightBegin: Math.round(height / 3 - sungHeight / 2)
+        preferredHighlightBegin: root.lineHeight
         preferredHighlightEnd: preferredHighlightBegin + sungHeight
         // Opening the strip or a new song's lines are placed at once; only a new line glides.
         highlightMoveDuration: placed ? Theme.durationMove : 0
@@ -94,7 +94,7 @@ Item {
             required property int index
             readonly property bool sung: index === Lyrics.index
             readonly property bool coming: index >= Lyrics.focus && !sung
-            readonly property bool near: index >= list.currentIndex - root.context && index <= list.currentIndex + root.context + 1
+            readonly property bool near: Math.abs(index - list.currentIndex) <= root.context
 
             width: ListView.view.width
             height: modelData.text !== "" ? label.implicitHeight + root.pad : 0
