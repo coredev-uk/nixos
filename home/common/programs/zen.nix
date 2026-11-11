@@ -30,7 +30,11 @@ in
             }
           );
         in
-        mkExtensionSettings {
+        {
+          # Anything not listed here is blocked, and removed if already installed
+          "*".installation_mode = "blocked";
+        }
+        // mkExtensionSettings {
           # Dark Reader
           "addon@darkreader.org" = "darkreader";
           # YouTube
@@ -39,15 +43,13 @@ in
           "idcac-pub@guus.ninja" = "istilldontcareaboutcookies";
           # Proton
           "78272b6fa58f4a1abaac99321d503a20@proton.me" = "proton-pass";
-          "vpn@proton.ch" = "proton-vpn";
+          "vpn@proton.ch" = "proton-vpn-firefox-extension";
           # Refined GitHub: off, it made GitHub's pages noticeably slower. Uncomment to try again.
           # "{a4c4eda4-fb84-4a84-b4a1-f7c1cbf2a1ad}" = "refined-github";
           # Wappalyzer
           "wappalyzer@crunchlabz.com" = "wappalyzer";
           # AdBlocker
           "uBlock0@raymondhill.net" = "ublock-origin";
-          # 1Password
-          "{d634138d-c276-4fc8-924b-40a0ea21d284}" = "1password-x-password-manager";
           # CSFloat Market Cheker
           "{194d0dc6-7ada-41c6-88b8-95d7636fe43c}" = "csgofloat";
           # Firefox Multi-Accounts Containers
@@ -95,6 +97,44 @@ in
           icon = "🌐";
           container = containers.Personal.id;
           position = 1000;
+          pins = {
+            Outlook = {
+              id = "85fa2c24-c107-41a2-aaa4-acb9abf16486";
+              container = containers.Personal.id;
+              url = "https://outlook.office.com/mail/";
+              position = 201;
+            };
+            Plex = {
+              id = "0a7c203a-c4a8-4cfd-a534-2852cc4a51c7";
+              container = containers.Personal.id;
+              url = "https://plex.hera.ac";
+              position = 202;
+            };
+            Amazon = {
+              id = "699e50b2-abb3-403f-a5ec-52b474565f26";
+              container = containers.Personal.id;
+              url = "https://www.amazon.co.uk/";
+              position = 203;
+            };
+            X = {
+              id = "11fde474-8d63-48af-9bc0-338ea3b1f932";
+              container = containers.Personal.id;
+              url = "https://x.com/";
+              position = 204;
+            };
+            Outline = {
+              id = "f1648f48-024b-4471-af68-e3bf0b15bf44";
+              container = containers.Personal.id;
+              url = "https://docs.hera.ac";
+              position = 205;
+            };
+            Typst = {
+              id = "254a2436-ae49-4ab7-a110-9189f72849d1";
+              container = containers.Personal.id;
+              url = "https://typst.app/";
+              position = 206;
+            };
+          };
           theme = {
             type = "gradient";
             opacity = 0.5;
@@ -145,6 +185,86 @@ in
           icon = "💻";
           container = containers.Personal.id;
           position = 2000;
+          pins = {
+            Cloudflare = {
+              id = "8977af52-68e1-4aa1-9fbf-e4c1be5c0d03";
+              container = containers.Personal.id;
+              url = "https://dash.cloudflare.com/";
+              position = 301;
+            };
+            "Cloudflare Zero Trust" = {
+              id = "ecd206ac-c6bc-4332-8a99-9c3cb716a65a";
+              container = containers.Personal.id;
+              url = "https://dash.cloudflare.com/one/";
+              position = 302;
+            };
+            MyNixOS = {
+              id = "56e19b2c-f0b9-4eb4-8f7c-227fe799b371";
+              container = containers.Personal.id;
+              url = "https://mynixos.com/";
+              position = 303;
+            };
+            "nvf Configuration" = {
+              id = "64234880-c45f-460f-9b9e-c2e627542575";
+              container = containers.Personal.id;
+              url = "https://nvf.notashelf.dev/options.html";
+              position = 304;
+            };
+            ProtonDB = {
+              id = "baf77b10-5045-4986-8e1e-ef7cb57ee63f";
+              container = containers.Personal.id;
+              url = "https://www.protondb.com/";
+              position = 305;
+            };
+            AreWeAntiCheatYet = {
+              id = "0e13eef7-18ed-41ea-9f1c-82423ec882ff";
+              container = containers.Personal.id;
+              url = "https://areweanticheatyet.com/";
+              position = 306;
+            };
+            "MDN Web Docs" = {
+              id = "b46ad31e-e4f1-4a39-8113-c50bead8f610";
+              container = containers.Personal.id;
+              url = "https://developer.mozilla.org/";
+              position = 307;
+            };
+            DevDocs = {
+              id = "8bac26d4-a81c-439d-bed3-eddea780ae28";
+              container = containers.Personal.id;
+              url = "https://devdocs.io/";
+              position = 308;
+            };
+            "Can I Use" = {
+              id = "f53f18f3-c268-4b8b-b5f2-62724e276d83";
+              container = containers.Personal.id;
+              url = "https://caniuse.com/";
+              position = 309;
+            };
+            "Talos Docs" = {
+              id = "ed075b34-67a5-4547-a390-7b69b7fcabb2";
+              container = containers.Personal.id;
+              url = "https://docs.siderolabs.com/talos/";
+              position = 310;
+            };
+            "Kubernetes Docs" = {
+              id = "620b4234-a4ef-4b74-87fe-6734bffad0a7";
+              container = containers.Personal.id;
+              url = "https://kubernetes.io/docs/";
+              position = 311;
+            };
+            RegExr = {
+              id = "31a2e7ec-16e8-438f-a0d6-22e4b69f5953";
+              container = containers.Personal.id;
+              url = "https://regexr.com/";
+              position = 312;
+            };
+            "JSON Formatter" = {
+              id = "4805f77b-a2dd-4c73-9659-5f1385cd11f2";
+              container = containers.Personal.id;
+              url = "https://jsonformatter.org/";
+              position = 313;
+            };
+          };
           theme = {
             type = "gradient";
             opacity = 0.578;
@@ -183,6 +303,58 @@ in
           icon = "💼";
           container = containers.Work.id;
           position = 3000;
+          pins = {
+            "Lockheed Martin" = {
+              id = "e4fa46bc-cfd5-4c31-8289-4aeda3adf048";
+              isFolderCollapsed = true;
+              editedTitle = true;
+              position = 501;
+              pins = {
+                MyLM = {
+                  id = "c3bd2ad5-aaf6-4258-ac63-0d80fe16cb73";
+                  container = containers.Work.id;
+                  url = "https://lmc-wz4hr-prod-qcdjf9te.workzonehr.cfapps.us10.hana.ondemand.com/site#workzone-home&/home";
+                  position = 502;
+                };
+                "My Timecard" = {
+                  id = "1f0a1ce0-0c29-4cd9-9ed1-345b4cccf515";
+                  container = containers.Work.id;
+                  url = "https://mytimecard.external.lmco.com/";
+                  position = 503;
+                };
+                TEMPO = {
+                  id = "6a72e8fa-20f4-4c7b-a22f-d059d3f2560e";
+                  container = containers.Work.id;
+                  url = "https://tempo.external.lmco.com/fiori";
+                  position = 504;
+                };
+                "LMTalent Central" = {
+                  id = "878bdfdb-db9a-46bb-bdb5-8565532b3cd8";
+                  container = containers.Work.id;
+                  url = "https://performancemanager8.successfactors.com/login?company=Lockheed";
+                  position = 505;
+                };
+                "Benefits Compass" = {
+                  id = "81802c4b-523b-4ccb-9c5b-d2c31510ffad";
+                  container = containers.Work.id;
+                  url = "https://lmbenefitscompass.com/";
+                  position = 506;
+                };
+                "My Pension Estimator" = {
+                  id = "e4b1397f-d565-48a4-8021-5d70f2e4e52f";
+                  container = containers.Work.id;
+                  url = "https://lmc.lifeatworkportal.com/";
+                  position = 507;
+                };
+                "Annual Reports of Benefit Plans" = {
+                  id = "076a9968-8b01-4e71-9673-aabf5c9bde66";
+                  container = containers.Work.id;
+                  url = "https://www.lockheedmartin.com/en-us/employees/benefit-plans.html";
+                  position = 508;
+                };
+              };
+            };
+          };
           theme = {
             type = "gradient";
             opacity = 0.635;
@@ -230,9 +402,9 @@ in
         };
       };
 
-      # User Pins
+      # Essential pins, shown in every space that uses their container; space pins live in spaces.*.pins
       pins = {
-        # Essential Pins - Personal (Always visible across Programming/Universal spaces)
+        # Personal (Universal and Programming spaces)
         Google = {
           id = "8e566870-19b6-42d2-81d1-12a2880f313b";
           container = containers.Personal.id;
@@ -276,169 +448,7 @@ in
           position = 106;
         };
 
-        # Universal Space Pins
-        Outlook = {
-          id = "85fa2c24-c107-41a2-aaa4-acb9abf16486";
-          workspace = spaces.Universal.id;
-          url = "https://outlook.office.com/mail/";
-          position = 201;
-        };
-        Plex = {
-          id = "0a7c203a-c4a8-4cfd-a534-2852cc4a51c7";
-          workspace = spaces.Universal.id;
-          url = "https://plex.hera.ac";
-          position = 202;
-        };
-        Amazon = {
-          id = "699e50b2-abb3-403f-a5ec-52b474565f26";
-          workspace = spaces.Universal.id;
-          url = "https://www.amazon.co.uk/";
-          position = 203;
-        };
-        X = {
-          id = "11fde474-8d63-48af-9bc0-338ea3b1f932";
-          workspace = spaces.Universal.id;
-          url = "https://x.com/";
-          position = 204;
-        };
-        Outline = {
-          id = "f1648f48-024b-4471-af68-e3bf0b15bf44";
-          workspace = spaces.Universal.id;
-          url = "https://docs.hera.ac";
-          position = 205;
-        };
-        Typst = {
-          id = "254a2436-ae49-4ab7-a110-9189f72849d1";
-          workspace = spaces.Universal.id;
-          url = "https://typst.app/";
-          position = 206;
-        };
-        # Careers Folder (Universal Space)
-        Careers = {
-          id = "cd4f5481-d0ca-4f31-8ed5-e694302ba7f4";
-          workspace = spaces.Universal.id;
-          isFolderCollapsed = true;
-          isGroup = true;
-          editedTitle = true;
-          position = 207;
-        };
-        LinkedIn = {
-          id = "de743df8-edff-4b43-b37f-165c19363088";
-          workspace = spaces.Universal.id;
-          url = "https://www.linkedin.com/feed/";
-          folderParentId = pins.Careers.id;
-          position = 208;
-        };
-        BrightNetwork = {
-          id = "19a8c304-708f-455b-af36-73bb36b9472c";
-          workspace = spaces.Universal.id;
-          url = "https://www.brightnetwork.co.uk/dashboard/";
-          folderParentId = pins.Careers.id;
-          position = 209;
-        };
-        CVLibrary = {
-          id = "88323f4c-b1a8-43f4-af05-f2e12d99ff11";
-          workspace = spaces.Universal.id;
-          url = "https://www.cv-library.co.uk/";
-          folderParentId = pins.Careers.id;
-          position = 210;
-        };
-        Gradcracker = {
-          id = "f177c620-c586-4496-bf45-1d72c27a7f08";
-          workspace = spaces.Universal.id;
-          url = "https://www.gradcracker.com/my-gradcracker";
-          folderParentId = pins.Careers.id;
-          position = 211;
-        };
-        TotalJobs = {
-          id = "c5a18413-f1a1-4278-a921-f22f9b73eb87";
-          workspace = spaces.Universal.id;
-          url = "https://www.totaljobs.com/";
-          folderParentId = pins.Careers.id;
-          position = 212;
-        };
-
-        # Programming Space Pins
-        Cloudflare = {
-          id = "8977af52-68e1-4aa1-9fbf-e4c1be5c0d03";
-          workspace = spaces.Programming.id;
-          url = "https://dash.cloudflare.com/";
-          position = 301;
-        };
-        "Cloudflare Zero Trust" = {
-          id = "ecd206ac-c6bc-4332-8a99-9c3cb716a65a";
-          workspace = spaces.Programming.id;
-          url = "https://one.dash.cloudflare.com/";
-          position = 302;
-        };
-        MyNixOS = {
-          id = "56e19b2c-f0b9-4eb4-8f7c-227fe799b371";
-          workspace = spaces.Programming.id;
-          url = "https://mynixos.com/";
-          position = 303;
-        };
-        "nvf Configuration" = {
-          id = "64234880-c45f-460f-9b9e-c2e627542575";
-          workspace = spaces.Programming.id;
-          url = "https://notashelf.github.io/nvf/options.html";
-          position = 304;
-        };
-        ProtonDB = {
-          id = "baf77b10-5045-4986-8e1e-ef7cb57ee63f";
-          workspace = spaces.Programming.id;
-          url = "https://www.protondb.com/";
-          position = 305;
-        };
-        AreWeAntiCheatYet = {
-          id = "0e13eef7-18ed-41ea-9f1c-82423ec882ff";
-          workspace = spaces.Programming.id;
-          url = "https://areweanticheatyet.com/";
-          position = 306;
-        };
-        "MDN Web Docs" = {
-          id = "b46ad31e-e4f1-4a39-8113-c50bead8f610";
-          workspace = spaces.Programming.id;
-          url = "https://developer.mozilla.org/";
-          position = 307;
-        };
-        DevDocs = {
-          id = "8bac26d4-a81c-439d-bed3-eddea780ae28";
-          workspace = spaces.Programming.id;
-          url = "https://devdocs.io/";
-          position = 308;
-        };
-        "Can I Use" = {
-          id = "f53f18f3-c268-4b8b-b5f2-62724e276d83";
-          workspace = spaces.Programming.id;
-          url = "https://caniuse.com/";
-          position = 309;
-        };
-        "Talos Docs" = {
-          id = "ed075b34-67a5-4547-a390-7b69b7fcabb2";
-          workspace = spaces.Programming.id;
-          url = "https://www.talos.dev/";
-          position = 310;
-        };
-        "Kubernetes Docs" = {
-          id = "620b4234-a4ef-4b74-87fe-6734bffad0a7";
-          workspace = spaces.Programming.id;
-          url = "https://kubernetes.io/docs/";
-          position = 311;
-        };
-        RegExr = {
-          id = "31a2e7ec-16e8-438f-a0d6-22e4b69f5953";
-          workspace = spaces.Programming.id;
-          url = "https://regexr.com/";
-          position = 312;
-        };
-        "JSON Formatter" = {
-          id = "4805f77b-a2dd-4c73-9659-5f1385cd11f2";
-          workspace = spaces.Programming.id;
-          url = "https://jsonformatter.org/";
-          position = 313;
-        };
-
-        # Essential Pins - Work (Always visible in Work space)
+        # Work (Work space)
         "Google (Work)" = {
           id = "79abdada-cc50-4a99-b2cc-c9bf96b4bdb0";
           container = containers.Work.id;
@@ -465,7 +475,8 @@ in
         DisableTelemetry = true;
         DontCheckDefaultBrowser = true;
         NoDefaultBookmarks = true;
-        OfferToSaveLogins = false;
+        # Proton Pass is the password manager, so the built-in one is off
+        PasswordManagerEnabled = false;
         TranslateEnabled = false;
         EnableTrackingProtection = {
           Value = true;
@@ -487,7 +498,7 @@ in
 
         containersForce = true;
         spacesForce = true;
-        pinsForce = false;
+        pinsForce = true;
         inherit containers spaces pins;
       };
     };
