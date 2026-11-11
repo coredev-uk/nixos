@@ -30,12 +30,12 @@ Singleton {
     // them reads `data` through stateOf() instead, since they update one after another.
     //
     // "loading" before the first read, "unreachable" while neither the cache nor GitHub's builds
-    // answer (offline), then, first match wins: "failed" (main's latest atlas run failed, so a
-    // switch would build it here), "update-failing" (a lock update has a failed check: one of
+    // answer (offline), then, first match wins: "failed" (main's latest host build failed, atlas's or
+    // poseidon's, so a switch may build here), "update-failing" (a lock update has a failed check: one of
     // the nightly trials, one per flake input, or the landing pull request that merges the passing
     // ones), "update-pending" (updates are open and their checks still running, or landing),
-    // "running" (an atlas run on main is in progress), "ok", or "never" (no finished atlas run on
-    // main to go by, or GitHub didn't answer).
+    // "running" (a host build of main is in progress), "ok", or "never" (no finished host build
+    // of main to go by, or GitHub didn't answer).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false

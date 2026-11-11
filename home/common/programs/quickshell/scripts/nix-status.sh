@@ -10,9 +10,9 @@
 #             differs from the running system's
 #   cache     the binary cache's own numbers from niks3 (/api/cache-stats): objects and
 #             logical_bytes (uncompressed); reachable = niks3 answered
-#   build     the Atlas workflow's runs on main (.github/workflows/atlas.yml, one check run named
-#             atlas, building the system and the home configuration; on every pull request and every
-#             push to main), from GitHub's API: reachable = it answered, running = the latest run
+#   build     the Hosts workflow's runs on main (.github/workflows/hosts.yml, one matrix job per
+#             host, atlas and poseidon; a run fails when either host does; on every pull request and
+#             every push to main), from GitHub's API: reachable = it answered, running = the latest run
 #             hasn't completed, main: {success (the latest completed run's, cancelled ones skipped;
 #             null if none), finished (its end), failing_since (start of the oldest run in the
 #             unbroken streak of failed ones up to it; null when it succeeded), url}
@@ -55,8 +55,8 @@ fi
 github() {
 	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
 }
-# The Atlas workflow's latest runs on main (pushes only, newest first).
-github "/actions/workflows/atlas.yml/runs?branch=main&event=push&per_page=20" >"$tmp/runs" &
+# The Hosts workflow's latest runs on main (pushes only, newest first).
+github "/actions/workflows/hosts.yml/runs?branch=main&event=push&per_page=20" >"$tmp/runs" &
 # The update pull requests (BOT Cecil's, from this repository), then each one's check runs.
 : >"$tmp/updates"
 updates() {
@@ -177,7 +177,7 @@ jq -n \
         }
       },
       # Every check the ruleset on main requires is listed, as pending until it first reports
-      # (atlas only does once the workflow starts on the commit); a re-run check counts by its
+      # (atlas and poseidon only do once the Hosts workflow starts on the commit); a re-run check counts by its
       # latest run.
       updates: (
         if ($ups | type) != "array" then null
