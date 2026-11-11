@@ -1,4 +1,4 @@
-name: "Flake Builds"
+name: "Poseidon"
 
 # poseidon's nix-darwin system (with its Home Manager configuration), built on every pull request
 # (the nightly per-input flake updates among them; main's ruleset requires this job), every push

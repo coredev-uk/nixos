@@ -9,7 +9,7 @@
 let
   # Shared between nix.settings below and Determinate's nix.custom.conf. cache.nixos.org is
   # already the default substituter on both. nix-cache.hera.ac holds what GitHub Actions builds
-  # for atlas and poseidon (.github/workflows/atlas.yml, nix-build.yml): an R2 bucket written
+  # for atlas and poseidon (.github/workflows/atlas.yml, poseidon.yml): an R2 bucket written
   # through niks3 in coredev-uk/home-ops (kubernetes/apps/nix-cache), public and reachable from
   # anywhere.
   substituters = [

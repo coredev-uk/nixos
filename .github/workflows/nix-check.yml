@@ -2,7 +2,7 @@ name: "Flake Checks"
 
 # Fast checks on every push: evaluate every configuration (catches option, type and
 # module errors) and run the flake's own checks (formatting), without building any host.
-# Full builds run in nix-build.yml (weekly, on lock changes, or manually).
+# The hosts build in atlas.yml and poseidon.yml.
 on:
   push:
     # Nothing in these affects an evaluated output.
@@ -46,7 +46,7 @@ jobs:
         run: nix flake check -L
 
       # Not covered by `nix flake check`. poseidon has no IFD, so an x86_64-linux runner
-      # can evaluate it; building it needs macOS (nix-build.yml).
+      # can evaluate it; building it needs macOS (poseidon.yml).
       - name: Evaluate home-manager and nix-darwin configurations
         run: |
           nix eval --raw '.#homeConfigurations."paul@atlas".activationPackage.drvPath'
