@@ -57,9 +57,12 @@ in
     # Register every other flake input so nix3 commands (`nix run home-manager`, …)
     # use the locked revisions. `nixpkgs` itself, and NIX_PATH's `nixpkgs=flake:nixpkgs`,
     # come from the nixpkgs.flake.setFlakeRegistry/setNixPath defaults. The non-flake inputs
-    # have nothing to run.
+    # have nothing to run. Not `self`: its source changes with every commit, so registering it
+    # rebuilt the system (registry.json, etc, activate) on commits that change nothing else, and
+    # CI could never skip atlas as already cached.
     registry = lib.mapAttrs (_: flake: { inherit flake; }) (
       removeAttrs inputs [
+        "self"
         "nixpkgs"
         "impeccable"
         "taste-skill"
