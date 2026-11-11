@@ -9,15 +9,14 @@ name: "Land flake updates"
 # out until it is redone on top of main. With no trial passing, an open landing pull request is
 # closed.
 #
-# Runs when a trial's check finishes (nix-cache is a commit status from home-ops' builder; the
-# others are Flake Checks and Flake Builds), and hourly in case one of those went unseen. A trial
-# still pending after six hours is left out, so a stuck check doesn't hold the rest back.
+# Runs when a trial's checks finish (Flake Checks, Flake Builds and Atlas), and hourly in case
+# one of those went unseen. A trial still pending after six hours is left out, so a stuck check
+# doesn't hold the rest back.
 on:
-  status:
   # Safe here: the job runs nothing from a pull request, only merges flake.lock from BOT Cecil's own
   # branches in this repository.
   workflow_run: # zizmor: ignore[dangerous-triggers]
-    workflows: ["Flake Checks", "Flake Builds"]
+    workflows: ["Flake Checks", "Flake Builds", "Atlas"]
     types:
       - completed
   schedule:
@@ -33,9 +32,7 @@ concurrency:
 
 jobs:
   land:
-    if: >-
-      (github.event_name != 'status' || (github.event.context == 'nix-cache' && github.event.state != 'pending'))
-      && (github.event_name != 'workflow_run' || startsWith(github.event.workflow_run.head_branch, 'flake-update/'))
+    if: github.event_name != 'workflow_run' || startsWith(github.event.workflow_run.head_branch, 'flake-update/')
     runs-on: ubuntu-26.04
     steps:
       - name: Generate BOT Cecil token
@@ -64,17 +61,12 @@ jobs:
           now=$(date +%s)
           # The required checks of commit $1: success, failure or pending.
           verdict() {
-            local runs statuses
-            runs=$(gh api "repos/$GITHUB_REPOSITORY/commits/$1/check-runs?per_page=100")
-            statuses=$(gh api "repos/$GITHUB_REPOSITORY/commits/$1/status")
-            jq -rn --argjson runs "$runs" --argjson statuses "$statuses" '
-              ([$runs.check_runs[] | {name, at: .started_at,
+            gh api "repos/$GITHUB_REPOSITORY/commits/$1/check-runs?per_page=100" | jq -r '
+              [.check_runs[] | {name, at: .started_at,
                 state: (if .status != "completed" then "pending"
                         elif .conclusion == "success" or .conclusion == "neutral" or .conclusion == "skipped" then "success"
-                        else "failure" end)}]
-               + [$statuses.statuses[] | {name: .context, at: .updated_at,
-                state: (if .state == "success" then "success" elif .state == "pending" then "pending" else "failure" end)}]) as $all
-              | [["evaluate", "flake-checker", "poseidon", "nix-cache"][] as $n
+                        else "failure" end)}] as $all
+              | [["evaluate", "flake-checker", "poseidon", "atlas"][] as $n
                   | ([$all[] | select(.name == $n)] | sort_by(.at) | last | .state) // "pending"]
               | if any(. == "failure") then "failure" elif all(. == "success") then "success" else "pending" end'
           }
@@ -148,7 +140,7 @@ jobs:
             echo 'body<<EOF'
             printf '%s\n' "${changes[@]}"
             echo
-            echo "The trials above passed every required check, each on its own; this checks them together, and merges itself once Flake Checks, the poseidon build and \`nix-cache\` pass."
+            echo "The trials above passed every required check, each on its own; this checks them together, and merges itself once Flake Checks and the poseidon and atlas builds pass."
             if [ ${#left_out[@]} -gt 0 ]; then
               echo
               echo "Left out, conflicting with the others until redone on top of main: ${left_out[*]}."

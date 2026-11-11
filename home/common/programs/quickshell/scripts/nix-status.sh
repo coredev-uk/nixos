@@ -4,29 +4,34 @@
 #
 #   system    what runs here: nixos-version, generation, reboot pending (kernel, initrd or modules
 #             differ from the booted system), and whether the running system's store path is in
-#             the cache (null = cache unreachable)
+#             the cache (null = cache unreachable), and matches_main: whether it is the store path
+#             CI pinned for main (null = no pin: unreachable, or main hasn't built yet)
 #   upstream  main's flake.lock on GitHub: its nixpkgs revision, and update_available when that
 #             differs from the running system's
-#   cache     Attic's numbers from Prometheus (nix-cache-exporter); reachable = Prometheus answered
-#   build     the nix-cache-builder (polls every 30 minutes, builds new commits on main and on open
-#             pull requests): its last run, and main's latest built commit (success, failing_since,
-#             targets); build.* from the exporter are absent until the first run has finished
+#   cache     the binary cache's own numbers from niks3 (/api/cache-stats): objects and
+#             logical_bytes (uncompressed); reachable = niks3 answered
+#   build     the Atlas workflow's runs on main (.github/workflows/atlas.yml, one check run named
+#             atlas, building the system and the home configuration; on every pull request and every
+#             push to main), from GitHub's API: reachable = it answered, running = the latest run
+#             hasn't completed, main: {success (the latest completed run's, cancelled ones skipped;
+#             null if none), finished (its end), failing_since (start of the oldest run in the
+#             unbroken streak of failed ones up to it; null when it succeeded), url}
 #   updates   the open lock updates from BOT Cecil: the nightly trials, one draft pull request per
 #             flake input (flake-update/<input>, kind "trial", which never merge), and the landing
 #             pull request that merges the passing ones together (flake-update, kind "landing",
 #             merging itself once its checks pass): [{kind, input (null for the landing one),
 #             inputs (the landing one's, else null), landing (a trial in the landing pull
 #             request), number, url, opened_at, auto_merge, checks: [{name, state:
-#             success|failure|pending, since}], failing_since}]; checks (two requests a pull
-#             request) only with gh's token, else null; failing_since is since when the builder
-#             has failed it across its refreshes; null when GitHub didn't answer
+#             success|failure|pending, since}]}]; checks (a request a pull request: the check
+#             runs, evaluate, flake-checker, poseidon and atlas required) only with gh's token,
+#             else null; null when GitHub didn't answer
 #   failed_units  [{scope, name, description}] from systemctl --failed, system and user
 #             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
 
-prometheus=https://prometheus.hera.ac/api/v1/query
 lock_url=https://raw.githubusercontent.com/coredev-uk/nixos/main/flake.lock
-cache_url=https://nix-cache.hera.ac/coredev
+cache_url=https://nix-cache.hera.ac
+stats_url=https://niks3.hera.ac/api/cache-stats
 repo_api=https://api.github.com/repos/coredev-uk/nixos
 
 tmp=$(mktemp -d)
@@ -36,14 +41,10 @@ fetch() {
 	curl --silent --location --connect-timeout 3 --max-time 8 "$@" 2>/dev/null || true
 }
 
-query() {
-	fetch --get "$prometheus" --data-urlencode "query=$2" >"$tmp/$1" &
-}
-
-query metrics '{__name__=~"nix_cache_.+"}'
-query active 'sum(kube_job_status_active{namespace="nix-cache"})'
-query up 'up{namespace="nix-cache"}'
 fetch "$lock_url" >"$tmp/lock" &
+fetch "$stats_url" >"$tmp/stats" &
+# What CI pinned for main: the system's store path, 404 until the first build there.
+fetch --fail "$cache_url/pins/atlas" >"$tmp/pin" &
 
 # GitHub with gh's token when it has one (5000 requests an hour; anonymous ones get 60, shared
 # with everything else on the home IP).
@@ -54,8 +55,9 @@ fi
 github() {
 	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
 }
-# The update pull requests (BOT Cecil's, from this repository), then each one's check runs and
-# statuses.
+# The Atlas workflow's latest runs on main (pushes only, newest first).
+github "/actions/workflows/atlas.yml/runs?branch=main&event=push&per_page=20" >"$tmp/runs" &
+# The update pull requests (BOT Cecil's, from this repository), then each one's check runs.
 : >"$tmp/updates"
 updates() {
 	github '/pulls?state=open&per_page=100' |
@@ -66,18 +68,16 @@ updates() {
 	local number sha
 	while read -r number sha; do
 		: >"$tmp/checks-$number"
-		: >"$tmp/status-$number"
 		if [ "${#auth[@]}" -gt 0 ]; then
 			github "/commits/$sha/check-runs?per_page=100" >"$tmp/checks-$number" &
-			github "/commits/$sha/status" >"$tmp/status-$number" &
 		fi
 	done < <(jq -r '.[] | "\(.number) \(.head.sha)"' "$tmp/updates")
 	wait
-	# One array of {pr, runs, statuses} for the jq below.
+	# One array of {pr, runs} for the jq below.
 	jq -c '.[]' "$tmp/updates" | while read -r pr; do
 		number=$(jq -r .number <<<"$pr")
-		jq -nc --argjson pr "$pr" --rawfile runs "$tmp/checks-$number" --rawfile statuses "$tmp/status-$number" \
-			'{pr: $pr, runs: ($runs | fromjson? // null), statuses: ($statuses | fromjson? // null)}'
+		jq -nc --argjson pr "$pr" --rawfile runs "$tmp/checks-$number" \
+			'{pr: $pr, runs: ($runs | fromjson? // null)}'
 	done | jq -sc . >"$tmp/updates.full"
 	mv "$tmp/updates.full" "$tmp/updates"
 }
@@ -126,31 +126,23 @@ jq -n \
 	--argjson reboot_pending "$reboot_pending" \
 	--arg narinfo "$(cat "$tmp/narinfo")" \
 	--rawfile lock "$tmp/lock" \
-	--rawfile metrics "$tmp/metrics" \
-	--rawfile active "$tmp/active" \
-	--rawfile up "$tmp/up" \
+	--arg current "$current" \
+	--rawfile pin_main "$tmp/pin" \
+	--rawfile stats "$tmp/stats" \
+	--rawfile runs "$tmp/runs" \
 	--rawfile updates "$tmp/updates" \
 	--rawfile units_system "$tmp/system" \
 	--rawfile units_user "$tmp/user" \
 	'
-  def prom($raw): ($raw | fromjson? // null) | if .status == "success" then .data.result else null end;
-  def gauge($rs; $name): first($rs[]? | select(.metric.__name__ == $name) | .value[1] | tonumber) // null;
-  def labelled($rs; $name; $labels):
-    first($rs[]? | select(.metric.__name__ == $name and (.metric | contains($labels))) | .value[1] | tonumber) // null;
-  def flag($v): if $v == null then null else $v == 1 end;
-  def by($rs; $name; $label):
-    [$rs[]? | select(.metric.__name__ == $name) | {key: .metric[$label], value: (.value[1] | tonumber)}] | from_entries;
-  def byref($rs; $name; $ref):
-    [$rs[]? | select(.metric.__name__ == $name and .metric.ref == $ref) | {key: .metric.target, value: (.value[1] | tonumber)}] | from_entries;
   def epoch: if . == null then null else fromdateiso8601 end;
 
-  prom($metrics) as $m
-  | prom($active) as $a
-  | prom($up) as $u
-  | ($lock | fromjson? // null | if . == null then null else .nodes[.nodes.root.inputs.nixpkgs].locked end) as $pin
-  | byref($m; "nix_cache_build_target_success"; "main") as $target_ok
-  | byref($m; "nix_cache_build_closure_bytes"; "main") as $target_bytes
-  | by($m; "nix_cache_flake_input_last_modified_timestamp_seconds"; "input") as $inputs
+  ($lock | fromjson? // null | if . == null then null else .nodes[.nodes.root.inputs.nixpkgs].locked end) as $pin
+  | ($pin_main | gsub("^\\s+|\\s+$"; "")) as $main_path
+  | ($stats | fromjson? // null | if type == "object" and (.objects | type) == "number" then . else null end) as $st
+  | ($runs | fromjson? // null | if type == "object" and (.workflow_runs | type) == "array" then .workflow_runs else null end) as $wr
+  # Completed runs, newest first; a cancelled one (superseded) says nothing about main.
+  | ([$wr[]? | select(.status == "completed" and (.conclusion == "cancelled" or .conclusion == "skipped" | not))]) as $done
+  | ($done | map(.conclusion == "success") | index(true)) as $good
   | ($updates | fromjson? // null) as $ups
   | {
       fetched_at: $now,
@@ -160,7 +152,8 @@ jq -n \
         generation: ($generation | tonumber? // null),
         generation_time: ($generation_time | tonumber? // null),
         reboot_pending: $reboot_pending,
-        cached: (if $narinfo == "200" then true elif $narinfo == "404" then false else null end)
+        cached: (if $narinfo == "200" then true elif $narinfo == "404" then false else null end),
+        matches_main: (if $main_path == "" or $current == "" then null else $current == $main_path end)
       },
       upstream: {
         reachable: ($pin != null),
@@ -169,39 +162,23 @@ jq -n \
         update_available: (if $pin == null or $os.nixpkgsRevision == null then null else $pin.rev != $os.nixpkgsRevision end)
       },
       cache: {
-        reachable: ($m != null),
-        exporter_up: (if ($u | length) == 0 then null else all($u[]; .value[1] == "1") end),
-        objects: gauge($m; "nix_cache_objects"),
-        nar_bytes: gauge($m; "nix_cache_nar_bytes"),
-        stored_bytes: gauge($m; "nix_cache_stored_bytes"),
-        accessed_24h: gauge($m; "nix_cache_objects_accessed_24h"),
-        last_push: gauge($m; "nix_cache_last_push_timestamp_seconds")
+        reachable: ($st != null),
+        objects: $st.objects,
+        logical_bytes: $st.logical_bytes
       },
       build: {
-        running: (if $a == null then null else (($a[0].value[1] // "0") | tonumber) > 0 end),
-        success: flag(gauge($m; "nix_cache_build_success")),
-        failed_phase: (first($m[]? | select(.metric.__name__ == "nix_cache_build_failed_phase" and .value[1] == "1") | .metric.phase) // null),
-        last_run: gauge($m; "nix_cache_build_last_run_timestamp_seconds"),
-        last_success: gauge($m; "nix_cache_build_last_success_timestamp_seconds"),
-        duration: gauge($m; "nix_cache_build_duration_seconds"),
-        phases: by($m; "nix_cache_build_phase_duration_seconds"; "phase"),
+        reachable: ($wr != null),
+        running: (if $wr == null then null else ($wr[0].status // "completed") != "completed" end),
         main: {
-          success: flag(labelled($m; "nix_cache_ref_build_success"; {ref: "main"})),
-          finished: labelled($m; "nix_cache_ref_build_timestamp_seconds"; {ref: "main"}),
-          failing_since: labelled($m; "nix_cache_ref_failing_since_timestamp_seconds"; {ref: "main"})
-        },
-        targets: ([$target_ok, $target_bytes | keys[]] | unique | map({
-          name: .,
-          success: flag($target_ok[.]),
-          closure_bytes: $target_bytes[.]
-        })),
-        oldest_input: ($inputs | to_entries | if length == 0 then null else min_by(.value) | {name: .key, modified: .value} end),
-        store_used_bytes: gauge($m; "nix_cache_builder_store_used_bytes"),
-        store_size_bytes: gauge($m; "nix_cache_builder_store_size_bytes")
+          success: (if ($done | length) == 0 then null else $done[0].conclusion == "success" end),
+          finished: ($done[0].updated_at | epoch),
+          failing_since: (if ($done | length) == 0 or $good == 0 then null else ($done | if $good == null then . else .[:$good] end | last.created_at | epoch) end),
+          url: $done[0].html_url
+        }
       },
       # Every check the ruleset on main requires is listed, as pending until it first reports
-      # (nix-cache only does once the builder picks the commit up on its next poll); a re-run
-      # check counts by its latest run.
+      # (atlas only does once the workflow starts on the commit); a re-run check counts by its
+      # latest run.
       updates: (
         if ($ups | type) != "array" then null
         else
@@ -217,7 +194,7 @@ jq -n \
           opened_at: ($pr.created_at | epoch),
           auto_merge: ($pr.auto_merge != null),
           checks: (
-            if .runs == null and .statuses == null then null
+            if .runs == null then null
             else
               ([.runs.check_runs[]? | {
                 name,
@@ -226,19 +203,13 @@ jq -n \
                         else "failure" end),
                 since: ((if .status == "completed" then .completed_at else .started_at end) | epoch)
               }]
-              + [.statuses.statuses[]? | {
-                name: .context,
-                state: (if .state == "success" then "success" elif .state == "pending" then "pending" else "failure" end),
-                since: (.updated_at | epoch)
-              }]
               | group_by(.name) | map(max_by(.since // 0))) as $reported
-              | $reported + [["evaluate", "flake-checker", "poseidon", "nix-cache"][]
+              | $reported + [["evaluate", "flake-checker", "poseidon", "atlas"][]
                   | select(. as $n | $reported | all(.name != $n))
                   | {name: ., state: "pending", since: null}]
               | sort_by(.name)
             end
-          ),
-          failing_since: labelled($m; "nix_cache_ref_failing_since_timestamp_seconds"; {ref: "pr-\($pr.number)"})
+          )
         }] | sort_by(.kind != "landing", .input)
         end
       ),

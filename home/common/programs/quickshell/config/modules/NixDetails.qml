@@ -7,15 +7,16 @@ import qs.widgets
 
 // The control panel's Nix view: the lock updates waiting to land (BOT Cecil's pull requests, one
 // per flake input, with how their checks go and how long a broken one has been failing), how
-// main's builds into the cache are going, what the cache holds, and where this computer stands
-// against it (services/NixStatus.qml), with any failed systemd units (system and user) listed by
-// name; a click copies the journalctl command for one, or opens an update's pull request. Off the
-// home network only the failed units and the last section remain. Reads every minute while it is
+// main's atlas builds are going, what the cache holds, and where this computer stands against
+// them (services/NixStatus.qml), with any failed systemd units (system and user) listed by
+// name; a click copies the journalctl command for one, or opens an update's pull request or main's
+// latest run. Offline only the failed units and the last section remain. Reads every minute while it is
 // showing.
 ColumnLayout {
     id: root
 
-    readonly property string dashboard: "https://grafana.hera.ac/d/nix-cache"
+    readonly property string dashboard: "https://grafana.hera.ac/d/niks3"
+    readonly property string history: "https://github.com/coredev-uk/nixos/actions/workflows/atlas.yml"
     readonly property double nowSeconds: NixStatus.now / 1000
     readonly property string checkedText: NixStatus.fetchedAt === 0 ? "" : `Checked ${Qt.formatTime(new Date(NixStatus.fetchedAt), "HH:mm")}`
 
@@ -30,17 +31,14 @@ ColumnLayout {
             return {
                 tone: Theme.ok,
                 title: "Up to date",
-                detail: [`main built ${NixStatus.ago(build.main?.finished ?? build.last_run)}`, "no lock updates open"].join(", ")
+                detail: [`main built ${NixStatus.ago(build.main.finished)}`, "no lock updates open"].join(", ")
             };
         case "failed":
-            {
-                const failedTargets = build.targets.filter(t => t.success === false).map(t => t.name);
-                return {
-                    tone: Theme.alert,
-                    title: "main isn't building",
-                    detail: [build.main.failing_since ? `Failing for ${NixStatus.span(nowSeconds - build.main.failing_since)}` : "Failing", failedTargets.length ? failedTargets.join(" and ") : ""].filter(s => s !== "").join(": ")
-                };
-            }
+            return {
+                tone: Theme.alert,
+                title: "main isn't building",
+                detail: build.main.failing_since ? `Failing for ${NixStatus.span(nowSeconds - build.main.failing_since)}` : "Failing"
+            };
         case "update-failing":
             {
                 const failing = NixStatus.failingUpdates(NixStatus.data);
@@ -73,18 +71,18 @@ ColumnLayout {
             return {
                 tone: Theme.text2,
                 title: "Build running",
-                detail: build.last_run === null ? "The first build is still in progress" : `Last one ${build.success === false ? "failed" : "succeeded"}, ${NixStatus.ago(build.last_run)}`
+                detail: build.main.success === null ? "The first build is still in progress" : `Last one ${build.main.success ? "succeeded" : "failed"}, ${NixStatus.ago(build.main.finished)}`
             };
         case "never":
             return {
                 tone: Theme.muted,
-                title: "No build yet",
-                detail: "Waiting for the first run"
+                title: "No build result",
+                detail: "No finished atlas run on main"
             };
         case "unreachable":
             return {
                 tone: Theme.muted,
-                title: "Cache unreachable",
+                title: "Cache and GitHub unreachable",
                 detail: "Showing this computer only"
             };
         default:
@@ -106,16 +104,16 @@ ColumnLayout {
                 title: "Lock updates",
                 lines: d.updates.map(updateLine)
             });
-        if (d?.cache?.reachable ?? false) {
+        if (d?.build?.reachable ?? false)
             out.push({
                 title: "Builds",
                 lines: buildLines(d)
             });
+        if (d?.cache?.reachable ?? false)
             out.push({
                 title: "Cache",
                 lines: cacheLines(d)
             });
-        }
         if (d?.failed_units?.length)
             out.push({
                 title: "Failed units",
@@ -174,70 +172,42 @@ ColumnLayout {
         };
     }
 
+    // main's latest atlas run; a click opens it.
     function buildLines(d: var): var {
         const b = d.build;
-        const lines = [
-            {
-                key: "Last run",
-                value: b.last_run === null ? "None yet" : [NixStatus.ago(b.last_run), b.duration === null ? "" : `took ${NixStatus.duration(b.duration)}`].filter(s => s !== "").join(", ")
-            }
-        ];
-        if (b.main?.success !== null && b.main?.success !== undefined)
+        const lines = [];
+        if (b.running)
+            lines.push({
+                key: "Running",
+                value: "Building main"
+            });
+        if (b.main.success !== null)
             lines.push({
                 key: "main",
                 value: b.main.success ? `Built and cached ${NixStatus.ago(b.main.finished)}` : b.main.failing_since ? `Failing for ${NixStatus.span(nowSeconds - b.main.failing_since)}` : "Failing",
-                tone: b.main.success ? undefined : Theme.alert
+                tone: b.main.success ? undefined : Theme.alert,
+                url: b.main.url ?? undefined
             });
-        for (const target of b.targets)
+        if (lines.length === 0)
             lines.push({
-                key: target.name,
-                value: target.success === true ? ["Built", NixStatus.bytes(target.closure_bytes)].filter(s => s !== "").join(" · ") : target.success === false ? "Failed" : "–",
-                tone: target.success === false ? Theme.alert : undefined
-            });
-        if (b.oldest_input !== null)
-            lines.push({
-                key: "Oldest input",
-                value: `${b.oldest_input.name}, ${NixStatus.span(nowSeconds - b.oldest_input.modified)} old`
+                key: "main",
+                value: "No finished run yet"
             });
         return lines;
     }
 
     function cacheLines(d: var): var {
         const c = d.cache;
-        const b = d.build;
-        const lines = [];
-        if (c.exporter_up === false)
-            lines.push({
-                key: "Exporter",
-                value: "Not responding",
-                tone: Theme.alert
-            });
-        if (c.stored_bytes !== null)
-            lines.push({
-                key: "Stored",
-                value: c.objects === 0 ? "Empty" : `${NixStatus.bytes(c.stored_bytes)}${c.nar_bytes ? `, ${NixStatus.bytes(c.nar_bytes)} unpacked` : ""}`
-            });
-        if (c.objects !== null)
-            lines.push({
+        return [
+            {
+                key: "Size",
+                value: c.objects === 0 ? "Empty" : `${NixStatus.bytes(c.logical_bytes)} unpacked`
+            },
+            {
                 key: "Paths",
-                value: `${count(c.objects)}${c.accessed_24h === null ? "" : `, ${count(c.accessed_24h)} fetched in 24 h`}`
-            });
-        if (c.objects !== null)
-            lines.push({
-                key: "Last push",
-                value: c.last_push === null ? "Nothing yet" : NixStatus.ago(c.last_push)
-            });
-        if (b.store_size_bytes && b.store_used_bytes !== null) {
-            const fraction = Math.min(1, b.store_used_bytes / b.store_size_bytes);
-            const high = fraction >= 0.85;
-            lines.push({
-                key: "Builder store",
-                value: `${Math.round(fraction * 100)}% of ${NixStatus.bytes(b.store_size_bytes)}${high ? ", nearly full" : ""}`,
-                tone: high ? Theme.caution : undefined,
-                fraction: fraction
-            });
-        }
-        return lines;
+                value: count(c.objects)
+            }
+        ];
     }
 
     function systemLines(d: var): var {
@@ -272,6 +242,11 @@ ColumnLayout {
             lines.push({
                 key: "Cache",
                 value: s.cached ? "This system is in the cache" : "This system isn't in the cache yet"
+            });
+        if (s.matches_main !== null && s.matches_main !== undefined)
+            lines.push({
+                key: "Build",
+                value: s.matches_main ? "Same as main's latest" : "Not main's latest build"
             });
         return lines;
     }
@@ -461,6 +436,17 @@ ColumnLayout {
         sublabel: "Grafana"
         onClicked: {
             Quickshell.execDetached(["xdg-open", root.dashboard]);
+            root.linkOpened();
+        }
+    }
+
+    ListRow {
+        Layout.fillWidth: true
+        icon: Icons.openInNew
+        label: "Build history"
+        sublabel: "GitHub Actions"
+        onClicked: {
+            Quickshell.execDetached(["xdg-open", root.history]);
             root.linkOpened();
         }
     }

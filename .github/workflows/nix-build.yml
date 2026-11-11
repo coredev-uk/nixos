@@ -1,9 +1,8 @@
 name: "Flake Builds"
 
-# poseidon's full build. atlas's system and home are built by home-ops' nix-cache-builder
-# (kubernetes/apps/nix-cache), which can't build darwinConfigurations. Runs on pull requests (the
-# nightly per-input flake updates among them; main's ruleset requires this job), when flake.lock changes
-# on main, weekly to catch anything else, and on demand from the Actions tab.
+# poseidon's full build; atlas's system and home build in atlas.yml. Runs on pull requests (the
+# nightly per-input flake updates among them; main's ruleset requires this job), when flake.lock
+# changes on main, weekly to catch anything else, and on demand from the Actions tab.
 on:
   pull_request:
   push:
@@ -33,8 +32,9 @@ jobs:
         with:
           persist-credentials: false
 
-      # The caches hosts/default.nix configures (not a flake nixConfig: that would warn on
-      # every local nix command run by an untrusted user).
+      # The caches hosts/default.nix configures but nix-cache.hera.ac, which only holds atlas's
+      # builds (not a flake nixConfig: that would warn on every local nix command run by an
+      # untrusted user).
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
         with:

@@ -9,8 +9,8 @@ import qs.services
 import qs.widgets
 
 // The control panel behind the network glyph: volume (its chevron opens the outputs and per-app
-// volumes), brightness and night light, then Ethernet, WiFi and VPN, then Nix (the binary cache's
-// nightly build and this computer's state, in its own view), then Bluetooth, casting the screen
+// volumes), brightness and night light, then Ethernet, WiFi and VPN, then Nix (main's atlas build,
+// the binary cache and this computer's state, in its own view), then Bluetooth, casting the screen
 // and the peripherals' batteries, then what's playing.
 BarPopup {
     id: root
