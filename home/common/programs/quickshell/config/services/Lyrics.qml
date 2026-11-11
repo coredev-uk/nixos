@@ -4,33 +4,47 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// The line Sona is singing, for the bar's now playing. `sona lyrics --follow --json` prints one
-// JSON object each time the line, the song or the playback state changes, from Sona's own lyrics
-// sources and cache (docs/cli.md in sona-go). It runs only while the bar follows Sona, so nothing
-// is spawned for other players or while Sona is closed.
+// Sona's lyrics for the bar's now playing. `sona lyrics --follow --json` prints one JSON object
+// each time the line, the song or the playback state changes, from Sona's own lyrics sources and
+// cache (docs/cli.md in sona-go); `sona lyrics --json` gives the whole song once. Both run only
+// while the bar follows Sona, so nothing is spawned for other players or while Sona is closed.
 Singleton {
     id: root
 
     readonly property bool wanted: Media.player !== null && Media.clientName(Media.player) === "sona"
 
-    // The line being sung, "" while the voice rests, before the first line, for plain (untimed)
-    // lyrics and for a song without lyrics.
-    property string line: ""
-    // Every line of the playing song's timed lyrics, so the bar can hold one width for the whole
-    // song instead of moving with each line; [] until fetched and for a song without them.
+    // The playing song's timed lyrics, every line in order: [{ start, text }]; [] until fetched,
+    // and for a song with plain lyrics or none.
     property var lines: []
+    // The line being sung, -1 while the voice rests, before the first line and after the last.
+    property int index: -1
+    // The line the bar centres: the one being sung, else the one coming next, else the last.
+    readonly property int focus: {
+        if (lines.length === 0)
+            return -1;
+        if (index >= 0 && index < lines.length)
+            return index;
+        if (nextStart >= 0) {
+            const next = lines.findIndex(l => l.start === nextStart);
+            if (next >= 0)
+                return next;
+        }
+        return lines.length - 1;
+    }
+    property real nextStart: -1
     property string trackId: ""
     // The song the lyrics follow, to tell when Sona's MPRIS metadata has moved on before them.
     property string title: ""
     readonly property bool following: follow.running
     // False from a song change until it is known whether the song has timed lyrics and, if it
-    // does, until their lines are in: the bar moves to the new song's width once, not twice.
+    // does, until their lines are in: the bar changes its width once per song, not twice.
     property bool settled: true
     property bool fetched: false
 
     function clear() {
-        line = "";
         lines = [];
+        index = -1;
+        nextStart = -1;
         trackId = "";
         title = "";
         fetched = false;
@@ -68,7 +82,8 @@ Singleton {
                 }
                 root.settled = now.lyrics !== "loading" && (!timed || root.fetched);
                 root.title = now.track?.title ?? "";
-                root.line = now.text ?? "";
+                root.nextStart = now.next?.start ?? -1;
+                root.index = now.index ?? -1;
             }
         }
         // 3 when Sona isn't running yet, 0 when it quit.
@@ -106,7 +121,10 @@ Singleton {
                     Qt.callLater(() => all.running = true);
                     return;
                 }
-                root.lines = (lyrics?.lines ?? []).map(l => l.text).filter(t => t);
+                root.lines = (lyrics?.lines ?? []).map(l => ({
+                            start: l.start,
+                            text: l.text ?? ""
+                        }));
                 root.fetched = true;
                 root.settled = true;
             }

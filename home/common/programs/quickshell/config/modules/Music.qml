@@ -6,27 +6,29 @@ import qs.services
 import qs.widgets
 
 // Current track while playing; clicking opens its media card underneath. The track stays while
-// the card is open, so pausing from it doesn't pull the bar item away. While Sona sings a timed
-// line (services/Lyrics.qml) the line takes the track's place, and the track comes back while the
-// voice rests, in text2: a legend beside the reading. Hovering a line names the track. The text
-// column keeps one width for the whole song, wide enough for its longest line, so the artwork
-// never moves as lines come and go; at a song change it glides once to the new song's width.
+// the card is open, so pausing from it doesn't pull the bar item away.
+//
+// When Sona has timed lyrics for the song (services/Lyrics.qml), the track gives way to the
+// lyrics as a tape across all the room the bar has: the line being sung centred in text, the
+// lines before and after it in text2 running out to the ends, where they fade into the ground.
+// Each new line glides the tape to the centre (Move), so the eye follows the song along it;
+// between lines the next one waits at the centre, in text2 until it is sung. Hovering names the
+// track. The widget changes width only at a song change, gliding once, when the new song's
+// lyrics are known.
 Item {
     id: root
 
     readonly property var player: Media.player
     readonly property string track: [player?.trackTitle, player?.trackArtist].filter(part => part).join(" - ")
-    // The widest the text column may be: Bar.qml narrows it to stop short of the right cluster.
+    // The room for the text column; Bar.qml stops it short of the right cluster.
     property real maxWidth: 600
-    readonly property real fitWidth: Math.min(maxWidth, Math.ceil(Math.max(metrics.advanceWidth(track), ...Lyrics.lines.map(line => metrics.advanceWidth(line)))))
-    // fitWidth, taken only once the song's lyrics are known, so a song change moves the artwork
-    // once instead of first to the title's width and then to the longest line's. Sona's MPRIS
-    // metadata can move on before its lyrics do; until both name the same song the lane holds,
-    // for at most `hold`'s interval, so a mismatch never pins it.
-    property real laneWidth: 0
+    // Sona's MPRIS metadata can move on before its lyrics do; until both name the same song the
+    // width holds, for at most `hold`'s interval, so a mismatch never pins it.
     readonly property bool lyricsMatch: Lyrics.title === (player?.trackTitle ?? "")
     readonly property bool known: !Lyrics.wanted || !Lyrics.following || (Lyrics.settled && lyricsMatch)
-    readonly property bool sings: Lyrics.lines.length > 0 && lyricsMatch
+    readonly property bool tapeMode: lyricsMatch && Lyrics.lines.some(line => line.text !== "")
+    readonly property real fitWidth: tapeMode ? maxWidth : Math.min(600, maxWidth, Math.ceil(metrics.advanceWidth(track)))
+    property real laneWidth: 0
     readonly property color legend: popup.visible ? Theme.gilt : Theme.text
 
     function takeWidth() {
@@ -55,34 +57,21 @@ Item {
         }
     }
 
-    // The line on screen, and the one waiting for it: the old line leaves before the new one
-    // arrives, so two never overlap.
-    property string shown: ""
-    property string pending: ""
-    property bool leaving: false
-
-    function swapLine() {
-        if (Lyrics.line === pending && !leaving)
-            return;
-        pending = Lyrics.line;
-        leaving = true;
-        settle.restart();
-    }
+    // A new song's tape is placed, not glided: its lines arrive all at once.
+    property bool glide: false
 
     Connections {
         target: Lyrics
-        function onLineChanged() {
-            root.swapLine();
+        function onLinesChanged() {
+            root.glide = false;
+            glideOn.restart();
         }
     }
 
     Timer {
-        id: settle
-        interval: Theme.durationExit
-        onTriggered: {
-            root.shown = root.pending;
-            root.leaving = false;
-        }
+        id: glideOn
+        interval: 100
+        onTriggered: root.glide = true
     }
 
     FontMetrics {
@@ -133,30 +122,98 @@ Item {
                 width: Math.min(implicitWidth, parent.width)
                 height: parent.height
                 text: root.track
-                // An overflowing title stops scrolling while a line covers it.
+                // An overflowing title stops scrolling while the tape covers it.
                 visible: opacity > 0
-                color: popup.visible ? Theme.gilt : root.sings ? Theme.text2 : Theme.text
-                opacity: !root.leaving && root.shown === "" ? 1 : 0
+                color: root.legend
+                opacity: root.tapeMode ? 0 : 1
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: root.leaving ? Theme.durationExit : Theme.durationState
-                        easing.type: root.leaving ? Theme.easingExit : Theme.easing
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
                     }
                 }
             }
 
-            BarText {
+            Item {
+                id: strip
                 anchors.fill: parent
-                text: root.shown
-                color: root.legend
-                elide: Text.ElideRight
-                opacity: !root.leaving && root.shown !== "" ? 1 : 0
+                visible: opacity > 0
+                opacity: root.tapeMode ? 1 : 0
 
                 Behavior on opacity {
                     NumberAnimation {
-                        duration: root.leaving ? Theme.durationExit : Theme.durationState
-                        easing.type: root.leaving ? Theme.easingExit : Theme.easing
+                        duration: Theme.durationState
+                        easing.type: Theme.easing
+                    }
+                }
+
+                Row {
+                    id: tape
+
+                    readonly property Item focusItem: lineItems.count > 0 && Lyrics.focus >= 0 ? lineItems.itemAt(Lyrics.focus) : null
+
+                    height: parent.height
+                    x: focusItem ? Math.round(strip.width / 2 - focusItem.x - focusItem.width / 2) : 0
+
+                    Behavior on x {
+                        enabled: root.glide && root.visible
+                        NumberAnimation {
+                            duration: Theme.durationMove
+                            easing.type: Theme.easing
+                        }
+                    }
+
+                    Repeater {
+                        id: lineItems
+                        model: Lyrics.lines
+
+                        BarText {
+                            required property var modelData
+                            required property int index
+
+                            height: tape.height
+                            text: modelData.text
+                            // 28px between lines; none for an empty one, which takes no room.
+                            leftPadding: text !== "" ? 14 : 0
+                            rightPadding: leftPadding
+                            color: index === Lyrics.index ? root.legend : Theme.text2
+                        }
+                    }
+                }
+
+                // The tape's ends fade into the bar's ground rather than cutting a word in half.
+                Rectangle {
+                    anchors.left: parent.left
+                    width: 32
+                    height: parent.height
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop {
+                            position: 0
+                            color: Theme.ground
+                        }
+                        GradientStop {
+                            position: 1
+                            color: Qt.rgba(Theme.ground.r, Theme.ground.g, Theme.ground.b, 0)
+                        }
+                    }
+                }
+
+                Rectangle {
+                    anchors.right: parent.right
+                    width: 32
+                    height: parent.height
+                    gradient: Gradient {
+                        orientation: Gradient.Horizontal
+                        GradientStop {
+                            position: 0
+                            color: Qt.rgba(Theme.ground.r, Theme.ground.g, Theme.ground.b, 0)
+                        }
+                        GradientStop {
+                            position: 1
+                            color: Theme.ground
+                        }
                     }
                 }
             }
@@ -172,10 +229,10 @@ Item {
         onClicked: popup.toggle()
     }
 
-    // Names the song while a line stands in for it.
+    // Names the song while its lyrics stand in for it.
     Tooltip {
         anchorItem: root
-        active: area.containsMouse && !popup.visible && root.shown !== ""
+        active: area.containsMouse && !popup.visible && root.tapeMode
         text: root.track
     }
 
