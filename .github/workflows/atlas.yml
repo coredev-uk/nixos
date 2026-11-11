@@ -5,8 +5,10 @@ name: "Atlas"
 # pushed to the binary cache atlas substitutes from: https://nix-cache.hera.ac, an R2 bucket
 # written through niks3 (coredev-uk/home-ops kubernetes/apps/nix-cache). niks3-action uploads
 # each derivation as it finishes, so a failed or cancelled build still caches what it got
-# through. On main the two results are pinned, so the cache keeps the system atlas would switch
-# to however old it gets.
+# through. A target the cache already has is neither built nor downloaded, so a commit that
+# doesn't change atlas (or a landing pull request whose trials already built it) finishes in a
+# minute or two. On main the two results are pinned, so the cache keeps the system atlas would
+# switch to however old it gets.
 on:
   pull_request:
   push:
@@ -37,6 +39,12 @@ jobs:
     env:
       SYSTEM: .#nixosConfigurations.atlas.config.system.build.toplevel
       HOME_CONFIG: .#homeConfigurations."paul@atlas".activationPackage
+      # nix-fast-build's targets, by the names the pins use.
+      TARGETS: >-
+        flake: {
+          atlas = flake.nixosConfigurations.atlas.config.system.build.toplevel;
+          paul-at-atlas = flake.homeConfigurations."paul@atlas".activationPackage;
+        }
     steps:
       - uses: actions/checkout@v7
         with:
@@ -63,18 +71,31 @@ jobs:
         with:
           server-url: https://niks3.hera.ac
 
-      # One invocation, so a package both share is built (or fails) once; --keep-going builds
-      # everything that doesn't depend on a failure.
+      # --skip-cached: a target already in a substituter is left there. Anything else builds in
+      # one run, so a package both targets share is built (or fails) once, and the other target
+      # still builds when one fails.
       - name: Build atlas
-        run: nix build --keep-going -L --no-link "$SYSTEM" "$HOME_CONFIG"
+        run: >-
+          nix run github:Mic92/nix-fast-build/2.0.4 --
+          --no-nom --skip-cached --flake '.#' --select "$TARGETS"
 
-      # `push --pin` waits for the closure to be in the cache (the hook's uploads may still be
-      # queued) and then points the pin at it.
+      # A target built here is pinned with `push --pin`, which waits for its closure to be in the
+      # cache (the hook's uploads may still be queued). One skipped as cached is already there, and
+      # `pins create` points the pin at it without the closure on this runner.
       - name: Pin main's system and home
         if: github.ref == 'refs/heads/main'
         env:
           NIKS3: ${{ steps.niks3.outputs.binary-dir }}/niks3
           TOKEN_SCRIPT: ${{ steps.niks3.outputs.auth-token-script }}
         run: |
-          "$NIKS3" push --server-url https://niks3.hera.ac --auth-token-script "$TOKEN_SCRIPT" --pin atlas "$(nix eval --raw "$SYSTEM.outPath")"
-          "$NIKS3" push --server-url https://niks3.hera.ac --auth-token-script "$TOKEN_SCRIPT" --pin paul-at-atlas "$(nix eval --raw "$HOME_CONFIG.outPath")"
+          pin() {
+            local out
+            out=$(nix eval --raw "$2.outPath")
+            if nix path-info "$out" >/dev/null 2>&1; then
+              "$NIKS3" push --server-url https://niks3.hera.ac --auth-token-script "$TOKEN_SCRIPT" --pin "$1" "$out"
+            else
+              "$NIKS3" pins create --server-url https://niks3.hera.ac --auth-token-script "$TOKEN_SCRIPT" "$1" "$out"
+            fi
+          }
+          pin atlas "$SYSTEM"
+          pin paul-at-atlas "$HOME_CONFIG"
