@@ -61,6 +61,23 @@ in
     # 30 seconds, or all of the buffer with Ctrl
     (bind "${mod} + SHIFT + C" (exec "quickshell ipc -c bar call replay clip 30"))
     (bind "${mod} + CTRL + SHIFT + C" (exec "quickshell ipc -c bar call replay save"))
+    # Proton Mail's scratchpad (window-rules.nix). Hide it with this rather than closing it:
+    # closing quits the app. If it isn't running, start it into the scratchpad and show that.
+    (bind "${mod} + M" ''
+      function()
+        for _, w in ipairs(hl.get_windows()) do
+          if w.class == "proton-mail" then
+            hl.dispatch(hl.dsp.workspace.toggle_special("mail"))
+            return
+          end
+        end
+        hl.exec_cmd("uwsm app -- proton-mail")
+        local shown = hl.get_active_special_workspace()
+        if not (shown and shown.name == "special:mail") then
+          hl.dispatch(hl.dsp.workspace.toggle_special("mail"))
+        end
+      end
+    '')
 
     # WM Controls
     (bind "${mod} + R" (exec "hyprctl reload"))

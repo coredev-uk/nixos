@@ -148,6 +148,12 @@ _: {
       no_screen_share = true;
     }
 
+    # Proton Mail runs in the background in its scratchpad (Super+M, config/keybindings.nix)
+    {
+      match.class = "^(proton-mail)$";
+      workspace = "special:mail silent";
+    }
+
     # Keep Discord fully opaque when unfocused (general:inactive_opacity), e.g. while screensharing
     {
       match.class = "^(discord)$";

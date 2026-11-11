@@ -63,6 +63,11 @@ in
                 end)
                 hl.timer(function() passWindow:remove() end, { timeout = 60000, type = "oneshot" })
                 hl.exec_cmd("uwsm app -- proton-pass")
+
+                -- Proton Mail has no tray on Linux and quits when its window closes, so it lives
+                -- in the special:mail scratchpad instead (config/window-rules.nix), out of sight
+                -- until Super+M shows it (config/keybindings.nix).
+                hl.exec_cmd("uwsm app -- proton-mail")
               end
             '')
           ];
