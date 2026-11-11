@@ -56,11 +56,11 @@ PanelWindow {
         }
     }
 
-    // Centred, and never closer than 16px to the right cluster on either side (past the
-    // artwork and its 6px gap); the lyric tape takes all of that room, a track at most 600px.
+    // Centred, and never wider than the room left of the right cluster allows on both sides
+    // (16px clear of it, past the artwork and its 6px gap).
     Music {
         anchors.centerIn: parent
-        maxWidth: 2 * (rightCluster.x - bar.width / 2 - 16) - 26
+        maxWidth: Math.min(600, 2 * (rightCluster.x - bar.width / 2 - 16) - 26)
     }
 
     RowLayout {

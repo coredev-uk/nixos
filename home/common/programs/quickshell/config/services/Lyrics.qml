@@ -18,7 +18,9 @@ Singleton {
     property var lines: []
     // The line being sung, -1 while the voice rests, before the first line and after the last.
     property int index: -1
-    // The line the bar centres: the one being sung, else the one coming next, else the last.
+    // Its text, "" whenever index is -1 (and for plain lyrics or none).
+    property string line: ""
+    // The line the popup's lyrics centre: the one being sung, else the one coming next, else the last.
     readonly property int focus: {
         if (lines.length === 0)
             return -1;
@@ -44,6 +46,7 @@ Singleton {
     function clear() {
         lines = [];
         index = -1;
+        line = "";
         nextStart = -1;
         trackId = "";
         title = "";
@@ -84,6 +87,7 @@ Singleton {
                 root.title = now.track?.title ?? "";
                 root.nextStart = now.next?.start ?? -1;
                 root.index = now.index ?? -1;
+                root.line = now.text ?? "";
             }
         }
         // 3 when Sona isn't running yet, 0 when it quit.
