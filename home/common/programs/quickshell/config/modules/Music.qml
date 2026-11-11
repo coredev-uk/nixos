@@ -6,11 +6,55 @@ import qs.services
 import qs.widgets
 
 // Current track while playing; clicking opens its media card underneath. The track stays while
-// the card is open, so pausing from it doesn't pull the bar item away.
+// the card is open, so pausing from it doesn't pull the bar item away. While Sona sings a timed
+// line (services/Lyrics.qml) the line takes the track's place, and the track comes back while the
+// voice rests. The text column keeps one width for the whole song, wide enough for its longest
+// line, so the artwork never moves as lines come and go.
 Item {
     id: root
 
     readonly property var player: Media.player
+    readonly property string track: [player?.trackTitle, player?.trackArtist].filter(part => part).join(" - ")
+    readonly property real maxWidth: 600
+    readonly property real laneWidth: Math.min(maxWidth, Math.ceil(Math.max(metrics.advanceWidth(track), ...Lyrics.lines.map(line => metrics.advanceWidth(line)))))
+    readonly property color legend: popup.visible ? Theme.gilt : Theme.text
+
+    // The line on screen, and the one waiting for it: the old line leaves before the new one
+    // arrives, so two never overlap.
+    property string shown: ""
+    property string pending: ""
+    property bool leaving: false
+
+    function swapLine() {
+        if (Lyrics.line === pending && !leaving)
+            return;
+        pending = Lyrics.line;
+        leaving = true;
+        settle.restart();
+    }
+
+    Connections {
+        target: Lyrics
+        function onLineChanged() {
+            root.swapLine();
+        }
+    }
+
+    Timer {
+        id: settle
+        interval: Theme.durationExit
+        onTriggered: {
+            root.shown = root.pending;
+            root.leaving = false;
+        }
+    }
+
+    FontMetrics {
+        id: metrics
+        font.family: Theme.fontFamily
+        font.pixelSize: Theme.fontSize
+        font.features: Theme.fontFeatures
+    }
 
     visible: (player?.isPlaying ?? false) || popup.visible
     onPlayerChanged: {
@@ -42,10 +86,42 @@ Item {
             }
         }
 
-        ScrollingText {
-            Layout.maximumWidth: 600
-            text: [root.player?.trackTitle, root.player?.trackArtist].filter(part => part).join(" - ")
-            color: popup.visible ? Theme.gilt : Theme.text
+        Item {
+            Layout.preferredWidth: root.laneWidth
+            implicitHeight: title.implicitHeight
+
+            ScrollingText {
+                id: title
+                width: Math.min(implicitWidth, parent.width)
+                height: parent.height
+                text: root.track
+                // An overflowing title stops scrolling while a line covers it.
+                visible: opacity > 0
+                color: root.legend
+                opacity: !root.leaving && root.shown === "" ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: root.leaving ? Theme.durationExit : Theme.durationState
+                        easing.type: root.leaving ? Theme.easingExit : Theme.easing
+                    }
+                }
+            }
+
+            BarText {
+                anchors.fill: parent
+                text: root.shown
+                color: root.legend
+                elide: Text.ElideRight
+                opacity: !root.leaving && root.shown !== "" ? 1 : 0
+
+                Behavior on opacity {
+                    NumberAnimation {
+                        duration: root.leaving ? Theme.durationExit : Theme.durationState
+                        easing.type: root.leaving ? Theme.easingExit : Theme.easing
+                    }
+                }
+            }
         }
     }
 
