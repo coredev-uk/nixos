@@ -14,11 +14,4 @@
     };
   };
 
-  environment.etc."1password/custom_allowed_browsers" = lib.mkIf meta.isDesktop {
-    text = ''
-      zen
-    '';
-    mode = "0755";
-  };
-
 }

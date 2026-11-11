@@ -48,8 +48,6 @@ in
             "hyprland.start"
             (lua ''
               function()
-                hl.exec_cmd("uwsm app -- 1password --silent")
-
                 -- Proton Pass serves the SSH agent (home/common/shell/ssh.nix), so it runs from login.
                 -- It has no hidden start on Linux and always shows its window, so close that first
                 -- one: closing only hides it to the tray. The minute's limit keeps a launch of
