@@ -4,9 +4,14 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Small battery chips for wireless peripherals, two per row. Hidden when there are none.
-// `shown`: whether the containing panel is open; the levels are read every minute while one is.
-GridLayout {
+// The wireless peripherals' batteries in the control panel's Devices section, one 32px row each on
+// the slider rows' columns: the device's glyph, its name, a 64px level track and the level. Level
+// reports only when it needs attention: at 25% or below (not charging) the glyph becomes the
+// battery-alert one and the level turns caution (alert at 10%), so it never rests on colour alone;
+// charging is "on", the charging glyph in gilt. A switched-off device reads "Off" with an empty
+// track. Hidden when there are none. `shown`: whether the panel is open; the levels are read every
+// minute while one is.
+ColumnLayout {
     id: root
 
     property bool shown: false
@@ -19,112 +24,89 @@ GridLayout {
         shown ? Batteries.acquire() : Batteries.release();
     }
 
+    function glyphOf(kind: string): string {
+        switch (kind) {
+        case "headset":
+            return Icons.headphones;
+        case "mouse":
+            return Icons.mouse;
+        case "keyboard":
+            return Icons.keyboard;
+        default:
+            return Icons.battery;
+        }
+    }
+
     onShownChanged: sync()
     Component.onCompleted: sync()
-    // The panel's view Loader destroys this when switching to a sub-view.
+    // The panel's section Loader destroys this when another section is chosen.
     Component.onDestruction: {
         if (holding)
             Batteries.release();
     }
 
-    columns: 2
-    columnSpacing: 4
-    rowSpacing: 4
     visible: Batteries.devices.length > 0
+    spacing: 0
+
+    SectionLabel {
+        Layout.topMargin: 8
+        text: "Batteries"
+    }
 
     Repeater {
         model: Batteries.devices
 
-        Rectangle {
-            id: chip
+        RowLayout {
+            id: device
 
             required property var modelData
             readonly property bool known: modelData.level !== null
             readonly property real level: known ? modelData.level : 0
-            // Level reports only when it needs attention; charging is "on" and reads gilt. A low
-            // level also gets the battery-alert glyph, so caution never rests on colour alone.
-            readonly property bool low: known && !modelData.charging && level <= 25
-            readonly property color levelColor: !known ? Theme.text2 : level <= 10 ? Theme.alert : level <= 25 ? Theme.caution : Theme.text
-            readonly property color accent: !known ? Theme.muted : modelData.charging ? Theme.gilt : level <= 25 ? levelColor : Theme.fill
+            readonly property bool charging: known && modelData.charging
+            readonly property bool low: known && !charging && level <= 25
+            readonly property color levelColor: !known ? Theme.text2 : low ? (level <= 10 ? Theme.alert : Theme.caution) : Theme.text2
 
             Layout.fillWidth: true
-            Layout.preferredWidth: 1 // equal columns
-            implicitHeight: row.implicitHeight + 14
-            radius: Theme.radiusInset
-            color: Theme.inset
+            Layout.leftMargin: 8
+            Layout.rightMargin: 8
+            Layout.preferredHeight: 32
+            spacing: 10
 
-            HoverHandler {
-                id: hover
+            Icon {
+                Layout.preferredWidth: 28
+                horizontalAlignment: Text.AlignHCenter
+                text: device.charging ? Icons.batteryCharging : device.low ? Icons.batteryAlert : root.glyphOf(device.modelData.kind)
+                color: device.charging ? Theme.gilt : device.low ? device.levelColor : device.known ? Theme.text2 : Theme.muted
             }
 
-            // Full name ("Razer Viper V3 Pro (…)") whenever the chip shows less of it: the
-            // brand is dropped from the label and long names are elided.
-            Tooltip {
-                anchorItem: chip
-                text: chip.modelData.name
-                active: hover.hovered && (nameLabel.truncated || chip.modelData.short !== chip.modelData.name)
+            BarText {
+                Layout.fillWidth: true
+                text: device.modelData.short
+                color: device.known ? Theme.text : Theme.text2
+                font.pixelSize: 12
+                elide: Text.ElideRight
             }
 
-            RowLayout {
-                id: row
-                anchors.fill: parent
-                anchors.leftMargin: 8
-                anchors.rightMargin: 8
-                spacing: 8
+            Rectangle {
+                implicitWidth: 64
+                implicitHeight: 4
+                radius: 2
+                color: Theme.inset
 
-                CircularProgress {
-                    implicitWidth: 24
-                    implicitHeight: 24
-                    value: chip.level
-                    color: chip.accent
-                    icon: {
-                        switch (chip.modelData.kind) {
-                        case "headset":
-                            return Icons.headphones;
-                        case "mouse":
-                            return Icons.mouse;
-                        case "keyboard":
-                            return Icons.keyboard;
-                        default:
-                            return Icons.battery;
-                        }
-                    }
+                Rectangle {
+                    width: Math.round(Math.min(device.level, 100) / 100 * parent.width)
+                    height: parent.height
+                    radius: 2
+                    color: device.low ? device.levelColor : Theme.fill
                 }
+            }
 
-                ColumnLayout {
-                    Layout.fillWidth: true
-                    spacing: 0
-
-                    BarText {
-                        id: nameLabel
-                        Layout.fillWidth: true
-                        text: chip.modelData.short
-                        font.pixelSize: 11
-                        color: Theme.text2
-                        elide: Text.ElideRight
-                    }
-
-                    RowLayout {
-                        Layout.fillWidth: true
-                        spacing: 2
-
-                        Icon {
-                            visible: chip.low
-                            text: Icons.batteryAlert
-                            color: chip.levelColor
-                            font.pixelSize: 12
-                        }
-
-                        BarText {
-                            Layout.fillWidth: true
-                            text: !chip.known ? "Off" : `${chip.level}%${chip.modelData.charging ? " · Charging" : ""}`
-                            font.pixelSize: 12
-                            font.bold: true
-                            color: chip.levelColor
-                            elide: Text.ElideRight
-                        }
-                    }
-                }
+            BarText {
+                Layout.preferredWidth: 38
+                horizontalAlignment: Text.AlignRight
+                text: device.known ? `${device.level}%` : "Off"
+                color: device.levelColor
+                font.pixelSize: 11
             }
         }
     }

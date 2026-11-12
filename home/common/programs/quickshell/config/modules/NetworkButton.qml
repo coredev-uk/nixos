@@ -8,10 +8,9 @@ import qs.widgets
 Icon {
     id: root
 
-    // For the low-battery glyph, whose chips live in this panel.
-    function openPanel() {
-        if (!panel.visible)
-            panel.toggle();
+    // Opens the control panel on a section (the low-battery glyph opens Devices, its chips).
+    function openPanel(section: int) {
+        panel.show(section);
     }
 
     color: panel.visible ? Theme.gilt : NetworkStatus.type === "disconnected" ? Theme.alert : area.containsMouse ? Theme.text : Theme.text2
@@ -72,7 +71,7 @@ Icon {
         }
     }
 
-    NetworkPanel {
+    ControlPanel {
         id: panel
         anchorItem: root
     }

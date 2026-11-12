@@ -83,7 +83,7 @@ PanelWindow {
         CaptureButton {}
         CaffeineButton {}
         LowBattery {
-            onActivated: network.openPanel()
+            onActivated: network.openPanel(ControlPanel.Section.Devices)
         }
         NetworkButton {
             id: network
