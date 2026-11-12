@@ -15,7 +15,7 @@ import qs.widgets
 ColumnLayout {
     id: root
 
-    readonly property string dashboard: "https://grafana.hera.ac/d/niks3"
+    readonly property string dashboard: "https://grafana.hera.ac/d/nix-cache"
     readonly property string history: "https://github.com/coredev-uk/nixos/actions/workflows/hosts.yml"
     readonly property double nowSeconds: NixStatus.now / 1000
     readonly property string checkedText: NixStatus.fetchedAt === 0 ? "" : `Checked ${Qt.formatTime(new Date(NixStatus.fetchedAt), "HH:mm")}`

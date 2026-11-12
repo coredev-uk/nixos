@@ -28,7 +28,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # The caches hosts/default.nix configures but nix-cache.hera.ac, which only holds builds.
+      # The caches hosts/default.nix configures but attic.hera.ac, which only holds builds.
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
         with:
@@ -46,7 +46,7 @@ jobs:
         run: nix flake check -L
 
       # Not covered by `nix flake check`. poseidon has no IFD, so an x86_64-linux runner
-      # can evaluate it; building it needs macOS (hosts.yml).
+      # can evaluate it; building it needs macOS (hosts.yml, weekly).
       - name: Evaluate home-manager and nix-darwin configurations
         run: |
           nix eval --raw '.#homeConfigurations."paul@atlas".activationPackage.drvPath'

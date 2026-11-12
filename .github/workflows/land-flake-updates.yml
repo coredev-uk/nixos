@@ -140,7 +140,7 @@ jobs:
             echo 'body<<EOF'
             printf '%s\n' "${changes[@]}"
             echo
-            echo "The trials above passed every required check, each on its own; this checks them together, and merges itself once Flake Checks and the poseidon and atlas builds pass."
+            echo "The trials above passed every required check, each on its own; this checks them together, and merges itself once Flake Checks and the atlas build pass (poseidon builds weekly)."
             if [ ${#left_out[@]} -gt 0 ]; then
               echo
               echo "Left out, conflicting with the others until redone on top of main: ${left_out[*]}."
