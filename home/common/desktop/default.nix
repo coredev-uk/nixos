@@ -30,6 +30,7 @@ in
     ../programs/gaming.nix
     ../programs/ghostty.nix
     ../programs/sona.nix
+    ../programs/t3code.nix
     ../programs/zen.nix
   ];
 
