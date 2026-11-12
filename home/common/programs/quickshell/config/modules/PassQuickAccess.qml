@@ -18,8 +18,10 @@ import qs.widgets
 // in every time.
 // Secrets go from pass-cli to the clipboard inside the quickshell-pass helper (scripts/pass.sh),
 // which clears them again after 45s; services/Pass.qml holds only titles and non-secret details.
-// While the screen is shared (Privacy.onAir) the list shows titles only, without usernames,
-// vaults or the account; an item shows its details once opened.
+// The layer is no_screen_share (hyprland/default.nix), so screen shares show a black box the
+// card's size instead. The shell's own recording captures KMS, past that rule: while it records,
+// the list shows titles only, without usernames, vaults or the account; an item shows its
+// details once opened.
 // Logins show their website's icon (services/Pass.qml fetches them), other items their type.
 Scope {
     id: root
@@ -386,12 +388,12 @@ Scope {
         }
     }
 
-    // A share starting with an item open takes it back to the list, titles only.
+    // A recording starting with an item open takes it back to the list, titles only.
     Connections {
         target: Privacy
 
-        function onOnAirChanged() {
-            if (Privacy.onAir)
+        function onRecordingChanged() {
+            if (Privacy.recording)
                 root.closeItem();
         }
     }
@@ -413,18 +415,34 @@ Scope {
         active: root.open
 
         PanelWindow {
+            id: window
+
+            // Room around the card for its shadow.
+            readonly property int shadowPadding: 24
+
             screen: Quickshell.screens.find(screen => screen.name === root.screenName) ?? Quickshell.screens[0]
-            anchors {
-                top: true
-                bottom: true
-                left: true
-                right: true
-            }
+            // Only the card's size, not the whole monitor: no_screen_share blacks out the layer's
+            // full box in a screen share.
+            anchors.top: true
+            margins.top: Math.round(screen.height * 0.2) - shadowPadding
             exclusionMode: ExclusionMode.Ignore
+            implicitWidth: card.width + shadowPadding * 2
+            implicitHeight: card.height + shadowPadding * 2
             color: "transparent"
+            // The shadow takes no clicks: one there lands outside, like any other.
+            mask: Region {
+                item: card
+            }
             WlrLayershell.namespace: "pass-quick-access"
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
+
+            // A click outside the card, on any surface, closes it.
+            HyprlandFocusGrab {
+                active: window.visible
+                windows: [window]
+                onCleared: root.close()
+            }
 
             // Keys reach the search field first, and the scope itself while there is none.
             FocusScope {
@@ -436,16 +454,11 @@ Scope {
                 Component.onCompleted: forceActiveFocus()
                 Keys.onPressed: event => root.handleKey(event)
 
-                MouseArea {
-                    anchors.fill: parent
-                    onClicked: root.close()
-                }
-
                 Plate {
                     id: card
 
-                    x: Math.round((parent.width - width) / 2)
-                    y: Math.round(parent.height * 0.2)
+                    x: window.shadowPadding
+                    y: window.shadowPadding
                     width: 560
                     height: body.implicitHeight + 24
                     // Hyprland fades the layer in and out (animations.nix); the card settles
@@ -473,11 +486,6 @@ Scope {
 
                     Component.onCompleted: slide.y = 0
 
-                    // Clicks inside the card don't count as outside.
-                    MouseArea {
-                        anchors.fill: parent
-                    }
-
                     ColumnLayout {
                         id: body
 
@@ -485,11 +493,11 @@ Scope {
                         anchors.margins: 12
                         spacing: 8
 
-                        // On air: the list keeps usernames, vaults and the account off the shared
-                        // screen; an opened item shows its own. Copying works as ever.
+                        // Recording: the list keeps usernames, vaults and the account out of the
+                        // file; an opened item shows its own. Copying works as ever.
                         Rectangle {
                             Layout.fillWidth: true
-                            visible: Privacy.onAir && Pass.signedIn
+                            visible: Privacy.recording && Pass.signedIn
                             implicitHeight: 28
                             radius: Theme.radiusRow
                             color: Theme.inset
@@ -508,7 +516,7 @@ Scope {
 
                                 BarText {
                                     Layout.fillWidth: true
-                                    text: `${Privacy.screen.length === 0 && Privacy.recording ? "Recording" : "Sharing"} your screen: usernames and vaults stay hidden until you open an item`
+                                    text: "Recording your screen: usernames and vaults stay hidden until you open an item"
                                     color: Theme.text2
                                     font.pixelSize: 11
                                     elide: Text.ElideRight
@@ -636,10 +644,10 @@ Scope {
                                         }
 
                                         // The username once its details have been loaded, as 1Password
-                                        // shows it; only the type while on air.
+                                        // shows it; only the type while recording.
                                         BarText {
                                             Layout.fillWidth: true
-                                            text: (Privacy.onAir ? "" : root.userOf(row.modelData)) || root.typeName(row.modelData.type)
+                                            text: (Privacy.recording ? "" : root.userOf(row.modelData)) || root.typeName(row.modelData.type)
                                             color: Theme.text2
                                             font.pixelSize: 11
                                             elide: Text.ElideRight
@@ -648,7 +656,7 @@ Scope {
 
                                     BarText {
                                         Layout.maximumWidth: 160
-                                        visible: !Privacy.onAir
+                                        visible: !Privacy.recording
                                         text: row.modelData.vault
                                         color: Theme.text2
                                         font.pixelSize: 11
@@ -854,7 +862,7 @@ Scope {
                             }
 
                             BarText {
-                                visible: !Privacy.onAir
+                                visible: !Privacy.recording
                                 text: Pass.account
                                 color: Theme.text2
                                 font.pixelSize: 11

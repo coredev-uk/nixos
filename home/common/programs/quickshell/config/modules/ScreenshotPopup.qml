@@ -256,7 +256,7 @@ Scope {
                         border.color: Theme.rule
 
                         // A screenshot can hold anything on any window, so it stays off a shared
-                        // screen like Pass's usernames (Privacy.onAir); the actions still work.
+                        // screen (Privacy.onAir); the actions still work.
                         Image {
                             anchors.fill: parent
                             anchors.margins: 1
