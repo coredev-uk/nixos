@@ -1,8 +1,10 @@
 # actionlint's built-in label list lags GitHub's runner images; ubuntu-26.04 is a hosted
-# runner label (actions/runner-images README), not a self-hosted one.
+# runner label (actions/runner-images README), not a self-hosted one. nixos-runner is the home
+# cluster's runner scale set (coredev-uk/home-ops kubernetes/apps/actions-runner-system).
 self-hosted-runner:
   labels:
     - ubuntu-26.04
+    - nixos-runner
 
 # Its bundled action metadata also lags: create-github-app-token v3 takes client-id (app-id is
 # deprecated there).

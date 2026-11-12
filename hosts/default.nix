@@ -8,17 +8,16 @@
 }:
 let
   # Shared between nix.settings below and Determinate's nix.custom.conf. cache.nixos.org is
-  # already the default substituter on both. nix-cache.hera.ac holds what GitHub Actions builds
-  # for atlas and poseidon (.github/workflows/hosts.yml): an R2 bucket written
-  # through niks3 in coredev-uk/home-ops (kubernetes/apps/nix-cache), public and reachable from
-  # anywhere.
+  # already the default substituter on both. attic.hera.ac/coredev holds what GitHub Actions
+  # builds for atlas and poseidon (.github/workflows/hosts.yml) and no public cache has: Attic in
+  # coredev-uk/home-ops (kubernetes/apps/nix-cache), public and reachable from anywhere.
   substituters = [
-    "https://nix-cache.hera.ac"
+    "https://attic.hera.ac/coredev"
     "https://nix-citizen.cachix.org"
     "https://nix-community.cachix.org"
   ];
   trustedPublicKeys = [
-    "nix-cache.hera.ac-1:Ayl31um+15Mbnobqt2XavEoQp1VJs3E5utf457d6NFY="
+    "coredev:g2+SrYgQg5HPBFIFHqHszqjvH7n52Zi3HVraAlY0kl8="
     "nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo="
     "nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs="
   ];

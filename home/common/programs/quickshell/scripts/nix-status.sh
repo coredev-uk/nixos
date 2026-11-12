@@ -5,11 +5,12 @@
 #   system    what runs here: nixos-version, generation, reboot pending (kernel, initrd or modules
 #             differ from the booted system), and whether the running system's store path is in
 #             the cache (null = cache unreachable), and matches_main: whether it is the store path
-#             CI pinned for main (null = no pin: unreachable, or main hasn't built yet)
+#             CI recorded for main, the nix-cache/atlas commit status of the newest main commit
+#             whose Hosts run succeeded (null = unknown: unreachable, or main hasn't built yet)
 #   upstream  main's flake.lock on GitHub: its nixpkgs revision, and update_available when that
 #             differs from the running system's
-#   cache     the binary cache's own numbers from niks3 (/api/cache-stats): objects and
-#             logical_bytes (uncompressed); reachable = niks3 answered
+#   cache     the Attic cache's numbers from Prometheus (nix-cache-exporter): objects and
+#             logical_bytes (uncompressed); reachable = Prometheus had them
 #   build     the Hosts workflow's runs on main (.github/workflows/hosts.yml, one matrix job per
 #             host, atlas and poseidon; a run fails when either host does; on every pull request and
 #             every push to main), from GitHub's API: reachable = it answered, running = the latest run
@@ -30,8 +31,8 @@
 # Epoch seconds everywhere; sizes in bytes.
 
 lock_url=https://raw.githubusercontent.com/coredev-uk/nixos/main/flake.lock
-cache_url=https://nix-cache.hera.ac
-stats_url=https://niks3.hera.ac/api/cache-stats
+cache_url=https://attic.hera.ac/coredev
+prometheus=https://prometheus.hera.ac/api/v1/query
 repo_api=https://api.github.com/repos/coredev-uk/nixos
 
 tmp=$(mktemp -d)
@@ -42,9 +43,7 @@ fetch() {
 }
 
 fetch "$lock_url" >"$tmp/lock" &
-fetch "$stats_url" >"$tmp/stats" &
-# What CI pinned for main: the system's store path, 404 until the first build there.
-fetch --fail "$cache_url/pins/atlas" >"$tmp/pin" &
+fetch --get "$prometheus" --data-urlencode 'query={__name__=~"nix_cache_objects|nix_cache_nar_bytes",cache="coredev"}' >"$tmp/stats" &
 
 # GitHub with gh's token when it has one (5000 requests an hour; anonymous ones get 60, shared
 # with everything else on the home IP).
@@ -55,8 +54,19 @@ fi
 github() {
 	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
 }
-# The Hosts workflow's latest runs on main (pushes only, newest first).
-github "/actions/workflows/hosts.yml/runs?branch=main&event=push&per_page=20" >"$tmp/runs" &
+# The Hosts workflow's latest runs on main (pushes only, newest first), then what the newest
+# successful one recorded as atlas's store path.
+: >"$tmp/runs"
+: >"$tmp/pin"
+runs() {
+	github "/actions/workflows/hosts.yml/runs?branch=main&event=push&per_page=20" >"$tmp/runs"
+	local sha
+	sha=$(jq -r '[.workflow_runs[]? | select(.status == "completed" and .conclusion == "success")][0].head_sha // empty' "$tmp/runs" 2>/dev/null)
+	[ -n "$sha" ] || return 0
+	github "/commits/$sha/statuses?per_page=100" |
+		jq -r 'first(.[] | select(.context == "nix-cache/atlas") | .description) // empty' >"$tmp/pin" 2>/dev/null || true
+}
+runs &
 # The update pull requests (BOT Cecil's, from this repository), then each one's check runs.
 : >"$tmp/updates"
 updates() {
@@ -138,7 +148,11 @@ jq -n \
 
   ($lock | fromjson? // null | if . == null then null else .nodes[.nodes.root.inputs.nixpkgs].locked end) as $pin
   | ($pin_main | gsub("^\\s+|\\s+$"; "")) as $main_path
-  | ($stats | fromjson? // null | if type == "object" and (.objects | type) == "number" then . else null end) as $st
+  | ($stats | fromjson? // null | if type == "object" and .status == "success" then .data.result else null end) as $prom
+  | {
+      objects: (first($prom[]? | select(.metric.__name__ == "nix_cache_objects") | .value[1] | tonumber) // null),
+      logical_bytes: (first($prom[]? | select(.metric.__name__ == "nix_cache_nar_bytes") | .value[1] | tonumber) // null)
+    } as $st
   | ($runs | fromjson? // null | if type == "object" and (.workflow_runs | type) == "array" then .workflow_runs else null end) as $wr
   # Completed runs, newest first; a cancelled one (superseded) says nothing about main.
   | ([$wr[]? | select(.status == "completed" and (.conclusion == "cancelled" or .conclusion == "skipped" | not))]) as $done
@@ -162,7 +176,7 @@ jq -n \
         update_available: (if $pin == null or $os.nixpkgsRevision == null then null else $pin.rev != $os.nixpkgsRevision end)
       },
       cache: {
-        reachable: ($st != null),
+        reachable: ($st.objects != null),
         objects: $st.objects,
         logical_bytes: $st.logical_bytes
       },
