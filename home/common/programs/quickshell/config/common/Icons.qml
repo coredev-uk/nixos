@@ -138,4 +138,8 @@ Singleton {
 
     // The control panel's Claude section (sparkles: there is no Claude glyph)
     readonly property string claude: String.fromCodePoint(0xF0674) // creation
+
+    // Sona's favourite on what's playing (MediaPanel)
+    readonly property string heart: String.fromCodePoint(0xF02D1) // heart
+    readonly property string heartOutline: String.fromCodePoint(0xF02D5) // heart_outline
 }

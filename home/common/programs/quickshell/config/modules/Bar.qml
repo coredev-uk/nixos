@@ -80,12 +80,6 @@ PanelWindow {
         }
         SystemStats {}
         Sep {}
-        ClaudeButton {
-            id: claude
-        }
-        Sep {
-            visible: claude.visible
-        }
         CaptureButton {}
         CaffeineButton {}
         LowBattery {

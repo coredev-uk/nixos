@@ -4,11 +4,12 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Claude plan usage, from the quickshell-claude-usage helper (schema in scripts/claude-usage.sh):
-// this week's limits, where the usage went, and the week's readings of the weekly limit. Read every
-// 5 minutes and again when the meter's plate opens; a read never starts on top of a running one.
-// Signed in with omp's credential, which only omp refreshes: while it has expired the last reading
-// stays, marked with its time.
+// Claude plan usage for the control panel's Claude section, from the quickshell-claude-usage
+// helper (schema in scripts/claude-usage.sh): this week's limits and the week's readings of the
+// weekly limit. Read every 5 minutes, so the chart has the whole week and the rail can report the
+// limit, and again when the section shows; a read never starts on top of a running one. Signed in
+// with omp's credential, which only omp refreshes: while it has expired the last reading stays,
+// marked with its time.
 Singleton {
     id: root
 
@@ -29,7 +30,6 @@ Singleton {
     readonly property bool available: weekly !== null && weekly.resets_at !== null
     // Model and session limits, beside the weekly one.
     readonly property var others: limits.filter(l => l.kind !== "weekly_all")
-    readonly property var breakdown: data?.usage?.breakdown ?? []
     readonly property var extra: data?.usage?.extra ?? null
 
     // The week the reading is for. Once its reset has passed, a reading not yet taken again is last
@@ -60,8 +60,6 @@ Singleton {
         const at = weekStart + (now - weekStart) * 100 / percent;
         return at < weekEnd ? at : 0;
     }
-    // The reading is older than two reads should leave it.
-    readonly property bool stale: status !== "ok" || now - fetchedAt > 12 * 60 * 1000
     // This week's readings, [ms, percent], oldest first, ending at the one shown (omp's readings
     // can be newer than the shell's own).
     readonly property var history: {

@@ -92,6 +92,20 @@ BarPopup {
         root.visible = false;
     }
 
+    // Bluetooth devices by what they are, from BlueZ's icon name; the Bluetooth glyph otherwise.
+    function deviceGlyph(device: BluetoothDevice): string {
+        const icon = device.icon ?? "";
+        if (icon.includes("headset") || icon.includes("headphone"))
+            return Icons.headphones;
+        if (icon.includes("mouse"))
+            return Icons.mouse;
+        if (icon.includes("keyboard"))
+            return Icons.keyboard;
+        if (icon.includes("audio") || icon.includes("speaker"))
+            return Icons.speaker;
+        return device.connected ? Icons.bluetoothConnected : Icons.bluetooth;
+    }
+
     function updateScanner() {
         if (wifiDevice)
             wifiDevice.scannerEnabled = visible && section === ControlPanel.Section.Network && view === ControlPanel.View.Wifi;
@@ -411,7 +425,6 @@ BarPopup {
             ClaudeUsageView {
                 id: claudeView
                 Layout.fillWidth: true
-                header: false
                 onLinkOpened: root.visible = false
             }
         }
@@ -639,22 +652,31 @@ BarPopup {
         }
     }
 
+    // Devices: the Bluetooth switch, the peripherals' batteries, then Bluetooth's devices under a
+    // heading that carries the scan, connected first; a connected device's battery beside its state.
     Component {
         id: devicesPage
 
         PanelPage {
+            id: devices
+
+            readonly property bool on: root.adapter?.enabled ?? false
+            readonly property bool scanning: root.adapter?.discovering ?? false
+            readonly property var connected: (root.adapter?.devices.values ?? []).filter(d => d.connected)
+
             title: "Devices"
 
             PanelRow {
                 visible: root.adapter !== null
-                icon: root.adapter?.enabled ? Icons.bluetooth : Icons.bluetoothOff
-                on: root.adapter?.enabled ?? false
+                icon: devices.on ? Icons.bluetooth : Icons.bluetoothOff
+                on: devices.on
                 label: "Bluetooth"
                 sublabel: {
-                    if (!root.adapter?.enabled)
+                    if (!devices.on)
                         return "Off";
-                    const connected = (root.adapter?.devices.values ?? []).filter(d => d.connected).length;
-                    return connected === 0 ? "On" : `On - ${connected} connected`;
+                    if (devices.connected.length === 1)
+                        return `${devices.connected[0].name || devices.connected[0].address} connected`;
+                    return devices.connected.length === 0 ? "On" : `${devices.connected.length} devices connected`;
                 }
                 canOpen: false
                 onToggled: {
@@ -665,52 +687,92 @@ BarPopup {
 
             DeviceBatteries {
                 Layout.fillWidth: true
-                Layout.topMargin: 4
                 shown: root.visible
             }
 
-            SectionLabel {
-                visible: root.adapter?.enabled ?? false
-                Layout.topMargin: 8
-                text: "Bluetooth devices"
-            }
-
-            ListRow {
-                visible: root.adapter?.enabled ?? false
+            // The heading and, on its right, the scan: gilt on its tint while it runs ("on").
+            RowLayout {
+                visible: devices.on
                 Layout.fillWidth: true
-                icon: Icons.search
-                label: root.adapter?.discovering ? "Scanning…" : "Scan for devices"
-                active: root.adapter?.discovering ?? false
-                onClicked: {
-                    if (!root.adapter)
-                        return;
-                    root.adapter.discovering = true;
-                    btScanTimeout.restart();
+                Layout.topMargin: 8
+                Layout.rightMargin: 4
+                Layout.bottomMargin: 2
+
+                SectionLabel {
+                    Layout.fillWidth: true
+                    Layout.bottomMargin: 0
+                    text: "Bluetooth devices"
+                }
+
+                Rectangle {
+                    implicitWidth: scanLabel.implicitWidth + 16
+                    implicitHeight: 22
+                    radius: Theme.radiusRow
+                    color: devices.scanning ? Theme.tint(Theme.gilt, scanArea.containsMouse ? 0.16 : 0.1) : scanArea.containsMouse ? Theme.hover : "transparent"
+
+                    Behavior on color {
+                        ColorAnimation {
+                            duration: Theme.durationState
+                            easing.type: Theme.easing
+                        }
+                    }
+
+                    BarText {
+                        id: scanLabel
+                        anchors.centerIn: parent
+                        text: devices.scanning ? "Scanning…" : "Scan"
+                        color: devices.scanning ? Theme.gilt : scanArea.containsMouse ? Theme.text : Theme.text2
+                        font.pixelSize: 11
+                    }
+
+                    MouseArea {
+                        id: scanArea
+                        anchors.fill: parent
+                        hoverEnabled: true
+                        cursorShape: Qt.PointingHandCursor
+                        onClicked: {
+                            if (!root.adapter)
+                                return;
+                            root.adapter.discovering = true;
+                            btScanTimeout.restart();
+                        }
+                    }
                 }
             }
 
             BarText {
-                visible: (root.adapter?.enabled ?? false) && btList.count === 0 && !(root.adapter?.discovering ?? false)
+                visible: devices.on && btList.count === 0
+                Layout.fillWidth: true
                 Layout.leftMargin: 12
-                text: "No devices found"
+                Layout.rightMargin: 12
+                text: devices.scanning ? "Looking for devices nearby…" : "No devices yet. Scan to find one nearby."
                 color: Theme.text2
                 font.pixelSize: 11
+                wrapMode: Text.Wrap
             }
 
             Repeater {
                 id: btList
 
                 model: ScriptModel {
-                    values: root.adapter?.enabled ? root.adapter.devices.values.slice().sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || (a.name || a.address).localeCompare(b.name || b.address)) : []
+                    values: devices.on ? root.adapter.devices.values.slice().sort((a, b) => (b.connected - a.connected) || (b.paired - a.paired) || (a.name || a.address).localeCompare(b.name || b.address)) : []
                 }
 
                 ListRow {
                     required property BluetoothDevice modelData
 
                     Layout.fillWidth: true
-                    icon: modelData.connected ? Icons.bluetoothConnected : Icons.bluetooth
+                    icon: root.deviceGlyph(modelData)
                     label: modelData.name || modelData.address
-                    sublabel: modelData.pairing ? "Pairing…" : modelData.connected ? "Connected" : modelData.paired ? "Paired" : "Available"
+                    sublabel: {
+                        if (modelData.pairing)
+                            return "Pairing…";
+                        if (modelData.state === BluetoothDeviceState.Connecting)
+                            return "Connecting…";
+                        if (modelData.connected)
+                            return modelData.batteryAvailable ? `${Math.round(modelData.battery * 100)}%` : "Connected";
+                        return modelData.paired ? "Paired" : "New";
+                    }
                     active: modelData.connected
                     onClicked: {
                         if (modelData.connected) {

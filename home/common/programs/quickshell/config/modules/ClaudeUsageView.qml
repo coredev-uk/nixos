@@ -4,17 +4,14 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The Claude plan's week, shown in the meter's plate (ClaudePanel) and the control panel's Claude
-// section: this week's limit in words first (used, and when it runs out at the pace so far), then
-// the week drawn as a chart in an inset well: a day per column split at midnight, the even pace as
-// a muted diagonal, the readings as an enamel line that steps up as the week is used, and a gilt
-// dot at now, as on the day arc. Under it when the week resets and how much of it has gone; then
-// the model and session limits, where the week's usage went, and a link to claude.ai's own page.
+// The control panel's Claude section: the plan's week, this week's limit in words first (used,
+// and when it runs out at the pace so far), then the week drawn as a chart in an inset well: a day
+// per column split at midnight, the even pace as a muted diagonal, the readings as an enamel line
+// that steps up as the week is used, and a gilt dot at now, as on the day arc. Under it when the
+// week resets and how much of it has gone; then the model and session limits and a link to
+// claude.ai's own page. When the reading was taken (`updated`) goes in the section's header.
 ColumnLayout {
     id: root
-
-    // The "Claude" title and when the reading was taken; the control panel's section has its own.
-    property bool header: true
 
     signal linkOpened
 
@@ -50,9 +47,6 @@ ColumnLayout {
         return `On pace to end the week near ${Math.round(ClaudeUsage.projected)}%`;
     }
 
-    // Where this week's usage went, the surfaces that used any.
-    readonly property var spent: ClaudeUsage.reset ? [] : ClaudeUsage.breakdown.filter(row => row.percent > 0)
-
     spacing: 0
 
     component Rule: Rectangle {
@@ -70,28 +64,7 @@ ColumnLayout {
     }
 
     RowLayout {
-        visible: root.header
         Layout.fillWidth: true
-
-        BarText {
-            text: "Claude"
-            font.pixelSize: 13
-            font.bold: true
-        }
-
-        BarText {
-            Layout.fillWidth: true
-            horizontalAlignment: Text.AlignRight
-            text: root.updated
-            color: Theme.text2
-            font.pixelSize: 11
-            elide: Text.ElideLeft
-        }
-    }
-
-    RowLayout {
-        Layout.fillWidth: true
-        Layout.topMargin: root.header ? 10 : 0
 
         BarText {
             Layout.fillWidth: true
@@ -250,32 +223,6 @@ ColumnLayout {
                 color: Theme.text2
                 font.pixelSize: 11
                 elide: Text.ElideRight
-            }
-        }
-    }
-
-    Rule {
-        visible: root.spent.length > 0
-    }
-
-    Label {
-        visible: root.spent.length > 0
-        text: "Where it went this week"
-    }
-
-    Flow {
-        visible: root.spent.length > 0
-        Layout.fillWidth: true
-        spacing: 14
-
-        Repeater {
-            model: root.spent
-
-            BarText {
-                required property var modelData
-
-                text: `${modelData.name} ${modelData.percent}%`
-                font.pixelSize: 12
             }
         }
     }

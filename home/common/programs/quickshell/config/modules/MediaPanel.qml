@@ -6,8 +6,9 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// What's playing, at the foot of the control panel: the cover, the track, its controls and the time
-// so far, with the song as a track along the card's floor (a click seeks). The card takes the
+// What's playing, at the foot of the control panel: the cover, the track, its controls, the time
+// so far and, on Sona, the favourite heart, with the song as a track along the card's floor (a
+// click seeks). The card takes the
 // cover's own colour, its heaviest hue made dark and muted so enamel stays legible on it, and
 // moves to the next cover's over a spatial move, so a track change goes colour to colour rather
 // than through grey; a grey cover keeps the inset ground. The cover fades in once it has loaded
@@ -20,8 +21,10 @@ Rectangle {
     readonly property bool playing: player?.isPlaying ?? false
     readonly property real length: player?.lengthSupported ? player.length : 0
     readonly property string track: `${player?.trackTitle ?? ""}\n${player?.trackArtist ?? ""}`
-    // Whether the panel is open: the position runs, and the cover can be read, only then.
+    // Whether the panel is open: the position runs, the cover can be read and Sona is asked about
+    // its favourite, only then.
     property bool shown: false
+    property bool watching: false
     // The card's ground: the cover's colour, or inset until one with a colour of its own loads.
     property color shade: Theme.inset
 
@@ -80,7 +83,17 @@ Rectangle {
 
     onTrackChanged: textFade.restart()
     onPlayingChanged: pop.restart()
-    onShownChanged: sampleTimer.restart()
+    onShownChanged: {
+        sampleTimer.restart();
+        if (shown !== watching) {
+            watching = shown;
+            Favourite.watch(shown);
+        }
+    }
+    Component.onDestruction: {
+        if (watching)
+            Favourite.watch(false);
+    }
 
     // MPRIS sends the position on seeks only; Quickshell works it out from the time since, when
     // asked.
@@ -301,6 +314,32 @@ Rectangle {
                     color: Theme.text2
                     font.pixelSize: 11
                 }
+
+                // Sona's favourite (services/Favourite): gilt and filled when it is one ("on"), an
+                // outline otherwise; shown only once Sona has said which, so only for Sona. The heart
+                // fills with a small beat.
+                Control {
+                    id: heart
+                    Layout.leftMargin: 4
+                    visible: Favourite.liked !== null
+                    icon: Favourite.liked ? Icons.heart : Icons.heartOutline
+                    on: Favourite.liked === true
+                    onClicked: {
+                        if (!Favourite.liked)
+                            beat.restart();
+                        Favourite.toggle();
+                    }
+                }
+            }
+
+            NumberAnimation {
+                id: beat
+                target: heart.glyph
+                property: "scale"
+                from: 0.7
+                to: 1
+                duration: Theme.durationState
+                easing.type: Theme.easing
             }
         }
     }

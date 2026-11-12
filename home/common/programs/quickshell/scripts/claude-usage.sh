@@ -7,7 +7,6 @@
 #     "usage": {
 #       "limits": [{ "id", "kind", "label", "percent", "severity", "resets_at", "active",
 #                    "allowance" }],   # allowance: share of the weekly limit, for a model's own one
-#       "breakdown": [{ "name", "percent" }],   # where this week's usage went
 #       "extra": { "used", "limit", "currency", "decimals" } | null   # extra usage, when enabled
 #     } | null,
 #     "history": [[<epoch seconds>, <percent>], …]   # this week's readings of the weekly limit
@@ -57,7 +56,6 @@ normalise='
                      percent: ($u.five_hour.utilization // 0), severity: "normal",
                      resets_at: ($u.five_hour.resets_at | epoch), active: true, allowance: null }]
              else [] end)),
-        breakdown: [($u.seven_day_breakdown.rows // [])[] | { name: .display_name, percent: (.percent // 0) }],
         extra: (if $u.extra_usage.is_enabled then {
                    used: $u.extra_usage.used_credits, limit: $u.extra_usage.monthly_limit,
                    currency: $u.extra_usage.currency, decimals: ($u.extra_usage.decimal_places // 2)
