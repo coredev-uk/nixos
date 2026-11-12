@@ -80,10 +80,16 @@ PanelWindow {
         }
         SystemStats {}
         Sep {}
+        ClaudeButton {
+            id: claude
+        }
+        Sep {
+            visible: claude.visible
+        }
         CaptureButton {}
         CaffeineButton {}
         LowBattery {
-            onActivated: network.openPanel()
+            onActivated: network.openPanel(ControlPanel.Section.Devices)
         }
         NetworkButton {
             id: network

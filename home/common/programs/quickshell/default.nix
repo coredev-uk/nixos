@@ -55,6 +55,22 @@ let
     text = builtins.readFile ./scripts/nix-status.sh;
   };
 
+  # Claude plan usage for the bar's Claude meter (config/services/ClaudeUsage.qml), from the
+  # usage endpoint behind claude.ai's settings, signed in with omp's Anthropic credential (read
+  # only, never refreshed), and the week's readings for its chart (scripts/claude-usage.sh).
+  quickshellClaudeUsage = pkgs.writeShellApplication {
+    name = "quickshell-claude-usage";
+    runtimeInputs = with pkgs; [
+      coreutils
+      curl
+      jq
+      sqlite
+    ];
+    # The jq filters are single-quoted on purpose.
+    excludeShellChecks = [ "SC2016" ];
+    text = builtins.readFile ./scripts/claude-usage.sh;
+  };
+
   # Proton Pass quick access (config/modules/PassQuickAccess.qml). pass-cli is not a runtime
   # input: it comes from the user's PATH (home/common/desktop/default.nix), sharing the session
   # the user signs in to. curl fetches the logins' website icons, dwebp (libwebp) turns the WebP
@@ -318,6 +334,7 @@ in
     quickshellVpn
     quickshellBatteries
     quickshellNixStatus
+    quickshellClaudeUsage
     quickshellLock
     quickshellPass
     quickshellCalendar

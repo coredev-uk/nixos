@@ -135,4 +135,7 @@ Singleton {
     readonly property string pencil: String.fromCodePoint(0xF03EB) // pencil
     readonly property string contentSave: String.fromCodePoint(0xF0193) // content_save
     readonly property string alertCircle: String.fromCodePoint(0xF0028) // alert_circle
+
+    // The control panel's Claude section (sparkles: there is no Claude glyph)
+    readonly property string claude: String.fromCodePoint(0xF0674) // creation
 }
