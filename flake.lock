@@ -556,11 +556,11 @@
     },
     "skills-nix": {
       "locked": {
-        "lastModified": 1793541330,
-        "narHash": "sha256-YxFPHOV6Rcjg4a0SLvx34yimtC990pLokosbDazgxw0=",
+        "lastModified": 1794146172,
+        "narHash": "sha256-g4r54edV4Igk/0DfQG9AiPouQn7JI+c8S9OOFUhUPfw=",
         "owner": "z1-0",
         "repo": "skills-nix",
-        "rev": "944f2816760cb6baa552f58d3c988ac0ad147bef",
+        "rev": "5943f859fd95fba4436f1433eb71998857ae5a35",
         "type": "github"
       },
       "original": {
