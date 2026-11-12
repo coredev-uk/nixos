@@ -7,7 +7,8 @@ import Quickshell.Services.Mpris
 import Quickshell.Wayland
 
 // The player the bar follows: native clients (Sona and the other music apps, Plezy for Plex), then
-// browser players on a music site; of those, whichever is playing, else the first in that order.
+// browser players on a music site; of those, whichever is playing, else the one that played last
+// (pausing it doesn't hand the bar to another paused player), else the first in that order.
 Singleton {
     id: root
 
@@ -25,16 +26,24 @@ Singleton {
         return nativeClients.find(client => name.includes(client)) ?? "";
     }
 
-    readonly property MprisPlayer player: {
+    readonly property var candidates: {
         const rank = p => {
             const native = nativeClients.indexOf(nativeName(p));
             if (native >= 0)
                 return p.playbackState === MprisPlaybackState.Stopped ? -1 : native;
             return urlPatterns.some(pattern => String(p.metadata["xesam:url"] ?? "").includes(pattern)) ? nativeClients.length : -1;
         };
-        const candidates = Mpris.players.values.filter(p => rank(p) >= 0).sort((a, b) => rank(a) - rank(b));
-        return candidates.find(p => p.isPlaying) ?? candidates[0] ?? null;
+        return Mpris.players.values.filter(p => rank(p) >= 0).sort((a, b) => rank(a) - rank(b));
     }
+    readonly property MprisPlayer playingNow: candidates.find(p => p.isPlaying) ?? null
+    property MprisPlayer lastPlayed: null
+
+    onPlayingNowChanged: {
+        if (playingNow)
+            lastPlayed = playingNow;
+    }
+
+    readonly property MprisPlayer player: playingNow ?? (candidates.includes(lastPlayed) ? lastPlayed : candidates[0] ?? null)
 
     // Playing or paused; stopped players have nothing to show.
     readonly property bool active: player !== null && player.playbackState !== MprisPlaybackState.Stopped
