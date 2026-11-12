@@ -6,25 +6,34 @@ import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Wayland
 
-// The music player the bar follows: native clients first, then browser players on a music site.
+// The player the bar follows: native clients (Sona and the other music apps, Plezy for Plex), then
+// browser players on a music site; of those, whichever is playing, else the first in that order.
 Singleton {
     id: root
 
-    readonly property var nativeClients: ["cider", "spotify", "sona"]
+    readonly property var nativeClients: ["cider", "spotify", "sona", "plezy"]
     readonly property var urlPatterns: ["music.apple.com", "open.spotify.com"]
 
     function clientName(player: MprisPlayer): string {
         return player.dbusName.replace("org.mpris.MediaPlayer2.", "").split(".")[0].toLowerCase();
     }
 
+    // The native client a player is, or "": a bus name may carry it inside a longer one (Plezy
+    // takes its program name, "com_edde746_plezy" from its Flatpak).
+    function nativeName(player: MprisPlayer): string {
+        const name = clientName(player);
+        return nativeClients.find(client => name.includes(client)) ?? "";
+    }
+
     readonly property MprisPlayer player: {
-        const players = Mpris.players.values;
-        for (const name of nativeClients) {
-            const native = players.find(p => clientName(p) === name && p.playbackState !== MprisPlaybackState.Stopped);
-            if (native)
-                return native;
-        }
-        return players.find(p => urlPatterns.some(pattern => String(p.metadata["xesam:url"] ?? "").includes(pattern))) ?? null;
+        const rank = p => {
+            const native = nativeClients.indexOf(nativeName(p));
+            if (native >= 0)
+                return p.playbackState === MprisPlaybackState.Stopped ? -1 : native;
+            return urlPatterns.some(pattern => String(p.metadata["xesam:url"] ?? "").includes(pattern)) ? nativeClients.length : -1;
+        };
+        const candidates = Mpris.players.values.filter(p => rank(p) >= 0).sort((a, b) => rank(a) - rank(b));
+        return candidates.find(p => p.isPlaying) ?? candidates[0] ?? null;
     }
 
     // Playing or paused; stopped players have nothing to show.
@@ -38,8 +47,9 @@ Singleton {
     function focusPlayer() {
         if (!player)
             return;
-        const ids = [player.desktopEntry, clientName(player)].filter(id => id).map(id => id.toLowerCase());
-        const toplevel = toplevels.find(t => ids.includes(t.appId.toLowerCase()));
+        const ids = [player.desktopEntry, clientName(player), nativeName(player)].filter(id => id).map(id => id.toLowerCase());
+        // An app id may be reverse-DNS ("com.edde746.plezy") around the client's name.
+        const toplevel = toplevels.find(t => ids.some(id => t.appId.toLowerCase() === id || t.appId.toLowerCase().endsWith(`.${id}`)));
         // Hyprland doesn't reliably honour a foreign-toplevel activate, so focus through its own dispatcher.
         const address = Hyprland.toplevels.values.find(h => h.wayland === toplevel)?.address.replace(/^0x/, "");
         if (toplevel && address)

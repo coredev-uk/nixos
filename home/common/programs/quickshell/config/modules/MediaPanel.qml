@@ -1,19 +1,15 @@
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Services.Mpris
-import Quickshell.Widgets
 import qs.common
 import qs.services
 import qs.widgets
 
 // What's playing, at the foot of the control panel: the cover, the track, its controls, the time
 // so far and, on Sona, the favourite heart, with the song as a track along the card's floor (a
-// click seeks). The card takes the
-// cover's own colour, its heaviest hue made dark and muted so enamel stays legible on it, and
-// moves to the next cover's over a spatial move, so a track change goes colour to colour rather
-// than through grey; a grey cover keeps the inset ground. The cover fades in once it has loaded
-// (the music glyph holds its place), the title and artist fade in on a new track, and the play
-// glyph grows into place whenever playback starts or stops, whatever started it.
+// click seeks). The card takes the cover's colour (CoverArt) and moves to the next cover's over a
+// spatial move; the title and artist fade in on a new track, and the play glyph grows into place
+// whenever playback starts or stops, whatever started it.
 Rectangle {
     id: root
 
@@ -25,8 +21,6 @@ Rectangle {
     // its favourite, only then.
     property bool shown: false
     property bool watching: false
-    // The card's ground: the cover's colour, or inset until one with a colour of its own loads.
-    property color shade: Theme.inset
 
     signal playerFocused
 
@@ -35,44 +29,9 @@ Rectangle {
         return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
     }
 
-    // The cover's main colour: its pixels binned by hue, each weighted by how vivid it is, and the
-    // heaviest bin averaged, then set dark and muted. Near-greys have no hue worth taking, and a few
-    // tinted pixels in a grey cover are not its colour.
-    function shadeOf(data: var): color {
-        const bins = [];
-        for (let i = 0; i < data.length; i += 4) {
-            const c = Qt.rgba(data[i] / 255, data[i + 1] / 255, data[i + 2] / 255, 1);
-            const weight = c.hsvSaturation * c.hsvValue;
-            if (data[i + 3] < 128 || weight < 0.03)
-                continue;
-            const bin = Math.floor(Math.max(0, c.hslHue) * 12) % 12;
-            bins[bin] = bins[bin] ?? {
-                weight: 0,
-                r: 0,
-                g: 0,
-                b: 0
-            };
-            bins[bin].weight += weight;
-            bins[bin].r += c.r * weight;
-            bins[bin].g += c.g * weight;
-            bins[bin].b += c.b * weight;
-        }
-        const first = bins.filter(b => b).sort((a, b) => b.weight - a.weight)[0];
-        if (!first || first.weight < data.length / 4 * 0.005)
-            return Theme.inset;
-        const c = Qt.rgba(first.r / first.weight, first.g / first.weight, first.b / first.weight, 1);
-        return Qt.hsla(c.hslHue, Math.min(c.hslSaturation, 0.4), 0.17, 1);
-    }
-
-    // A 16px grab of the cover shown, for its colour; grabbing needs the panel on screen.
-    function sample() {
-        if (cover.status === Image.Ready && root.shown)
-            cover.grabToImage(result => sampler.take(result), Qt.size(16, 16));
-    }
-
     implicitHeight: 10 + 72 + 10 + 2 + 8
     radius: Theme.radiusInset
-    color: shade
+    color: art.shade
 
     Behavior on color {
         ColorAnimation {
@@ -84,7 +43,6 @@ Rectangle {
     onTrackChanged: textFade.restart()
     onPlayingChanged: pop.restart()
     onShownChanged: {
-        sampleTimer.restart();
         if (shown !== watching) {
             watching = shown;
             Favourite.watch(shown);
@@ -104,85 +62,6 @@ Rectangle {
         onTriggered: root.player.positionChanged()
     }
 
-    // The window maps a moment after `shown`.
-    Timer {
-        id: sampleTimer
-        interval: 50
-        onTriggered: root.sample()
-    }
-
-    // Never seen: a Canvas can't draw an Image item, so it draws the grab, which spares fetching
-    // the cover twice.
-    Canvas {
-        id: sampler
-
-        // The grab, kept while its URL is in use.
-        property var grab: null
-
-        function take(result: var) {
-            if (grab)
-                unloadImage(grab.url);
-            grab = result;
-            if (result)
-                loadImage(result.url);
-            requestPaint();
-        }
-
-        width: 16
-        height: 16
-        opacity: 0
-        onImageLoaded: requestPaint()
-        onAvailableChanged: requestPaint()
-        onPaint: {
-            const ctx = getContext("2d");
-            ctx.clearRect(0, 0, width, height);
-            if (!grab || !isImageLoaded(grab.url))
-                return;
-            ctx.drawImage(grab.url, 0, 0, width, height);
-            root.shade = root.shadeOf(ctx.getImageData(0, 0, width, height).data);
-        }
-    }
-
-    component Control: Rectangle {
-        id: control
-
-        property alias icon: glyph.text
-        property alias glyph: glyph
-        // "On": the play state while playing, gilt as everything that is on.
-        property bool on: false
-
-        signal clicked
-
-        implicitWidth: 28
-        implicitHeight: 28
-        radius: Theme.radiusRow
-        // On the cover's colour a hover fill would be one more colour: the light lifts instead.
-        color: on ? Theme.tint(Theme.gilt, area.containsMouse ? 0.16 : 0.1) : area.containsMouse ? Theme.tint(Theme.text, 0.08) : "transparent"
-        opacity: enabled ? 1 : 0.5
-
-        Behavior on color {
-            ColorAnimation {
-                duration: Theme.durationState
-                easing.type: Theme.easing
-            }
-        }
-
-        Icon {
-            id: glyph
-            anchors.centerIn: parent
-            font.pixelSize: 16
-            color: control.on ? Theme.gilt : area.containsMouse ? Theme.text : Theme.text2
-        }
-
-        MouseArea {
-            id: area
-            anchors.fill: parent
-            hoverEnabled: true
-            cursorShape: Qt.PointingHandCursor
-            onClicked: control.clicked()
-        }
-    }
-
     RowLayout {
         x: 10
         y: 10
@@ -190,52 +69,15 @@ Rectangle {
         height: 72
         spacing: 12
 
-        ClippingRectangle {
+        CoverArt {
+            id: art
             implicitWidth: 72
             implicitHeight: 72
-            radius: Theme.radiusRow
-            color: Theme.tint(Theme.ground, 0.4)
-
-            // The cover often arrives after the title: the glyph holds its place.
-            Icon {
-                anchors.centerIn: parent
-                visible: cover.status !== Image.Ready
-                text: Icons.music
-                color: Theme.muted
-                font.pixelSize: 26
-            }
-
-            Image {
-                id: cover
-                anchors.fill: parent
-                source: root.player?.trackArtUrl ?? ""
-                sourceSize: Qt.size(144, 144)
-                fillMode: Image.PreserveAspectCrop
-                asynchronous: true
-                opacity: status === Image.Ready ? 1 : 0
-                // The old colour stays while the next cover loads.
-                onStatusChanged: {
-                    if (status === Image.Ready)
-                        root.sample();
-                    else if (status !== Image.Loading)
-                        root.shade = Theme.inset;
-                }
-
-                Behavior on opacity {
-                    NumberAnimation {
-                        duration: Theme.durationState
-                        easing.type: Theme.easing
-                    }
-                }
-            }
-
-            MouseArea {
-                anchors.fill: parent
-                cursorShape: Qt.PointingHandCursor
-                onClicked: {
-                    Media.focusPlayer();
-                    root.playerFocused();
-                }
+            source: root.player?.trackArtUrl ?? ""
+            shown: root.shown
+            onClicked: {
+                Media.focusPlayer();
+                root.playerFocused();
             }
         }
 
@@ -284,13 +126,13 @@ Rectangle {
                 Layout.fillWidth: true
                 spacing: 2
 
-                Control {
+                TransportButton {
                     icon: Icons.previous
                     enabled: root.player?.canGoPrevious ?? false
                     onClicked: root.player.previous()
                 }
 
-                Control {
+                TransportButton {
                     id: playPause
                     icon: root.playing ? Icons.pause : Icons.play
                     on: root.playing
@@ -298,7 +140,7 @@ Rectangle {
                     onClicked: root.player.togglePlaying()
                 }
 
-                Control {
+                TransportButton {
                     icon: Icons.next
                     enabled: root.player?.canGoNext ?? false
                     onClicked: root.player.next()
@@ -316,12 +158,12 @@ Rectangle {
                 }
 
                 // Sona's favourite (services/Favourite): gilt and filled when it is one ("on"), an
-                // outline otherwise; shown only once Sona has said which, so only for Sona. The heart
-                // fills with a small beat.
-                Control {
+                // outline otherwise; only while Sona is the player and playing, and once it has said
+                // which. The heart fills with a small beat.
+                TransportButton {
                     id: heart
                     Layout.leftMargin: 4
-                    visible: Favourite.liked !== null
+                    visible: Favourite.sona && root.playing && Favourite.liked !== null
                     icon: Favourite.liked ? Icons.heart : Icons.heartOutline
                     on: Favourite.liked === true
                     onClicked: {

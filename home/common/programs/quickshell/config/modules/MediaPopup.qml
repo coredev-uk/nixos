@@ -1,16 +1,16 @@
 import QtQuick
 import qs.widgets
 
-// Now playing's popup: the strip (NowPlayingStrip.qml) hung under the bar's track.
+// Now playing's popup: the card (NowPlayingCard.qml) hung under the bar's track.
 BarPopup {
     id: root
 
-    implicitWidth: strip.implicitWidth
-    implicitHeight: strip.implicitHeight + gap
+    implicitWidth: card.implicitWidth
+    implicitHeight: card.implicitHeight + gap
     dismissible: true
 
-    NowPlayingStrip {
-        id: strip
+    NowPlayingCard {
+        id: card
         anchors.fill: parent
         anchors.topMargin: root.topInset
         anchors.bottomMargin: root.bottomInset

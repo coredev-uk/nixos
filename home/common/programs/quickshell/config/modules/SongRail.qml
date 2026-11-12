@@ -15,8 +15,10 @@ Item {
     readonly property bool near: area.containsMouse || area.pressed
     readonly property bool dragging: area.pressed
     readonly property real dragSeconds: area.fraction * length
-    // Whether the strip is on screen. Opening it places the dot; only playing moves it on.
+    // Whether the card is on screen. Opening it places the dot; only playing moves it on.
     property bool active: false
+    // The surface under the track, which rings the dot.
+    property color ground: Theme.plate
 
     function clamp(v: real): real {
         return Math.max(0, Math.min(1, v));
@@ -92,7 +94,7 @@ Item {
             height: width
             radius: width / 2
             color: Theme.gilt
-            border.color: Theme.plate
+            border.color: root.ground
             border.width: 1
             visible: root.length > 0
 

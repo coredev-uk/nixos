@@ -5,8 +5,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Current track while playing; clicking opens now playing's strip underneath (MediaPopup). The
-// track stays while the strip is open, so pausing from it doesn't pull the bar item away.
+// Current track while playing; clicking opens now playing's card underneath (MediaPopup). The
+// track stays while the card is open, so pausing from it doesn't pull the bar item away.
 Item {
     id: root
 

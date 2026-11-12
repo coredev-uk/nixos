@@ -3,17 +3,6 @@
   meta,
   ...
 }:
-let
-  plexDesktop = pkgs.plex-desktop.override {
-    extraEnv = {
-      LIBVA_DRIVER_NAME = "nvidia";
-      QT_OPENGL = "desktop";
-      QT_QPA_PLATFORM = "xcb";
-      QT_XCB_GL_INTEGRATION = "xcb_glx";
-      VDPAU_DRIVER = "nvidia";
-    };
-  };
-in
 {
   imports = [
     (./. + "/${meta.desktop}")
@@ -37,7 +26,10 @@ in
   home.packages = with pkgs; [
     desktop-file-utils
     file-roller
-    plexDesktop
+    # Plex (and Jellyfin) through Plezy rather than Plex Desktop: the official app has no MPRIS, so
+    # the shell's now playing couldn't see or control it; Plezy publishes title, artwork and
+    # controls over MPRIS (home/common/programs/quickshell, services/Media.qml).
+    plezy
     loupe
     mpv
     nautilus
