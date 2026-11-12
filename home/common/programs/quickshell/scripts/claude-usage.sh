@@ -28,7 +28,8 @@ mkdir -p "$state"
 now=$(date +%s)
 
 # The API's limits, normalised: ISO times to epoch seconds, a label per limit, and a model limit's
-# share of the weekly allowance beside it.
+# share of the weekly allowance beside it. The $names are jq's, not the shell's.
+# shellcheck disable=SC2016
 normalise='
   def epoch: if . == null then null else (sub("\\.[0-9]+"; "") | sub("(\\+00:00|Z)$"; "Z") | try fromdateiso8601 catch null) end;
   . as $u
@@ -65,74 +66,74 @@ normalise='
 
 status=signed-out
 credential=""
-if [[ -r "$db" ]]; then
-  credential=$(sqlite3 -readonly "$db" "select data from auth_credentials where provider = 'anthropic' and credential_type = 'oauth' and disabled_cause is null order by updated_at desc limit 1" 2>/dev/null || true)
+if [[ -r $db ]]; then
+	credential=$(sqlite3 -readonly "$db" "select data from auth_credentials where provider = 'anthropic' and credential_type = 'oauth' and disabled_cause is null order by updated_at desc limit 1" 2>/dev/null || true)
 fi
 
-if [[ -n "$credential" ]]; then
-  token=$(jq -r '.access // empty' <<<"$credential")
-  expires=$(jq -r '(.expires // 0) / 1000 | floor' <<<"$credential")
-  if [[ -z "$token" ]]; then
-    status=signed-out
-  elif ((expires <= now + 60)); then
-    status=expired
-  else
-    body=$(mktemp)
-    trap 'rm -f "$body"' EXIT
-    code=$(printf 'Authorization: Bearer %s\nanthropic-beta: oauth-2025-04-20\n' "$token" |
-      curl -sS -m 10 -H @- -o "$body" -w '%{http_code}' https://api.anthropic.com/api/oauth/usage 2>/dev/null) || code=000
-    case "$code" in
-    200)
-      if jq --argjson now "$now" "$normalise" "$body" >"$last.tmp" 2>/dev/null; then
-        mv "$last.tmp" "$last"
-        status=ok
-        # Keep a reading when the weekly figure moved (or a new week began).
-        reading=$(jq -c '.usage.limits[] | select(.kind == "weekly_all") | { t: $now, p: .percent, r: .resets_at }' --argjson now "$now" "$last")
-        if [[ -n "$reading" ]]; then
-          previous=$(tail -n 1 "$log" 2>/dev/null || true)
-          if [[ -z "$previous" ]] || ! jq -e --argjson next "$reading" '.p == $next.p and .r == $next.r' <<<"$previous" >/dev/null 2>&1; then
-            printf '%s\n' "$reading" >>"$log"
-          fi
-        fi
-      else
-        rm -f "$last.tmp"
-        status=failed
-      fi
-      ;;
-    401 | 403) status=rejected ;;
-    429) status=limited ;;
-    000) status=unreachable ;;
-    *) status=failed ;;
-    esac
-  fi
+if [[ -n $credential ]]; then
+	token=$(jq -r '.access // empty' <<<"$credential")
+	expires=$(jq -r '(.expires // 0) / 1000 | floor' <<<"$credential")
+	if [[ -z $token ]]; then
+		status=signed-out
+	elif ((expires <= now + 60)); then
+		status=expired
+	else
+		body=$(mktemp)
+		trap 'rm -f "$body"' EXIT
+		code=$(printf 'Authorization: Bearer %s\nanthropic-beta: oauth-2025-04-20\n' "$token" |
+			curl -sS -m 10 -H @- -o "$body" -w '%{http_code}' https://api.anthropic.com/api/oauth/usage 2>/dev/null) || code=000
+		case "$code" in
+		200)
+			if jq --argjson now "$now" "$normalise" "$body" >"$last.tmp" 2>/dev/null; then
+				mv "$last.tmp" "$last"
+				status=ok
+				# Keep a reading when the weekly figure moved (or a new week began).
+				reading=$(jq -c '.usage.limits[] | select(.kind == "weekly_all") | { t: $now, p: .percent, r: .resets_at }' --argjson now "$now" "$last")
+				if [[ -n $reading ]]; then
+					previous=$(tail -n 1 "$log" 2>/dev/null || true)
+					if [[ -z $previous ]] || ! jq -e --argjson next "$reading" '.p == $next.p and .r == $next.r' <<<"$previous" >/dev/null 2>&1; then
+						printf '%s\n' "$reading" >>"$log"
+					fi
+				fi
+			else
+				rm -f "$last.tmp"
+				status=failed
+			fi
+			;;
+		401 | 403) status=rejected ;;
+		429) status=limited ;;
+		000) status=unreachable ;;
+		*) status=failed ;;
+		esac
+	fi
 fi
 
 # Readings older than two weeks are no use to this week's chart.
-if [[ -f "$log" ]] && (($(wc -l <"$log") > 2000)); then
-  jq -c --argjson since "$((now - 14 * 86400))" 'select(.t >= $since)' "$log" >"$log.tmp" && mv "$log.tmp" "$log"
+if [[ -f $log ]] && (($(wc -l <"$log") > 2000)); then
+	jq -c --argjson since "$((now - 14 * 86400))" 'select(.t >= $since)' "$log" >"$log.tmp" && mv "$log.tmp" "$log"
 fi
 
 current='null'
-[[ -f "$last" ]] && current=$(cat "$last")
+[[ -f $last ]] && current=$(cat "$last")
 resets=$(jq -r '[.usage.limits[]? | select(.kind == "weekly_all") | .resets_at][0] // empty' <<<"$current")
 
 omp='[]'
-if [[ -n "$resets" && -r "$db" ]]; then
-  omp=$(sqlite3 -readonly -json "$db" "select recorded_at / 1000 as t, round(used_fraction * 100) as p from usage_history where limit_id = 'anthropic:7d' and used_fraction is not null and resets_at / 1000 between $((resets - 3600)) and $((resets + 3600))" 2>/dev/null || true)
-  [[ -n "$omp" ]] || omp='[]'
+if [[ -n $resets && -r $db ]]; then
+	omp=$(sqlite3 -readonly -json "$db" "select recorded_at / 1000 as t, round(used_fraction * 100) as p from usage_history where limit_id = 'anthropic:7d' and used_fraction is not null and resets_at / 1000 between $((resets - 3600)) and $((resets + 3600))" 2>/dev/null || true)
+	[[ -n $omp ]] || omp='[]'
 fi
 
 own='[]'
-if [[ -n "$resets" && -f "$log" ]]; then
-  own=$(jq -s -c --argjson r "$resets" '[.[] | select(.r != null and ((.r - $r) | fabs) < 3600) | { t, p }]' "$log" 2>/dev/null || echo '[]')
+if [[ -n $resets && -f $log ]]; then
+	own=$(jq -s -c --argjson r "$resets" '[.[] | select(.r != null and ((.r - $r) | fabs) < 3600) | { t, p }]' "$log" 2>/dev/null || echo '[]')
 fi
 
 jq -n -c \
-  --arg status "$status" \
-  --argjson current "$current" \
-  --argjson omp "$omp" \
-  --argjson own "$own" \
-  '{
+	--arg status "$status" \
+	--argjson current "$current" \
+	--argjson omp "$omp" \
+	--argjson own "$own" \
+	'{
     status: $status,
     fetched_at: ($current.fetched_at // null),
     usage: ($current.usage // null),
