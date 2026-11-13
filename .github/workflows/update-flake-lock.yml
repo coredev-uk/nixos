@@ -1,71 +1,25 @@
 name: "Update flake inputs"
 
-# Nightly, one trial pull request per flake input that has an update, from BOT Cecil
-# (bot-cecil[bot]): a draft on its own branch (flake-update/<input>) that gets the checks main's
-# ruleset requires, all of them in parallel: Flake Checks, and the atlas build (hosts.yml, which
-# also puts atlas into the binary cache; poseidon's check passes there, it builds weekly). Trials never merge:
-# once every one has a result, land-flake-updates.yml merges the passing ones into one pull
-# request that does, so main only ever gets a combination that was checked as a whole. A failing
-# trial stays open, redone each night, without holding the others back.
-#
-# A push to main that changes flake.lock closes the trials whose revision it now has.
+# Nightly, every flake input at once, in one pull request from BOT Cecil (bot-cecil[bot]) on the
+# flake-update branch. It gets the checks main's ruleset requires: Flake Checks, and the atlas and
+# poseidon builds (hosts.yml), which also put both systems into the binary cache. It merges itself
+# (auto-merge, squash) once they pass. A failing update stays open and is redone from main each
+# night, so it lands as soon as upstream (or main) fixes what broke; until then nothing else lands.
 on:
   schedule:
-    - cron: "30 23 * * *" # before the night, so the trials are built and cached by morning
-  push:
-    branches:
-      - main
-    paths:
-      - "flake.lock"
+    - cron: "30 23 * * *" # before the night, so both systems are built and cached by morning
   workflow_dispatch:
 
 permissions:
   contents: read
 
-# One run of each kind at a time; trials and the clean-up after a push queue separately, so
-# neither replaces the other while it waits.
 concurrency:
-  group: ${{ github.workflow }}-${{ github.event_name == 'push' && 'landed' || 'trials' }}
+  group: ${{ github.workflow }}
   cancel-in-progress: false
 
 jobs:
-  plan:
-    if: github.event_name != 'push'
-    runs-on: ubuntu-26.04
-    outputs:
-      inputs: ${{ steps.plan.outputs.inputs }}
-    steps:
-      - uses: actions/checkout@v7
-        with:
-          persist-credentials: false
-
-      - name: Install nix
-        uses: DeterminateSystems/nix-installer-action@v23
-
-      # The root inputs whose locked source would change. Node names can be renumbered between
-      # locks (nixpkgs_2 …), so each side is looked up through its own root.
-      - name: Find inputs with updates
-        id: plan
-        run: |
-          old=$(mktemp)
-          cp flake.lock "$old"
-          nix flake update
-          inputs=$(jq -c --slurpfile old "$old" '
-            .nodes as $n | $old[0].nodes as $o
-            | [.nodes.root.inputs | to_entries[] | select(.value | type == "string")
-              | select($o[$o.root.inputs[.key]].locked.narHash != $n[.value].locked.narHash) | .key]' flake.lock)
-          echo "inputs=$inputs" >>"$GITHUB_OUTPUT"
-          echo "Inputs with updates: $inputs"
-
   update:
-    needs: plan
-    if: needs.plan.outputs.inputs != '[]'
     runs-on: ubuntu-26.04
-    strategy:
-      fail-fast: false
-      max-parallel: 4
-      matrix:
-        input: ${{ fromJSON(needs.plan.outputs.inputs) }}
     steps:
       # The bot-cecil app's credentials (1Password item kubernetes/bot-cecil). Its token's
       # pushes, unlike GITHUB_TOKEN's, trigger the PR's checks.
@@ -85,109 +39,73 @@ jobs:
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
 
-      # Only this input; inputs that follow it (nixvim → unstable) move with it.
-      - name: Update ${{ matrix.input }}
+      # One line per root input whose locked source moved: a compare link for GitHub inputs.
+      # Node names can be renumbered between locks (nixpkgs_2 …), so each side is looked up
+      # through its own root. The inputs go into the body as a marker the Nix view reads.
+      - name: Update every input
         id: update
-        env:
-          INPUT: ${{ matrix.input }}
         run: |
           old=$(mktemp)
           cp flake.lock "$old"
-          nix flake update "$INPUT"
+          nix flake update
+          changed=$(jq -r --slurpfile old "$old" '
+            .nodes as $n | $old[0].nodes as $o
+            | [.nodes.root.inputs | to_entries[] | select(.value | type == "string")
+              | select($o[$o.root.inputs[.key]].locked.narHash != $n[.value].locked.narHash) | .key]
+            | join(" ")' flake.lock)
+          echo "Inputs with updates: ${changed:-none}"
+          # "a", "a and b", "a, b and c"
+          read -ra ins <<<"$changed"
+          n=${#ins[@]}
+          if [ "$n" -le 1 ]; then
+            list="${ins[*]}"
+          else
+            list="$(printf '%s, ' "${ins[@]:0:n-1}")"
+            list="${list%, } and ${ins[n-1]}"
+          fi
           {
-            echo 'change<<EOF'
-            jq -r --slurpfile old "$old" --arg k "$INPUT" '
-              $old[0].nodes[$old[0].nodes.root.inputs[$k]].locked as $a
-              | .nodes[.nodes.root.inputs[$k]].locked as $b
-              | if $b.type == "github" and ($a.rev // "") != "" then
-                  "`\($k)`: [`\($a.rev[0:7])` → `\($b.rev[0:7])`](https://github.com/\($b.owner)/\($b.repo)/compare/\($a.rev)...\($b.rev))"
-                else
-                  "`\($k)`: `\(($a.rev // $a.narHash)[0:12])` → `\(($b.rev // $b.narHash)[0:12])`"
-                end' flake.lock
+            echo "title=chore(flake): update ${list}"
+            echo 'changes<<EOF'
+            for k in $changed; do
+              jq -r --slurpfile old "$old" --arg k "$k" '
+                $old[0].nodes[$old[0].nodes.root.inputs[$k]].locked as $a
+                | .nodes[.nodes.root.inputs[$k]].locked as $b
+                | if $b.type == "github" and ($a.rev // "") != "" then
+                    "- `\($k)`: [`\($a.rev[0:7])` → `\($b.rev[0:7])`](https://github.com/\($b.owner)/\($b.repo)/compare/\($a.rev)...\($b.rev))"
+                  else
+                    "- `\($k)`: `\(($a.rev // $a.narHash)[0:12])` → `\(($b.rev // $b.narHash)[0:12])`"
+                  end' flake.lock
+            done
+            echo
+            echo "<!-- inputs: ${changed} -->"
             echo EOF
           } >>"$GITHUB_OUTPUT"
 
       # sign-commits: the commit goes through GitHub's API, so it is BOT Cecil's and Verified.
-      # With nothing left to change (main already has it), the branch and its PR are removed.
-      - name: Open or refresh the trial
+      # With nothing to change (main already has every input's latest), the branch and its pull
+      # request are removed.
+      - name: Open or refresh the update
+        id: pr
         uses: peter-evans/create-pull-request@v8
         with:
           token: ${{ steps.app-token.outputs.token }}
           sign-commits: true
-          branch: flake-update/${{ matrix.input }}
+          branch: flake-update
           delete-branch: true
-          draft: always-true
           add-paths: flake.lock
           commit-message: |
-            chore(flake): update ${{ matrix.input }}
+            ${{ steps.update.outputs.title }}
 
-            ${{ steps.update.outputs.change }}
-          title: "chore(flake): try ${{ matrix.input }}"
+            ${{ steps.update.outputs.changes }}
+          title: ${{ steps.update.outputs.title }}
           body: |
-            ${{ steps.update.outputs.change }}
+            ${{ steps.update.outputs.changes }}
 
-            A trial: it gets the required checks but doesn't merge. Once every open trial has a result, the passing ones land together in the `flake-landing` pull request; this one closes when main has its revision, and is redone each night until then.
+            Merges itself once Flake Checks and the atlas and poseidon builds pass. Redone from main each night until then.
 
-  # Trials for inputs that no longer have an update (main caught up some other way).
-  close-stale:
-    needs: plan
-    if: github.event_name != 'push'
-    runs-on: ubuntu-26.04
-    steps:
-      - name: Generate BOT Cecil token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Close updates main already has
+      - name: Merge once the required checks pass
+        if: steps.pr.outputs.pull-request-number != '' && steps.pr.outputs.pull-request-operation != 'closed'
         env:
           GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          INPUTS: ${{ needs.plan.outputs.inputs }}
-        run: |
-          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --author app/bot-cecil --json number,headRefName \
-            --jq '.[] | select(.headRefName | startswith("flake-update/")) | "\(.number) \(.headRefName)"' |
-            while read -r number branch; do
-              if ! jq -e --arg i "${branch#flake-update/}" 'index($i) != null' <<<"$INPUTS" >/dev/null; then
-                gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
-                  --comment "main already has this input's latest revision."
-              fi
-            done
-
-  # After a push to main: the trials whose input main now has at the revision they tried.
-  close-landed:
-    if: github.event_name == 'push'
-    runs-on: ubuntu-26.04
-    steps:
-      - name: Generate BOT Cecil token
-        id: app-token
-        uses: actions/create-github-app-token@v3
-        with:
-          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
-
-      - name: Close the trials main has landed
-        env:
-          GH_TOKEN: ${{ steps.app-token.outputs.token }}
-          MAIN: ${{ github.sha }}
-        run: |
-          # The locked narHash of the root input $1 in flake.lock at commit $2.
-          locked() {
-            gh api "repos/$GITHUB_REPOSITORY/contents/flake.lock?ref=$2" --jq .content | base64 -d |
-              jq -r --arg k "$1" '.nodes[.nodes.root.inputs[$k]].locked.narHash // empty'
-          }
-          gh pr list --repo "$GITHUB_REPOSITORY" --state open --limit 100 --author app/bot-cecil --json number,headRefName,headRefOid \
-            --jq '.[] | select(.headRefName | startswith("flake-update/")) | "\(.number) \(.headRefName) \(.headRefOid)"' |
-            while read -r number branch sha; do
-              input=${branch#flake-update/}
-              tried=$(locked "$input" "$sha")
-              if [ -n "$tried" ] && [ "$tried" = "$(locked "$input" "$MAIN")" ]; then
-                gh pr close "$number" --repo "$GITHUB_REPOSITORY" --delete-branch \
-                  --comment "Landed: main has this revision ($MAIN)."
-              fi
-            done
+          PR: ${{ steps.pr.outputs.pull-request-number }}
+        run: gh pr merge "$PR" --repo "$GITHUB_REPOSITORY" --auto --squash

@@ -46,7 +46,7 @@ jobs:
         run: nix flake check -L
 
       # Not covered by `nix flake check`. poseidon has no IFD, so an x86_64-linux runner
-      # can evaluate it; building it needs macOS (hosts.yml, weekly).
+      # can evaluate it; building it needs macOS (hosts.yml, with the flake update and weekly).
       - name: Evaluate home-manager and nix-darwin configurations
         run: |
           nix eval --raw '.#homeConfigurations."paul@atlas".activationPackage.drvPath'

@@ -5,8 +5,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The control panel's Nix view: the lock updates waiting to land (BOT Cecil's pull requests, one
-// per flake input, with how their checks go and how long a broken one has been failing), how
+// The control panel's Nix view: the lock update waiting to land (BOT Cecil's nightly pull request
+// bumping every flake input, with how its checks go and how long it has been failing), how
 // main's host builds are going, what the cache holds, and where this computer stands against
 // them (services/NixStatus.qml), with any failed systemd units (system and user) listed by
 // name; a click copies the journalctl command for one, or opens an update's pull request or main's
@@ -24,14 +24,13 @@ ColumnLayout {
     readonly property var head: {
         // Read from `data` alone: its derived properties update one after another.
         const build = NixStatus.data?.build;
-        const landing = NixStatus.landingOf(NixStatus.data);
-        const trials = NixStatus.trialsOf(NixStatus.data);
+        const update = NixStatus.updateOf(NixStatus.data);
         switch (NixStatus.stateOf(NixStatus.data)) {
         case "ok":
             return {
                 tone: Theme.ok,
                 title: "Up to date",
-                detail: [`main built ${NixStatus.ago(build.main.finished)}`, "no lock updates open"].join(", ")
+                detail: [`main built ${NixStatus.ago(build.main.finished)}`, "no lock update open"].join(", ")
             };
         case "failed":
             return {
@@ -41,30 +40,21 @@ ColumnLayout {
             };
         case "update-failing":
             {
-                const failing = NixStatus.failingUpdates(NixStatus.data);
-                const since = NixStatus.updateFailingSince(failing[0]);
+                const since = NixStatus.updateFailingSince(update);
                 const span = since === null ? "" : `, for ${NixStatus.span(nowSeconds - since)}`;
                 return {
                     tone: Theme.alert,
-                    title: failing.length > 1 ? `${failing.length} lock updates failing` : failing[0].kind === "landing" ? "Lock update failing" : `${failing[0].input} update failing`,
-                    detail: failing.length === 1 ? `#${failing[0].number}${span}: ${NixStatus.names(NixStatus.failingChecks(failing[0]))}` : `${NixStatus.inputs(failing)}${span}`
+                    title: "Lock update failing",
+                    detail: `#${update.number}${span}: ${NixStatus.names(NixStatus.failingChecks(update))}`
                 };
             }
         case "update-pending":
             {
-                if (landing !== null) {
-                    const pending = NixStatus.pendingChecks(landing);
-                    return {
-                        tone: Theme.text2,
-                        title: landing.inputs.length === 1 ? `Landing ${landing.inputs[0]}` : `Landing ${landing.inputs.length} updates`,
-                        detail: pending.length === 0 ? `#${landing.number}, every check passed, merging` : `#${landing.number}, waiting on ${NixStatus.names(pending)}`
-                    };
-                }
-                const testing = trials.filter(t => NixStatus.pendingChecks(t).length > 0 || t.checks === null);
+                const pending = NixStatus.pendingChecks(update);
                 return {
                     tone: Theme.text2,
-                    title: testing.length === 0 ? "Lock updates passed" : testing.length === 1 ? `Testing ${testing[0].input}` : `Testing ${testing.length} updates`,
-                    detail: testing.length === 0 ? "Landing together next" : "They land together once every one has a result"
+                    title: `Updating ${NixStatus.inputsOf(update)}`,
+                    detail: update.checks === null ? `#${update.number}, opened ${NixStatus.ago(update.opened_at)}` : pending.length === 0 ? `#${update.number}, every check passed, merging` : `#${update.number}, waiting on ${NixStatus.names(pending)}`
                 };
             }
         case "running":
@@ -101,7 +91,7 @@ ColumnLayout {
         const d = NixStatus.data;
         if ((d?.updates ?? []).length > 0)
             out.push({
-                title: "Lock updates",
+                title: "Lock update",
                 lines: d.updates.map(updateLine)
             });
         if (d?.build?.reachable ?? false)
@@ -146,8 +136,8 @@ ColumnLayout {
         return n.toLocaleString(Qt.locale(), "f", 0);
     }
 
-    // One line an update, by input (the landing pull request first, as "Landing"): how its checks
-    // go, or how long it has failed; a click opens its pull request.
+    // The lock update's line, keyed by what it bumps: how its checks go, or how long it has failed;
+    // a click opens its pull request.
     function updateLine(u: var): var {
         const failing = NixStatus.failingChecks(u);
         const pending = NixStatus.pendingChecks(u);
@@ -159,13 +149,11 @@ ColumnLayout {
             value = `#${u.number}, ${NixStatus.names(failing)} failing${since === null ? "" : ` for ${NixStatus.span(nowSeconds - since)}`}`;
         } else if (pending.length > 0) {
             value = `#${u.number}, waiting on ${NixStatus.names(pending)}`;
-        } else if (u.kind === "landing") {
-            value = u.auto_merge ? `#${u.number}, passed, merging` : `#${u.number}, passed; merge it on GitHub`;
         } else {
-            value = u.landing ? `#${u.number}, passed, landing` : `#${u.number}, passed`;
+            value = u.auto_merge ? `#${u.number}, passed, merging` : `#${u.number}, passed; merge it on GitHub`;
         }
         return {
-            key: u.kind === "landing" ? "Landing" : u.input,
+            key: NixStatus.inputsOf(u),
             value: value,
             url: u.url,
             tone: failing.length > 0 ? Theme.alert : pending.length > 0 ? Theme.text2 : undefined
