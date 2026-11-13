@@ -39,7 +39,8 @@ let
   };
 
   # OpenRGB lighting for the control panel's Lighting section (config/services/Lighting.qml),
-  # over the SDK of the system's OpenRGB server (hosts/common/desktop/rgb.nix).
+  # over the SDK of the system's OpenRGB server (hosts/common/desktop/rgb.nix): the looks, and
+  # the engine (quickshell-rgb.service below) that draws them in Direct mode.
   quickshellRgb = pkgs.writers.writePython3Bin "quickshell-rgb" {
     libraries = [ pkgs.python3Packages.openrgb-python ];
   } (builtins.readFile ./scripts/rgb.py);
@@ -310,6 +311,26 @@ in
 
   # The config is a store symlink and fonts are only read at startup, so a running
   # instance never sees either change; restart it on switch instead.
+  # The lighting engine (scripts/rgb.py serve): draws the look chosen in the Lighting section on
+  # every OpenRGB device, LED by LED (only Direct mode reaches atlas's controllers), and again
+  # whenever openrgb.service starts (boot, or the VFIO VM handing the devices back). Without a
+  # server it waits and retries.
+  systemd.user.services.quickshell-rgb = {
+    Unit = {
+      Description = "Lighting engine for OpenRGB (Quickshell)";
+      PartOf = [ "graphical-session.target" ];
+      After = [ "graphical-session.target" ];
+      X-Restart-Triggers = [ "${quickshellRgb}" ];
+    };
+    Service = {
+      ExecStart = "${lib.getExe quickshellRgb} serve";
+      Restart = "always";
+      RestartSec = 5;
+      Nice = 5;
+    };
+    Install.WantedBy = [ "graphical-session.target" ];
+  };
+
   systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
     "${./config}"
     "${theme.fonts.shell.package}"

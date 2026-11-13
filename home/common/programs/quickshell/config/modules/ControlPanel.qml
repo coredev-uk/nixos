@@ -335,7 +335,7 @@ BarPopup {
                         target: ControlPanel.Section.Lighting
                         name: "Lighting"
                         icon: Icons.ledStrip
-                        reporting: Lighting.known && !Lighting.running
+                        reporting: Lighting.known && (!Lighting.running || !Lighting.engine)
                     }
 
                     RailTile {
@@ -801,8 +801,8 @@ BarPopup {
         }
     }
 
-    // Lighting: the presets, on every device OpenRGB has, then the profiles saved in OpenRGB; the
-    // one on now is gilt. A click while another change runs waits for it.
+    // Lighting: the looks quickshell-rgb draws on every device OpenRGB has, plain colours (and
+    // off) then effects; the one on now is gilt. A click while another change runs waits for it.
     Component {
         id: lightingPage
 
@@ -826,16 +826,33 @@ BarPopup {
                 wrapMode: Text.Wrap
             }
 
+            // What keeps a choice from showing: the engine down, or the helper failing.
+            BarText {
+                visible: lighting.ready && text !== ""
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                Layout.bottomMargin: 4
+                text: Lighting.error
+                color: Theme.alert
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
+
+            SectionLabel {
+                text: "Colours"
+            }
+
             Repeater {
-                model: Lighting.presets
+                model: Lighting.colours
 
                 ListRow {
                     required property var modelData
 
                     Layout.fillWidth: true
                     enabled: lighting.ready
-                    icon: modelData.id === "off" ? Icons.ledStripOff : Icons.spectrum
-                    swatch: modelData.color ?? "transparent"
+                    icon: Icons.ledStripOff
+                    swatches: modelData.colors
                     label: modelData.name
                     sublabel: Lighting.pending === modelData.id ? "Applying…" : ""
                     active: Lighting.current === modelData.id
@@ -843,37 +860,25 @@ BarPopup {
                 }
             }
 
-            // What the last change couldn't do: a failure, or the devices it had no mode for.
-            BarText {
-                visible: text !== ""
-                Layout.fillWidth: true
-                Layout.leftMargin: 12
-                Layout.rightMargin: 12
-                text: Lighting.error !== "" ? Lighting.error : Lighting.skipped.length > 0 ? `${Lighting.skippedFor} isn't available on ${Lighting.skipped.join(", ")}.` : ""
-                color: Lighting.error !== "" ? Theme.alert : Theme.text2
-                font.pixelSize: 11
-                wrapMode: Text.Wrap
-            }
-
             SectionLabel {
-                visible: Lighting.profiles.length > 0
                 Layout.topMargin: 8
-                text: "Saved in OpenRGB"
+                text: "Effects"
             }
 
             Repeater {
-                model: Lighting.profiles
+                model: Lighting.effects
 
                 ListRow {
-                    required property string modelData
+                    required property var modelData
 
                     Layout.fillWidth: true
                     enabled: lighting.ready
-                    icon: Icons.palette
-                    label: modelData
-                    sublabel: Lighting.pending === `profile:${modelData}` ? "Applying…" : ""
-                    active: Lighting.current === `profile:${modelData}`
-                    onClicked: Lighting.choose(`profile:${modelData}`)
+                    icon: Icons.spectrum
+                    swatches: modelData.colors
+                    label: modelData.name
+                    sublabel: Lighting.pending === modelData.id ? "Applying…" : ""
+                    active: Lighting.current === modelData.id
+                    onClicked: Lighting.choose(modelData.id)
                 }
             }
         }
