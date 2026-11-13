@@ -21,6 +21,8 @@ in
     has caught up with the pinned ${pinned.version}. Check NixOS/nixpkgs#554125 and drop the pin.
   '';
 
+  services.xserver.videoDrivers = [ "nvidia" ];
+
   hardware.nvidia = {
     # Proprietary kernel modules. The open ones (tried 2026-11-10) broke the single-GPU VM: it
     # started, but the passed-through card stayed black with its fans at full. Open 610.57.04

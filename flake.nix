@@ -23,9 +23,6 @@
     # Following ours rebuilt them from source on every CI run and switch.
     nix-citizen.inputs.treefmt-nix.follows = "treefmt-nix";
 
-    nixos-hardware.url = "github:nixos/nixos-hardware/master";
-    nixos-hardware.inputs.nixpkgs.follows = "nixpkgs";
-
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
 
     nix-darwin.url = "github:nix-darwin/nix-darwin";
@@ -48,8 +45,13 @@
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "unstable";
 
-    # Agent skills from the skills.sh registry by name (home/common/shell/omp.nix).
-    skills-nix.url = "github:z1-0/skills-nix";
+    # oh-my-pi (home/common/shell/omp). Built from source with no upstream binary cache, so it
+    # follows our nixpkgs and CI builds it into Attic with the hosts. The darwin-x64 pair is
+    # only for Intel Macs, which no host is.
+    omp.url = "github:can1357/oh-my-pi";
+    omp.inputs.nixpkgs.follows = "unstable";
+    omp.inputs.nixpkgs-darwin-x64.follows = "unstable";
+    omp.inputs.bun2nix-darwin-x64.follows = "omp/bun2nix";
 
     # Sona, the Apple Music client (home/common/programs/sona.nix). Its `nix` branch carries the
     # published builds CI pins after each release and nightly rc. No nixpkgs follows on

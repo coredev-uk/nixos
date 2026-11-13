@@ -8,7 +8,7 @@
     ./atuin.nix
     ./bat.nix
     ./btop.nix
-    ./omp.nix
+    ./omp
     ./fastfetch.nix
     ./nh.nix
     ./nix-index.nix

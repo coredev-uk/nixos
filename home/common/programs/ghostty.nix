@@ -62,7 +62,7 @@ in
 
     settings = {
       theme = "meridian";
-      # Nerd Font glyphs (omp's `nerd` symbols, see ../shell/omp.nix) from the symbols font
+      # Nerd Font glyphs (omp's `nerd` symbols, see ../shell/omp) from the symbols font
       # rather than Ghostty's built-in copy, so they track nixpkgs.
       font-family = [
         theme.fonts.monospace.name

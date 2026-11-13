@@ -5,13 +5,6 @@
     inputs.disko.nixosModules.disko
     (import ./disks.nix { inherit lib; })
 
-    inputs.nixos-hardware.nixosModules.common-cpu-amd
-    inputs.nixos-hardware.nixosModules.common-cpu-amd-pstate
-    inputs.nixos-hardware.nixosModules.common-gpu-nvidia-nonprime
-    # inputs.nixos-hardware.nixosModules.common-hidpi
-    inputs.nixos-hardware.nixosModules.common-pc
-    inputs.nixos-hardware.nixosModules.common-pc-ssd
-
     ../common/hardware/bluetooth.nix
     ../common/hardware/nvidia.nix
     ../common/hardware/razer.nix
@@ -19,9 +12,13 @@
 
   nixpkgs.hostPlatform = "x86_64-linux";
 
+  hardware.cpu.amd.updateMicrocode = true;
+  services.fstrim.enable = true;
+
   # amd-pstate-epp in active mode: powersave lets the energy-performance preference pick
   # between idle and boost (xanmod's default, performance, pins EPP to performance). GameMode
   # switches to performance while a game runs.
+  boot.kernelParams = [ "amd_pstate=active" ];
   powerManagement.cpuFreqGovernor = "powersave";
   systemd.services.cpu-epp = {
     description = "Set the CPU energy-performance preference";
