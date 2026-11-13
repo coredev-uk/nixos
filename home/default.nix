@@ -15,6 +15,7 @@
     ./common/programs/zen.nix
     ./common/programs/ghostty.nix
     ./common/programs/discord.nix
+    ./common/programs/t3code.nix
     ./common/programs/darwin-apps.nix
   ];
   home = {
