@@ -31,6 +31,7 @@ in
     # Standard Programs
     ../programs/discord.nix
     ../programs/gaming.nix
+    ../programs/kraken-lcd
     ../programs/ghostty.nix
     ../programs/sona.nix
     ../programs/t3code.nix

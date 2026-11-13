@@ -309,8 +309,6 @@ in
     };
   };
 
-  # The config is a store symlink and fonts are only read at startup, so a running
-  # instance never sees either change; restart it on switch instead.
   # The lighting engine (scripts/rgb.py serve): draws the look chosen in the Lighting section on
   # every OpenRGB device, LED by LED (only Direct mode reaches atlas's controllers), and again
   # whenever openrgb.service starts (boot, or the VFIO VM handing the devices back). Without a
@@ -331,6 +329,8 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
+  # The config is a store symlink and fonts are only read at startup, so a running
+  # instance never sees either change; restart it on switch instead.
   systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
     "${./config}"
     "${theme.fonts.shell.package}"
