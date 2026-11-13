@@ -9,7 +9,7 @@
 #             whose Hosts run succeeded (null = unknown: unreachable, or main hasn't built yet)
 #   upstream  main's flake.lock on GitHub: its nixpkgs revision, and update_available when that
 #             differs from the running system's
-#   cache     the Attic cache's numbers from Prometheus (nix-cache-exporter): objects and
+#   cache     the Attic cache's numbers from Prometheus (attic-postgres's exporter): objects and
 #             logical_bytes (uncompressed); reachable = Prometheus had them
 #   build     the Hosts workflow's runs on main (.github/workflows/hosts.yml, one matrix job per
 #             host, atlas and poseidon; a run fails when either host does; on every pull request and
@@ -40,7 +40,7 @@ fetch() {
 }
 
 fetch "$lock_url" >"$tmp/lock" &
-fetch --get "$prometheus" --data-urlencode 'query={__name__=~"nix_cache_objects|nix_cache_nar_bytes",cache="coredev"}' >"$tmp/stats" &
+fetch --get "$prometheus" --data-urlencode 'query={__name__=~"cnpg_nix_cache_objects|cnpg_nix_cache_nar_bytes",cache="coredev"}' >"$tmp/stats" &
 
 # GitHub with gh's token when it has one (5000 requests an hour; anonymous ones get 60, shared
 # with everything else on the home IP).
@@ -147,8 +147,8 @@ jq -n \
   | ($pin_main | gsub("^\\s+|\\s+$"; "")) as $main_path
   | ($stats | fromjson? // null | if type == "object" and .status == "success" then .data.result else null end) as $prom
   | {
-      objects: (first($prom[]? | select(.metric.__name__ == "nix_cache_objects") | .value[1] | tonumber) // null),
-      logical_bytes: (first($prom[]? | select(.metric.__name__ == "nix_cache_nar_bytes") | .value[1] | tonumber) // null)
+      objects: (first($prom[]? | select(.metric.__name__ == "cnpg_nix_cache_objects") | .value[1] | tonumber) // null),
+      logical_bytes: (first($prom[]? | select(.metric.__name__ == "cnpg_nix_cache_nar_bytes") | .value[1] | tonumber) // null)
     } as $st
   | ($runs | fromjson? // null | if type == "object" and (.workflow_runs | type) == "array" then .workflow_runs else null end) as $wr
   # Completed runs, newest first; a cancelled one (superseded) says nothing about main.
