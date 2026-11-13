@@ -31,15 +31,15 @@ Singleton {
     //
     // "loading" before the first read, "unreachable" while neither the cache nor GitHub's builds
     // answer (offline), then, first match wins: "failed" (main's latest host build failed, atlas's or
-    // poseidon's, so a switch may build here), "update-failing" (a lock update has a failed check: one of
-    // the nightly trials, one per flake input, or the landing pull request that merges the passing
-    // ones), "update-pending" (updates are open and their checks still running, or landing),
+    // poseidon's, so a switch may build here), "update-failing" (the nightly lock update, every flake
+    // input in one pull request, has a failed check), "update-pending" (it is open, its checks still
+    // running or it merging),
     // "running" (a host build of main is in progress), "ok", or "never" (no finished host build
     // of main to go by, or GitHub didn't answer).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
-    // Something that keeps updates from landing has failed: main's build or an update's checks.
+    // Something that keeps updates from landing has failed: main's build or the update's checks.
     readonly property bool lastFailed: ["failed", "update-failing"].includes(state)
     // Failed systemd units, system and user ([{ scope, name, description }]); empty when none or
     // when neither manager answered (`data.failed_units` null), so a missing read stays calm.
@@ -84,26 +84,20 @@ Singleton {
         return times.length === 0 ? null : Math.min(...times);
     }
 
-    // The open landing pull request (the passing trials merged together), or null.
-    function landingOf(d: var): var {
-        return (d?.updates ?? []).find(u => u.kind === "landing") ?? null;
+    // The open lock update (every flake input in one pull request), or null.
+    function updateOf(d: var): var {
+        return (d?.updates ?? [])[0] ?? null;
     }
 
-    // The open trials (one draft pull request per flake input).
-    function trialsOf(d: var): var {
-        return (d?.updates ?? []).filter(u => u.kind === "trial");
-    }
-
-    // "unstable", "the lock update" for the landing pull request.
-    function nameOf(update: var): string {
-        return update.kind === "landing" ? "the lock update" : update.input;
-    }
-
-    // "unstable and sona", "3 updates" past two.
-    function inputs(updates: var): string {
-        if (updates.length > 2)
-            return `${updates.length} updates`;
-        return updates.map(nameOf).join(" and ");
+    // What an update bumps: "unstable", "unstable and sona", "5 inputs" past two, "the lock"
+    // when its pull request doesn't say.
+    function inputsOf(update: var): string {
+        const inputs = update?.inputs ?? [];
+        if (inputs.length === 0)
+            return "the lock";
+        if (inputs.length > 2)
+            return `${inputs.length} inputs`;
+        return inputs.join(" and ");
     }
 
     // "atlas and poseidon", "3 checks" past two.
@@ -127,23 +121,13 @@ Singleton {
             break;
         case "update-failing":
             {
-                const failing = failingUpdates(d);
-                const since = updateFailingSince(failing[0]);
-                const what = failing.length > 1 ? inputs(failing) : failing[0].kind === "landing" ? "Lock update" : `${failing[0].input} update`;
-                parts.push(`${what} failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
+                const since = updateFailingSince(failingUpdates(d)[0]);
+                parts.push(`Lock update failing${since === null ? "" : ` for ${span(now / 1000 - since)}`}`);
                 break;
             }
         case "update-pending":
             {
-                const landing = landingOf(d);
-                const trials = trialsOf(d);
-                const testing = trials.filter(t => pendingChecks(t).length > 0 || t.checks === null);
-                if (landing !== null)
-                    parts.push(landing.inputs.length === 1 ? `Landing ${landing.inputs[0]}` : `Landing ${landing.inputs.length} updates`);
-                else if (testing.length > 0)
-                    parts.push(testing.length === 1 ? `Testing ${testing[0].input}` : `Testing ${testing.length} updates`);
-                else
-                    parts.push(trials.length === 1 ? `${trials[0].input} update passed` : `${trials.length} updates passed`);
+                parts.push(`Updating ${inputsOf(updateOf(d))}`);
                 break;
             }
         case "running":
