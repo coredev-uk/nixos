@@ -9,14 +9,14 @@ import qs.services
 import qs.widgets
 
 // The control panel behind the network glyph: a rail of sections down its left edge (Sound,
-// Display, Network, Devices, Nix, Claude) and the chosen one beside it, one at a time. The plate
-// keeps one height whichever section shows, so moving between them never moves an edge; a long
-// section scrolls inside it. What's playing sits under every section (MediaPanel). A rail glyph
-// that reports something (the network down, a Nix failure, Claude's limit reached) takes that
-// state's colour. The chosen section is marked by one gilt tint that glides along the rail to the
-// tile picked, and the section arrives from the side it lies on: from below when it sits lower on
-// the rail than the one it replaces. Opening, the contents settle the last 8px as Hyprland fades
-// the popup in.
+// Display, Network, Devices, Lighting, Nix, Claude) and the chosen one beside it, one at a time.
+// The plate keeps one height whichever section shows, so moving between them never moves an
+// edge; a long section scrolls inside it. What's playing sits under every section (MediaPanel).
+// A rail glyph that reports something (the network down, OpenRGB's server not running, a Nix
+// failure, Claude's limit reached) takes that state's colour. The chosen section is marked by one
+// gilt tint that glides along the rail to the tile picked, and the section arrives from the side
+// it lies on: from below when it sits lower on the rail than the one it replaces. Opening, the
+// contents settle the last 8px as Hyprland fades the popup in.
 BarPopup {
     id: root
 
@@ -25,6 +25,7 @@ BarPopup {
         Display,
         Network,
         Devices,
+        Lighting,
         System,
         Claude
     }
@@ -143,6 +144,8 @@ BarPopup {
         NixStatus.refresh(20000);
         if (section === ControlPanel.Section.Claude)
             ClaudeUsage.refresh(false);
+        if (section === ControlPanel.Section.Lighting)
+            Lighting.refresh();
     }
     onVisibleChanged: updateScanner()
     onSectionChanged: {
@@ -153,6 +156,8 @@ BarPopup {
         lastSection = section;
         if (section === ControlPanel.Section.Claude)
             ClaudeUsage.refresh(false);
+        if (section === ControlPanel.Section.Lighting)
+            Lighting.refresh();
     }
     onViewChanged: {
         updateScanner();
@@ -327,6 +332,13 @@ BarPopup {
                     }
 
                     RailTile {
+                        target: ControlPanel.Section.Lighting
+                        name: "Lighting"
+                        icon: Icons.ledStrip
+                        reporting: Lighting.known && !Lighting.running
+                    }
+
+                    RailTile {
                         target: ControlPanel.Section.System
                         name: "Nix"
                         icon: Icons.nixos
@@ -359,6 +371,8 @@ BarPopup {
                             return [networkPage, wifiPage, ethernetPage, vpnPage][root.view];
                         case ControlPanel.Section.Devices:
                             return devicesPage;
+                        case ControlPanel.Section.Lighting:
+                            return lightingPage;
                         case ControlPanel.Section.System:
                             return systemPage;
                         case ControlPanel.Section.Claude:
@@ -782,6 +796,84 @@ BarPopup {
                             modelData.connect();
                         }
                     }
+                }
+            }
+        }
+    }
+
+    // Lighting: the presets, on every device OpenRGB has, then the profiles saved in OpenRGB; the
+    // one on now is gilt. A click while another change runs waits for it.
+    Component {
+        id: lightingPage
+
+        PanelPage {
+            id: lighting
+
+            readonly property bool ready: Lighting.running && Lighting.devices.length > 0
+
+            title: "Lighting"
+            detail: ready ? (Lighting.devices.length === 1 ? Lighting.devices[0].name : `${Lighting.devices.length} devices`) : ""
+
+            BarText {
+                visible: Lighting.known && !lighting.ready
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                Layout.bottomMargin: 4
+                text: Lighting.running ? "OpenRGB hasn't found any lights." : "OpenRGB isn't answering. Is openrgb.service running?"
+                color: Lighting.running ? Theme.text2 : Theme.alert
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
+
+            Repeater {
+                model: Lighting.presets
+
+                ListRow {
+                    required property var modelData
+
+                    Layout.fillWidth: true
+                    enabled: lighting.ready
+                    icon: modelData.id === "off" ? Icons.ledStripOff : Icons.spectrum
+                    swatch: modelData.color ?? "transparent"
+                    label: modelData.name
+                    sublabel: Lighting.pending === modelData.id ? "Applying…" : ""
+                    active: Lighting.current === modelData.id
+                    onClicked: Lighting.choose(modelData.id)
+                }
+            }
+
+            // What the last change couldn't do: a failure, or the devices it had no mode for.
+            BarText {
+                visible: text !== ""
+                Layout.fillWidth: true
+                Layout.leftMargin: 12
+                Layout.rightMargin: 12
+                text: Lighting.error !== "" ? Lighting.error : Lighting.skipped.length > 0 ? `${Lighting.skippedFor} isn't available on ${Lighting.skipped.join(", ")}.` : ""
+                color: Lighting.error !== "" ? Theme.alert : Theme.text2
+                font.pixelSize: 11
+                wrapMode: Text.Wrap
+            }
+
+            SectionLabel {
+                visible: Lighting.profiles.length > 0
+                Layout.topMargin: 8
+                text: "Saved in OpenRGB"
+            }
+
+            Repeater {
+                model: Lighting.profiles
+
+                ListRow {
+                    required property string modelData
+
+                    Layout.fillWidth: true
+                    enabled: lighting.ready
+                    icon: Icons.palette
+                    label: modelData
+                    sublabel: Lighting.pending === `profile:${modelData}` ? "Applying…" : ""
+                    active: Lighting.current === `profile:${modelData}`
+                    onClicked: Lighting.choose(`profile:${modelData}`)
                 }
             }
         }

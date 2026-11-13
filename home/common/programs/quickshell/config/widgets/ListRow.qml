@@ -3,8 +3,9 @@ import QtQuick.Layouts
 import qs.common
 
 // Selectable row in the panel sub-views (wifi networks, VPN countries, bluetooth devices, power
-// actions). Transparent at rest, hover on hover; active or armed rows tint in their accent
-// (gilt: connected, selected) and take it on the glyph and label.
+// actions, lighting presets). Transparent at rest, hover on hover; active or armed rows tint in
+// their accent (gilt: connected, selected) and take it on the glyph and label. A swatch (the
+// colour a lighting preset puts on) takes the glyph's place and keeps its own colour.
 Rectangle {
     id: root
 
@@ -14,6 +15,7 @@ Rectangle {
     property string sublabel
     property bool active: false
     property color accent: Theme.gilt
+    property color swatch: "transparent"
 
     signal clicked
 
@@ -45,7 +47,7 @@ Rectangle {
 
         Text {
             Layout.preferredWidth: 20
-            text: root.icon
+            text: root.swatch.a > 0 ? "" : root.icon
             // Muted only on a clear row; it sinks into the hover fill, so it lifts to text2 there.
             color: root.active ? root.accent : area.containsMouse ? Theme.text2 : Theme.muted
             font.family: root.emoji ? Theme.emojiFont : Theme.iconFont
@@ -57,6 +59,18 @@ Rectangle {
                     duration: Theme.durationState
                     easing.type: Theme.easing
                 }
+            }
+
+            // A rule ring keeps a dark colour apart from the row under it.
+            Rectangle {
+                anchors.centerIn: parent
+                visible: root.swatch.a > 0
+                width: 12
+                height: 12
+                radius: 6
+                color: root.swatch
+                border.width: 1
+                border.color: Theme.rule
             }
         }
 

@@ -139,6 +139,12 @@ Singleton {
     // The control panel's Claude section (sparkles: there is no Claude glyph)
     readonly property string claude: String.fromCodePoint(0xF0674) // creation
 
+    // The control panel's Lighting section (OpenRGB)
+    readonly property string ledStrip: String.fromCodePoint(0xF1051) // led_strip_variant
+    readonly property string ledStripOff: String.fromCodePoint(0xF1A4B) // led_strip_variant_off
+    readonly property string spectrum: String.fromCodePoint(0xF0344) // looks
+    readonly property string palette: String.fromCodePoint(0xF03D8) // palette
+
     // Sona's favourite on what's playing (MediaPanel)
     readonly property string heart: String.fromCodePoint(0xF02D1) // heart
     readonly property string heartOutline: String.fromCodePoint(0xF02D5) // heart_outline

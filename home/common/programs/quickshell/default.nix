@@ -38,6 +38,12 @@ let
     text = builtins.readFile ./scripts/batteries.sh;
   };
 
+  # OpenRGB lighting for the control panel's Lighting section (config/services/Lighting.qml),
+  # over the SDK of the system's OpenRGB server (hosts/common/desktop/rgb.nix).
+  quickshellRgb = pkgs.writers.writePython3Bin "quickshell-rgb" {
+    libraries = [ pkgs.python3Packages.openrgb-python ];
+  } (builtins.readFile ./scripts/rgb.py);
+
   # atlas's Nix state and the home-lab binary cache for the panel's Nix view
   # (config/services/NixStatus.qml): main's flake.lock, the open lock update pull request (every
   # flake input at once, nightly) and its checks, and the Hosts workflow's runs on main and the
@@ -334,6 +340,7 @@ in
     gnomeNetworkDisplays
     quickshellVpn
     quickshellBatteries
+    quickshellRgb
     quickshellNixStatus
     quickshellClaudeUsage
     quickshellLock
