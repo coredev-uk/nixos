@@ -14,6 +14,12 @@
 # or the VFIO VM handing the devices back), redrawing the moving ones 20
 # times a second.
 #
+# QMK keyboards follow too, over their raw HID interface. With SignalRGB's
+# protocol in the firmware (the K8 Pro runs SRGBmods' build of Keychron's
+# QMK) every key is drawn, from its place on the board; stock VIA firmware
+# takes one colour for the whole board, the look's at the middle of the case,
+# set in its RAM only (VIA's set, never its save).
+#
 # `status` prints one JSON object:
 #   {"running": bool,      the server answered
 #    "engine": bool,       quickshell-rgb.service is running
@@ -24,11 +30,14 @@
 #    "error": str}         "" unless something failed
 
 import colorsys
+import glob
 import json
 import math
 import os
 import random
 import re
+import select
+import signal
 import subprocess
 import sys
 import time
@@ -240,6 +249,131 @@ def draw(lights, fn, t, sent):
             sent[key] = frame
 
 
+VIA_USAGE_PAGE = bytes([0x06, 0x60, 0xFF])  # report descriptor's first item
+VIA_RATE = 0.1  # seconds between a moving look's one-colour updates
+
+# Each key's (column, row) on the board, by LED index, for boards with
+# SignalRGB's protocol; from SRGBmods' plugin for the board (qmk-plugins).
+KEY_POSITIONS = {
+    # Keychron K8 Pro ISO RGB: a 17x6 TKL.
+    (0x3434, 0x0281): (
+        [(c, 0) for c in (*range(13), 14, 15, 16)]
+        + [(c, 1) for c in range(17)]
+        + [(c, 2) for c in range(17)]
+        + [(c, 3) for c in (*range(12), 13)]
+        + [(c, 4) for c in (*range(12), 13, 15)]
+        + [(c, 5) for c in (0, 1, 2, 6, 10, 11, 12, 13, 14, 15, 16)]),
+}
+
+
+class Keyboard:
+    """A QMK keyboard's lighting, through its raw HID interface."""
+
+    def __init__(self, node, name, ids):
+        self.node, self.name = node, name
+        self.fd = os.open(node, os.O_RDWR)
+        self.sent, self.at = None, 0.0
+        self.keys = KEY_POSITIONS.get(ids)
+        # SignalRGB's protocol: 0x22 answers with its version, 0x25 hands
+        # the LEDs to the host, 0x24 sets up to 9 of them from an index.
+        total = self.ask([0x27]) if self.keys and \
+            self.ask([0x22]) is not None else None
+        if total is not None and total[1] == len(self.keys):
+            self.ask([0x25])
+            width = max(c for c, _ in self.keys) or 1
+            height = max(r for _, r in self.keys) or 1
+            # x across the board, u down its rows, so a look sweeps over it
+            # the way it does over the case.
+            self.leds = [(c / width, r / height, False, 5000 + k)
+                         for k, (c, r) in enumerate(self.keys)]
+            return
+        self.keys = None
+        version = self.ask([0x01])
+        self.via = (version[1] << 8 | version[2]) if version else 0
+        # VIA's lighting values: brightness, effect, hue and saturation.
+        # Protocol 12 put them on channel 3 (QMK RGB matrix) as 1, 2, 4;
+        # before, they were 0x80, 0x81, 0x83. Effect 1 is a solid colour.
+        self.value = (lambda v: [0x07, 0x03, v]) if self.via >= 12 else \
+            (lambda v: [0x07, {1: 0x80, 2: 0x81, 4: 0x83}[v]])
+        self.ask(self.value(2) + [0x01])
+
+    def ask(self, data):
+        """Sends a report; its reply, or None when none came."""
+        os.write(self.fd, bytes([0]) + bytes(data) + bytes(32 - len(data)))
+        for _ in range(4):
+            if not select.select([self.fd], [], [], 0.2)[0]:
+                return None
+            reply = os.read(self.fd, 32)
+            if reply[0] == data[0]:
+                return reply
+        return None
+
+    def show(self, fn, t, moving):
+        if self.keys:
+            frame = [colour(fn(t, *led)) for led in self.leds]
+            if frame == self.sent:
+                return
+            for start in range(0, len(frame), 9):
+                chunk = frame[start:start + 9]
+                data = [0x24, start, len(chunk)]
+                for c in chunk:
+                    data += [c.red, c.green, c.blue]
+                os.write(self.fd, bytes([0]) + bytes(data)
+                         + bytes(32 - len(data)))
+            self.sent = frame
+            return
+        now = time.monotonic()
+        if moving and now - self.at < VIA_RATE:
+            return
+        h, s, v = colorsys.rgb_to_hsv(*fn(t, 0.5, 0.5, False, -1))
+        want = (round(h * 255), round(s * 255), round(v * 255))
+        if want != self.sent:
+            if self.sent is None or want[:2] != self.sent[:2]:
+                self.ask(self.value(4) + list(want[:2]))
+            if self.sent is None or want[2] != self.sent[2]:
+                self.ask(self.value(1) + [want[2]])
+            self.sent = want
+        self.at = now
+
+    def drain(self):
+        # SignalRGB's 0x24 is answered too; reading the replies keeps them
+        # from piling up.
+        while select.select([self.fd], [], [], 0)[0]:
+            os.read(self.fd, 32)
+
+    def close(self):
+        try:
+            if self.keys:
+                self.ask([0x26])  # the board's own lighting back
+        except OSError:
+            pass
+        try:
+            os.close(self.fd)
+        except OSError:
+            pass
+
+
+def find_keyboards():
+    """(node, name, (vendor, product)) of each QMK raw HID interface."""
+    found = []
+    for path in sorted(glob.glob("/sys/class/hidraw/hidraw*")):
+        try:
+            with open(f"{path}/device/report_descriptor", "rb") as f:
+                if f.read(3) != VIA_USAGE_PAGE:
+                    continue
+            with open(f"{path}/device/uevent") as f:
+                uevent = dict(line.split("=", 1) for line in
+                              f.read().splitlines() if "=" in line)
+        except OSError:
+            continue
+        _, vendor, product = (uevent.get("HID_ID", "0:0:0").split(":")
+                              + ["0", "0"])[:3]
+        found.append((f"/dev/{os.path.basename(path)}",
+                      uevent.get("HID_NAME", "Keyboard"),
+                      (int(vendor, 16), int(product, 16))))
+    return found
+
+
 def connect():
     """A client once the server has settled on its devices, else None."""
     try:
@@ -268,40 +402,76 @@ def connect():
 
 
 def serve():
+    signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
+    # OpenRGB and the keyboards come and go on their own: each is retried
+    # every few seconds while it's missing, and the look goes on whatever is
+    # there.
+    client, lights = None, []
+    keyboards = {}
+    try:
+        run(client, lights, keyboards)
+    finally:
+        for keyboard in keyboards.values():
+            keyboard.close()
+
+
+def run(client, lights, keyboards):
+    current, started, drawn, sent = None, 0.0, False, {}
+    last_check = 0.0
     while True:
-        client = connect()
-        if client is None:
-            time.sleep(3)
-            continue
-        lights = layout(client)
-        current, started, drawn, sent = None, 0.0, False, {}
-        last_check = time.monotonic()
-        try:
-            while True:
-                look_id = read_look()
-                if look_id != current:
-                    current, started, drawn = look_id, time.monotonic(), False
-                    sent.clear()
-                    _flame.clear()
-                look = resolve(current)
-                now = time.monotonic()
-                if look is not None and (look[1] or not drawn):
-                    draw(lights, look[0], now - started, sent)
-                    drawn = True
-                # A server that went away shows on the next request.
-                if now - last_check > 5:
-                    last_check = now
+        now = time.monotonic()
+        if now - last_check > 5:
+            last_check = now
+            if client is None:
+                client = connect()
+                lights = layout(client) if client else []
+                drawn = False
+                sent.clear()
+            else:
+                try:
+                    # A server that went away shows on the next request.
                     client.update()
                     if [d.name for d in client.devices] != \
                             [d.name for d, _ in lights]:
                         raise ConnectionError("devices changed")
-                time.sleep(1 / FPS if look and look[1] else 0.2)
-        except Exception:
-            try:
-                client.disconnect()
-            except Exception:
-                pass
-            time.sleep(2)
+                except Exception:
+                    try:
+                        client.disconnect()
+                    except Exception:
+                        pass
+                    client, lights = None, []
+            for node, name, ids in find_keyboards():
+                if node not in keyboards:
+                    try:
+                        keyboards[node] = Keyboard(node, name, ids)
+                    except (OSError, TypeError):
+                        pass
+        look_id = read_look()
+        if look_id != current:
+            current, started, drawn = look_id, now, False
+            sent.clear()
+            _flame.clear()
+            for keyboard in keyboards.values():
+                keyboard.sent = None
+        look = resolve(current)
+        if look is not None:
+            fn, moving = look
+            t = now - started
+            if client is not None and (moving or not drawn):
+                try:
+                    draw(lights, fn, t, sent)
+                    drawn = True
+                except Exception:
+                    last_check = 0.0
+            for node, keyboard in list(keyboards.items()):
+                try:
+                    keyboard.drain()
+                    keyboard.show(fn, t, moving)
+                # Unplugged, or switched to Bluetooth.
+                except OSError:
+                    keyboard.close()
+                    del keyboards[node]
+        time.sleep(1 / FPS if look and look[1] else 0.2)
 
 
 def engine_running():
@@ -338,6 +508,9 @@ def status(error=""):
     finally:
         if client is not None:
             client.disconnect()
+    result["devices"] += [
+        {"name": name, "leds": len(KEY_POSITIONS.get(ids, [None]))}
+        for _, name, ids in find_keyboards()]
     if not result["engine"] and not result["error"]:
         result["error"] = "The lighting engine (quickshell-rgb.service) " \
             "isn't running."
