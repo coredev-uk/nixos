@@ -32,7 +32,7 @@ in
     name = "Meridian";
     author = "Paul (system palette)";
     dark.color = {
-      ground = m.ground;
+      inherit (m) ground;
       surface = m.inset;
       raised = m.plate;
       inherit hover;
