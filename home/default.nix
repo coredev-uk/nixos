@@ -23,6 +23,20 @@
     inherit (meta) homeDirectory;
   };
 
+  # The standalone configuration (atlas's) follows main like the system (system.autoUpgrade,
+  # hosts/atlas/extra.nix): home-manager-auto-upgrade.service switches to main's each morning, or
+  # at the next login. Not with useFlake, which builds from a local checkout. The channel update it
+  # runs first finds none (it leaves an empty channels profile).
+  services.home-manager.autoUpgrade = lib.mkIf (osConfig == null) {
+    enable = true;
+    frequency = "05:30";
+    flags = [
+      "--refresh"
+      "--flake"
+      "github:coredev-uk/nixos#${meta.username}@${meta.hostname}"
+    ];
+  };
+
   # Standalone home-manager only; under nix-darwin, useGlobalPkgs hands HM the system's pkgs.
   nixpkgs = lib.mkIf (osConfig == null) {
     overlays = [
