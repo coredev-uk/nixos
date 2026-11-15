@@ -11,6 +11,8 @@ Item {
     id: root
 
     readonly property var player: Media.player
+    // The widest the title may be: Bar.qml narrows it to stop short of the right cluster.
+    property real maxWidth: 600
 
     visible: (player?.isPlaying ?? false) || popup.visible
     onPlayerChanged: {
@@ -43,7 +45,7 @@ Item {
         }
 
         ScrollingText {
-            Layout.maximumWidth: 600
+            Layout.maximumWidth: root.maxWidth
             text: [root.player?.trackTitle, root.player?.trackArtist].filter(part => part).join(" - ")
             color: popup.visible ? Theme.gilt : Theme.text
         }
