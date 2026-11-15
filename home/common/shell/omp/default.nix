@@ -47,13 +47,16 @@ let
   };
 
   # omp from its flake, prefixed so a PI_CONFIG_FILES from the environment still layers on top.
+  # Without LD_LIBRARY_PATH: a devenv shell's (sona-go's GTK and GLib, of a newer glibc than the
+  # system's) reaches every browser omp starts, and its WebKit host and Nix's Chromium then fail
+  # to load (`GLIBC_2.43' not found`). Projects' commands get it back from `devenv shell --`.
   package = inputs.omp.packages.${pkgs.stdenv.hostPlatform.system}.default;
   omp = pkgs.symlinkJoin {
     inherit (package) name;
     paths = [ package ];
     nativeBuildInputs = [ pkgs.makeWrapper ];
     postBuild = ''
-      wrapProgram $out/bin/omp --prefix PI_CONFIG_FILES : ${ompConfig}
+      wrapProgram $out/bin/omp --prefix PI_CONFIG_FILES : ${ompConfig} --unset LD_LIBRARY_PATH
     '';
   };
 in
