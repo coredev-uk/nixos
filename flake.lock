@@ -232,11 +232,11 @@
     "impeccable": {
       "flake": false,
       "locked": {
-        "lastModified": 1794624298,
-        "narHash": "sha256-cti35Nehd2C9mPBRy5Ua90Iqt/TAMelPFn4bHZKNF54=",
+        "lastModified": 1794707522,
+        "narHash": "sha256-BSjkvhmwbsFigXCh9TgIPB1rE7Xh53b0xD83V084DIk=",
         "owner": "pbakaus",
         "repo": "impeccable",
-        "rev": "c5dd5fc267b486d991229c4d4647e67ba955f39d",
+        "rev": "2b86d9c07b97d4bed7de23583e1bd1e58dd2baae",
         "type": "github"
       },
       "original": {
@@ -276,11 +276,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1792887030,
-        "narHash": "sha256-q2OqYVXM9i+Z2Q8k0E7uY3WAZ/rRR0QTMSbdgR4ZlPk=",
+        "lastModified": 1794683286,
+        "narHash": "sha256-YfoLAnX/kfeWrDdNUakKXM5Ot22TLOni2WyNjrZa8Mw=",
         "owner": "coredev-uk",
         "repo": "macos-wallpapers",
-        "rev": "b1522ffcc8f12ce48435d9c8de9f454dd0b3c662",
+        "rev": "79757f20d0643d6250db2378b2f7f76fb8d232be",
         "type": "github"
       },
       "original": {
@@ -438,11 +438,11 @@
         ]
       },
       "locked": {
-        "lastModified": 1794612436,
-        "narHash": "sha256-VSA1YxaiNxqGvVAGfbRYTlwG+dANdAGI5jx6IR55W1I=",
+        "lastModified": 1794695953,
+        "narHash": "sha256-5B6B2Se9HMcXZBV95kYMcEJJBK6W+5Gw1Jy/B4HDdMI=",
         "owner": "FlameFlag",
         "repo": "nixcord",
-        "rev": "013f378d06a88e1f6b023b655a07c0a080835561",
+        "rev": "2840179d12e7a69bda760d5440b0301dd912bdcc",
         "type": "github"
       },
       "original": {
@@ -567,11 +567,11 @@
         "rust-overlay": "rust-overlay_2"
       },
       "locked": {
-        "lastModified": 1794620897,
-        "narHash": "sha256-s8gzUbIzNA8pQVwzil1mmvMRrLf76woqqLMugxNimEc=",
+        "lastModified": 1794686448,
+        "narHash": "sha256-tDXp+gsI02YiwKwh+pZpbDMIgioWZdbAMmGCPCu57iw=",
         "owner": "can1357",
         "repo": "oh-my-pi",
-        "rev": "57263720c818ab3baaeb74bf415b03592b806ae0",
+        "rev": "7c49c11aa5bbaf3f418406583096168ad5b8c6dc",
         "type": "github"
       },
       "original": {
@@ -671,11 +671,11 @@
         "nixpkgs": "nixpkgs_3"
       },
       "locked": {
-        "lastModified": 1794568248,
-        "narHash": "sha256-c8Px3+x2mCuaiG3W+iz+a4+BQ8J5JqezP18P6i+iibk=",
+        "lastModified": 1794709687,
+        "narHash": "sha256-piuQEdSO0Qz1qDkV/yajQ9oLeIOapniJksEofm8MVYM=",
         "owner": "coredev-uk",
         "repo": "sona-go",
-        "rev": "2e36c986670f2ace69c900dd67a6acaa2d660a4e",
+        "rev": "9010fc73ea5c84687d3b6db281837fdbddd93659",
         "type": "github"
       },
       "original": {
