@@ -22,6 +22,19 @@
     "pcie_acs_override=downstream,multifunction"
   ];
 
+  # Follow main: nixos-upgrade.service switches to main's atlas each morning (or at the next boot,
+  # when atlas was off). Every change reaches main only after the Hosts workflow built atlas into
+  # Attic, and the nightly flake update merges at night, so the switch only downloads. Home
+  # Manager follows the same way (home/default.nix). A system switched to from a local checkout
+  # goes back to main's at the next run.
+  system.autoUpgrade = {
+    enable = true;
+    flake = "github:coredev-uk/nixos#atlas";
+    upgrade = false; # flakes, no channels
+    dates = "05:00";
+    randomizedDelaySec = "30min";
+  };
+
   # Battery readout for the quickshell panel (quickshell-batteries); the udev rules give
   # the logged-in user access to the headset's hidraw node.
   environment.systemPackages = [ unstable.headsetcontrol ];
