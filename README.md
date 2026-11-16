@@ -1,22 +1,36 @@
-# Core's NixOS Configuration Files
+<img src="assets/logo.svg" alt="" width="100" align="left">
 
-[![Flake Checks](https://github.com/coredev-uk/nixos/actions/workflows/nix-check.yml/badge.svg)](https://github.com/coredev-uk/nixos/actions/workflows/nix-check.yml)
+### NixOS Configuration
 
-These are my NixOS config files. I recently moved from Arch Linux using i3wm and
-Hyprland to Nix. I am new at this approach and find it great to work with. This
-would not be possible without the help of other user configuration files,
-notably [this repo](https://github.com/jnsgruk/nixos-config) by jnsgruk; this
-was a great help at getting going.
+[![Flake Checks](https://img.shields.io/github/actions/workflow/status/coredev-uk/nixos/nix-check.yml?branch=main&label=flake%20checks)](https://github.com/coredev-uk/nixos/actions/workflows/nix-check.yml)
+[![Hosts](https://img.shields.io/github/actions/workflow/status/coredev-uk/nixos/hosts.yml?branch=main&label=hosts)](https://github.com/coredev-uk/nixos/actions/workflows/hosts.yml)
+[![Last commit](https://img.shields.io/github/last-commit/coredev-uk/nixos.svg)](https://github.com/coredev-uk/nixos/commits)
 
-## Device Estate
+Core's Nix flake for NixOS and macOS: one configuration for every machine, from disk layout to desktop.
 
-|  Hostname  |         OS         | Device  |        WM        |   Status    |
-| :--------: | :----------------: | :-----: | :--------------: | :---------: |
-|  `atlas`   |       NixOS        | Desktop | Hyperland        |   Working   |
-| `poseidon` | macOS (nix-darwin) | Laptop  |       N/A        |   Working   |
-|  `athena`  |      Windows       | Desktop |       N/A        |     N/A     |
+[Hosts](#hosts) •
+[Bootstrap](#bootstrap) •
+[Write-up](https://coredev.uk/projects/nixos-configuration/) •
+[Binary cache](https://github.com/coredev-uk/home-ops/blob/main/docs/nix-cache.md)
 
-## Bootstrap Guide
+<br clear="left">
+
+<img src="assets/atlas.webp" alt="The atlas desktop on Hyprland: flake.nix open in Neovim on the left; on the right, fastfetch showing NixOS 26.05 with an AMD Ryzen 7 3700X and an RTX 3080, above the repository's git log.">
+
+## Hosts
+
+<details>
+<summary>Machines this flake configures</summary>
+
+|  Hostname  |         OS         | Device  |    WM    | Status  |
+| :--------: | :----------------: | :-----: | :------: | :-----: |
+|  `atlas`   |       NixOS        | Desktop | Hyprland | Working |
+| `poseidon` | macOS (nix-darwin) | Laptop  |   N/A    | Working |
+|  `athena`  |      Windows       | Desktop |   N/A    |   N/A   |
+
+</details>
+
+## Bootstrap
 
 Clone the repo, run `nix develop` then `./install-with-disk`.
 
@@ -67,3 +81,12 @@ sudo sbctl setup --migrate
 ```
 
 </details>
+
+## Credits
+
+This would not be possible without other people's configurations, notably
+[jnsgruk/nixos-config](https://github.com/jnsgruk/nixos-config), which was a great help at getting going.
+
+## Licence
+
+Licensed under the MIT License ([LICENSE](LICENSE)).
