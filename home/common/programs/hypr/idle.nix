@@ -28,7 +28,9 @@ in
         # Delay suspend until the session is locked (inhibit via logind, not just before_sleep_cmd).
         inhibit_sleep = 3;
         before_sleep_cmd = "${pkgs.systemd}/bin/loginctl lock-session";
-        after_sleep_cmd = dpms "enable";
+        # Off then on, not just on: after an NVIDIA resume the outputs can stay black while
+        # reporting DPMS on, so a plain enable is a no-op; the off/on cycle forces a modeset.
+        after_sleep_cmd = "${dpms "disable"}; sleep 1; ${dpms "enable"}";
         on_unlock_cmd = "set-brightness-all 100%";
       };
 
