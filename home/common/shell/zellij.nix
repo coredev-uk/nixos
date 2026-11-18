@@ -2,6 +2,7 @@
   config,
   lib,
   meta,
+  pkgs,
   ...
 }:
 let
@@ -249,4 +250,28 @@ in
       exit
     fi
   '';
+
+  # Zellij 0.46 opens its "Welcome to Zellij" desktop-setup wizard in every new session until
+  # setup is approved or declined for good; dismissing it only records WizardDismissed. Record
+  # the wizard's own "never show" answer in its state file. Zellij rewrites that file, so it's
+  # patched in place rather than linked from the store.
+  home.activation.zellijSkipSetup =
+    let
+      dataDir =
+        if meta.isDarwin then
+          "${config.home.homeDirectory}/Library/Application Support/org.Zellij-Contributors.Zellij"
+        else
+          "${config.xdg.dataHome}/zellij";
+      jq = lib.getExe pkgs.jq;
+    in
+    lib.hm.dag.entryAfter [ "writeBoundary" ] ''
+      state=${lib.escapeShellArg "${dataDir}/desktop_integration.json"}
+      if ! ${jq} -e '.flags | index("SetupNeverShow")' "$state" >/dev/null 2>&1; then
+        tmp=$(mktemp)
+        ${jq} '.flags = ((.flags // []) + ["SetupNeverShow"] | unique)' "$state" >"$tmp" 2>/dev/null \
+          || echo '{"flags":["SetupNeverShow"]}' >"$tmp"
+        run mkdir -p "$(dirname "$state")"
+        run mv "$tmp" "$state"
+      fi
+    '';
 }
