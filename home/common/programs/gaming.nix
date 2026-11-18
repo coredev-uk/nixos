@@ -6,6 +6,21 @@
 let
   m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
   stripHash = str: builtins.substring 1 (-1) str;
+
+  # The launcher spawns the native BinLinux/BeamNG.drive.x64 itself, which needs a full FHS
+  # library set; steam-run's lacks what the game's CEF UI (libcef.so) links against.
+  beammp-launcher = pkgs.writeShellScriptBin "BeamMP-Launcher" ''
+    exec ${
+      (pkgs.steam.override {
+        extraPkgs = p: [
+          p.at-spi2-core
+          p.libxcomposite
+          p.nspr
+          p.nss
+        ];
+      }).run
+    }/bin/steam-run ${pkgs.beammp-launcher}/bin/BeamMP-Launcher "$@"
+  '';
 in
 {
   programs.mangohud = {
@@ -47,6 +62,7 @@ in
   };
 
   home.packages = with pkgs; [
+    beammp-launcher
     heroic
     r2modman
     umu-launcher
