@@ -17,9 +17,12 @@
     "${self}/hosts/common/base/nix-ld.nix"
   ];
 
-  # Split top-io usb controller for vfio passthrough
   boot.kernelParams = [
+    # Split top-io usb controller for vfio passthrough
     "pcie_acs_override=downstream,multifunction"
+    # Keep NVMe out of deep APST states: the WD SN770 root drive took ~12ms to wake from them,
+    # stalling btrfs commits (16s) and freezing the desktop at low CPU/RAM use.
+    "nvme_core.default_ps_max_latency_us=0"
   ];
 
   # Follow main: nixos-upgrade.service switches to main's atlas each morning (or at the next boot,
