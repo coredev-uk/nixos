@@ -123,6 +123,11 @@ in
         light.name = "meridian";
       };
       font.normal.family = theme.fonts.shell.name;
+
+      # File search unused (apps, calculator, power only). The indexer watched all of $HOME, looped
+      # incremental scans on Go's build cache every ~1.5s, and grew its DB to 14 GB of rewrites on
+      # the snapshotted /home subvolume, stalling btrfs commits for seconds.
+      providers.files.preferences.autoIndexing = false;
     };
   };
 }
