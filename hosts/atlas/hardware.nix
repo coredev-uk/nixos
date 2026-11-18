@@ -1,4 +1,9 @@
-{ inputs, lib, ... }:
+{
+  inputs,
+  lib,
+  meta,
+  ...
+}:
 
 {
   imports = [
@@ -57,4 +62,19 @@
       };
     };
   };
+
+  # Nested subvolumes are left out of the /home snapshots. Caches (Go's build cache alone
+  # rewrote ~3 GB/h) and omp's agent sessions churned so much under hourly snapshots that
+  # btrfs commits took up to 3.5s of CPU, stalling every fsync-ing app. `v` only creates a
+  # subvolume where nothing exists yet; an existing plain directory needs moving by hand.
+  systemd.tmpfiles.rules =
+    let
+      home = meta.homeDirectory;
+      owner = "${meta.username} users";
+    in
+    [
+      "d ${home}/.local 0755 ${owner} -"
+      "v ${home}/.local/cache 0755 ${owner} -"
+      "v ${home}/.omp 0755 ${owner} -"
+    ];
 }
