@@ -1,1 +1,3 @@
 __pycache__/
+# BeamMP launcher state, written to the directory it is run from
+/Launcher.cfg
