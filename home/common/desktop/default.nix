@@ -41,6 +41,8 @@ in
   home.packages = with pkgs; [
     desktop-file-utils
     file-roller
+    # Jellyfin client on CEF + mpv, with MPRIS (pkgs/jellium-desktop; not in nixpkgs).
+    jellium-desktop
     # Plex (and Jellyfin) through Plezy rather than Plex Desktop: the official app has no MPRIS, so
     # the shell's now playing couldn't see or control it; Plezy publishes title, artwork and
     # controls over MPRIS (home/common/programs/quickshell, services/Media.qml). Patched above.
