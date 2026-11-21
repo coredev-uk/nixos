@@ -39,7 +39,8 @@ Singleton {
 
     // Lists right away when signed in before; a failure then checks whether the session is gone.
     // Nothing runs while a web login is pending (the helper refuses anyway, see scripts/pass.sh):
-    // the window just shows the waiting state until signedInNow.
+    // the window just shows the waiting state until signedInNow. Runs once at shell start, so
+    // the first open already has the items, and again on every open to pick up changes.
     function refresh() {
         if (signingIn)
             return;
@@ -275,4 +276,7 @@ Singleton {
             }
         }
     }
+
+    // A failure here (keyring or network not up yet) only leaves the error; the next open retries.
+    Component.onCompleted: refresh()
 }
