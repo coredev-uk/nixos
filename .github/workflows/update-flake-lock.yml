@@ -20,17 +20,20 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      id-token: write
     steps:
-      # The bot-cecil app's credentials (1Password item kubernetes/bot-cecil). Its token's
+      # A bot-cecil token from octo-sts (home-ops, kubernetes/apps/actions-runner-system/octo-sts)
+      # for this job's OIDC token; .github/chainguard/update-flake-lock.sts.yaml grants it. Its
       # pushes, unlike GITHUB_TOKEN's, trigger the PR's checks.
       - name: Generate BOT Cecil token
         id: app-token
-        uses: actions/create-github-app-token@v3
+        uses: octo-sts/action@v1.1.1
         with:
-          client-id: ${{ secrets.BOT_APP_CLIENT_ID }}
-          private-key: ${{ secrets.BOT_APP_PRIVATE_KEY }}
-          permission-contents: write
-          permission-pull-requests: write
+          domain: octo-sts.hera.ac
+          scope: ${{ github.repository }}
+          identity: update-flake-lock
 
       - uses: actions/checkout@v7
         with:
