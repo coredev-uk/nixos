@@ -24,15 +24,10 @@ let
     "atlas ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSWafFdU4bGttTPya205vZdasfISB9uv8v34syjjkPr"
   ];
 
-  # Proton Pass's SSH agent serves its SSH key items: on Linux the desktop app's own (Settings →
-  # SSH agent; the app starts with the session, home/common/desktop/hyprland), on macOS
-  # pass-cli's launchd agent below for the Development vault (where Proton's docs put the socket).
-  passCli = lib.getExe' pkgs.proton-pass-cli "pass-cli";
-  agentSocket =
-    if meta.isDarwin then
-      "${meta.homeDirectory}/.ssh/proton-pass-agent.sock"
-    else
-      "${meta.homeDirectory}/.ssh/proton-pass-ssh-agent.sock";
+  # Proton Pass's SSH agent serves its SSH key items: the desktop app's own (Settings → SSH
+  # agent), which listens here on both Linux and macOS. On Linux the app starts with the session
+  # (home/common/desktop/hyprland); on macOS it needs "Start at login" set in the app.
+  agentSocket = "${meta.homeDirectory}/.ssh/proton-pass-ssh-agent.sock";
   SSH_AUTH_SOCK = agentSocket;
   IdentityAgent = agentSocket;
 
@@ -61,33 +56,6 @@ in
 
   home.sessionVariables = {
     inherit SSH_AUTH_SOCK;
-  };
-
-  # Signs in to Proton Pass on macOS (`pass-cli login`); Linux gets it with the desktop
-  # (home/common/desktop/default.nix).
-  home.packages = lib.optional meta.isDarwin pkgs.proton-pass-cli;
-
-  # As Proton's docs set it up (protonpass.github.io/pass-cli/commands/ssh-agent). pass-cli keeps
-  # its session in the login keychain; signed out, the agent exits and launchd retries a minute
-  # later.
-  launchd.agents.proton-pass-ssh-agent = lib.mkIf meta.isDarwin {
-    enable = true;
-    config = {
-      ProgramArguments = [
-        passCli
-        "ssh-agent"
-        "start"
-        "--socket-path"
-        agentSocket
-        "--vault-name"
-        "Development"
-      ];
-      EnvironmentVariables.PROTON_PASS_NO_UPDATE_CHECK = "1";
-      RunAtLoad = true;
-      KeepAlive = true;
-      ThrottleInterval = 60;
-      StandardErrorPath = "${meta.homeDirectory}/Library/Logs/proton-pass-ssh-agent.log";
-    };
   };
 
   # Enable the SSH program for your user
