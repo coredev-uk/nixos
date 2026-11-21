@@ -140,6 +140,11 @@ in
       ui.pane_frames.rounded_corners = true;
       # Plain separators in the tab and status bars instead of powerline triangles.
       simplified_ui = true;
+
+      # omp in a pane sees Ghostty's environment and places images with Kitty Unicode
+      # placeholders (U=1), which zellij rejects (zellij-org/zellij#5530), so images never
+      # appear. Zellij handles ordinary Kitty placements, so have omp use those.
+      env.PI_NO_KITTY_PLACEHOLDERS = "1";
     };
 
     extraConfig = ''
