@@ -36,9 +36,9 @@ lock() {
 }
 
 # pass-cli logs tracing lines and anyhow chains ("Error: …", "Caused by:", indented causes) to
-# stderr; boil them down to one readable line.
+# stderr; boil them down to one readable line. Reads $tmp/errors unless given another file.
 report_error() {
-	local line message="" cause="" fallback=""
+	local line message="" cause="" fallback="" errors=${1:-$tmp/errors}
 	while IFS= read -r line; do
 		case $line in
 		"Session is locked"*)
@@ -56,7 +56,7 @@ report_error() {
 			;;
 		*) fallback=$line ;;
 		esac
-	done <"$tmp/errors"
+	done <"$errors"
 	message=${message:-${fallback:-pass-cli failed}}
 	printf '%s\n' "$message${cause:+: $cause}" >&2
 }
@@ -108,36 +108,62 @@ logout() {
 	jq -nc '{signedIn: false}'
 }
 
-# Every active item of every vault, without secrets: [{share, id, title, type, vault, domain}] by
+# Every active item of the vaults not in $QUICKSHELL_PASS_HIDDEN_VAULTS (vault names, one per
+# line, set in default.nix), without secrets: [{share, id, title, type, vault, domain}] by
 # title. `domain` is a login's website for its icon (the host of its first web address, without
 # "www."), "" without one or for a private address, which stays off the icon service. Only
 # --show-secrets lists the addresses; as in details below, the secrets stop at jq.
+# Each pass-cli run spends most of a second on its own keyring lookup and API connection, so the
+# vaults are listed all at once. The vault list goes first and alone: it refreshes an expired
+# access token before the parallel runs could each try to.
 list() {
-	local vaults share
-	vaults=$(cli vault list --output json)
-	while IFS= read -r share; do
-		cli item list --share-id "$share" --filter-state active --output json --show-secrets
-	done < <(jq -r '.vaults[].share_id' <<<"$vaults") |
-		jq -sc --argjson vaults "$vaults" '
-			def domain:
-				[.content.content | objects | .Login.urls[]? | strings | ascii_downcase
-					| capture("^https?://([^/?#@]*@)?(?<host>[^/?#:]+)").host][0] // ""
-				| ltrimstr("www.")
-				| if test("^[a-z0-9-]+(\\.[a-z0-9-]+)+$") and (test("^[0-9.]+$") | not)
-					and (test("\\.(local|lan|home|internal|arpa|localhost|test)$") | not)
-				then . else "" end;
-			($vaults.vaults | map({(.share_id): .name}) | add // {}) as $names
-			| [.[].items[]
-				| (.content.content | if type == "object" then keys_unsorted[0] // "" else tostring end) as $tag
-				| {
-					share: .share_id,
-					id,
-					title: (.content.title // ""),
-					type: ($tag | gsub("(?<a>[a-z0-9])(?<b>[A-Z])"; "\(.a)_\(.b)") | ascii_downcase),
-					vault: ($names[.share_id] // ""),
-					domain: domain
-				}]
-			| sort_by(.title | ascii_downcase)'
+	local vaults i status failed=-1 failure=0
+	local -a shares pids files
+	vaults=$(cli vault list --output json |
+		jq -c --arg hidden "${QUICKSHELL_PASS_HIDDEN_VAULTS:-}" \
+			'($hidden | split("\n")) as $hidden
+			| .vaults |= map(select(.name as $name | $hidden | index($name) | not))')
+	mapfile -t shares < <(jq -r '.vaults[].share_id' <<<"$vaults")
+	for i in "${!shares[@]}"; do
+		pass-cli item list --share-id "${shares[i]}" --filter-state active --output json --show-secrets \
+			>"$tmp/items.$i" 2>"$tmp/errors.$i" &
+		pids[i]=$!
+		files[i]=$tmp/items.$i
+	done
+	# All of them finish before any failure is reported, so none outlives the temporary directory.
+	for i in "${!pids[@]}"; do
+		status=0
+		wait "${pids[i]}" || status=$?
+		if ((status != 0 && failed < 0)); then
+			failed=$i
+			failure=$status
+		fi
+	done
+	if ((failed >= 0)); then
+		report_error "$tmp/errors.$failed"
+		return "$failure"
+	fi
+	# With every vault hidden there are no files, and jq reads the empty stdin instead.
+	jq -sc --argjson vaults "$vaults" '
+		def domain:
+			[.content.content | objects | .Login.urls[]? | strings | ascii_downcase
+				| capture("^https?://([^/?#@]*@)?(?<host>[^/?#:]+)").host][0] // ""
+			| ltrimstr("www.")
+			| if test("^[a-z0-9-]+(\\.[a-z0-9-]+)+$") and (test("^[0-9.]+$") | not)
+				and (test("\\.(local|lan|home|internal|arpa|localhost|test)$") | not)
+			then . else "" end;
+		($vaults.vaults | map({(.share_id): .name}) | add // {}) as $names
+		| [.[].items[]
+			| (.content.content | if type == "object" then keys_unsorted[0] // "" else tostring end) as $tag
+			| {
+				share: .share_id,
+				id,
+				title: (.content.title // ""),
+				type: ($tag | gsub("(?<a>[a-z0-9])(?<b>[A-Z])"; "\(.a)_\(.b)") | ascii_downcase),
+				vault: ($names[.share_id] // ""),
+				domain: domain
+			}]
+		| sort_by(.title | ascii_downcase)' "${files[@]}" </dev/null
 }
 
 # The non-secret side of one item, plus which secrets it has. `primary` is the field Enter copies;

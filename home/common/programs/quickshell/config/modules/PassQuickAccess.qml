@@ -11,11 +11,12 @@ import qs.services
 import qs.widgets
 
 // Proton Pass quick access (`quickshell ipc -c bar call pass toggle`), laid out like 1Password's:
-// search every vault from the focused monitor, Enter opens the item's actions (copy username,
-// password, one-time code or API keys, open the login's website in the browser). The copy and
-// open keys also work straight from the list on the highlighted item. There is no "Open in
-// Proton Pass": the desktop app's protonpass:// links only cover sign-in, and the web app signs
-// in every time.
+// search every vault but the hidden ones (QUICKSHELL_PASS_HIDDEN_VAULTS in default.nix) from the
+// focused monitor, Enter opens the item's actions (copy username, password, OTP or API
+// keys, open the login's website in the browser). The copy and open keys also work straight from
+// the list on the highlighted item. There is no "Open in Proton Pass": the desktop app's
+// protonpass:// links only cover sign-in, and the web app signs in every time; Ctrl+Alt+Space
+// (hyprland/config/keybindings.nix) brings up the desktop app instead.
 // Secrets go from pass-cli to the clipboard inside the quickshell-pass helper (scripts/pass.sh),
 // which clears them again after 45s; services/Pass.qml holds only titles and non-secret details.
 // The layer is no_screen_share (hyprland/default.nix), so screen shares show a black box the

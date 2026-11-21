@@ -83,6 +83,7 @@ let
   # input: it comes from the user's PATH (home/common/desktop/default.nix), sharing the session
   # the user signs in to. curl fetches the logins' website icons, dwebp (libwebp) turns the WebP
   # ones into PNGs for the shell's Qt, and the public suffix list tells which websites share a site.
+  # The hidden vaults stay out of the list (and out of each sync's pass-cli runs).
   quickshellPass = pkgs.writeShellApplication {
     name = "quickshell-pass";
     runtimeInputs = with pkgs; [
@@ -94,7 +95,15 @@ let
       util-linux # flock
       wl-clipboard
     ];
-    runtimeEnv.PUBLIC_SUFFIX_LIST = "${pkgs.publicsuffix-list}/share/publicsuffix/public_suffix_list.dat";
+    runtimeEnv = {
+      PUBLIC_SUFFIX_LIST = "${pkgs.publicsuffix-list}/share/publicsuffix/public_suffix_list.dat";
+      # One per line: the names may have spaces, and quotes would need escaping in the wrapper.
+      QUICKSHELL_PASS_HIDDEN_VAULTS = lib.concatStringsSep "\n" [
+        "Alias"
+        "Kubernetes"
+        "CI"
+      ];
+    };
     text = builtins.readFile ./scripts/pass.sh;
   };
 
