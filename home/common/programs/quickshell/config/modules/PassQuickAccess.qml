@@ -106,7 +106,7 @@ Scope {
             list.push({
                 id: "totp",
                 icon: Icons.twoFactor,
-                label: "Copy one-time code",
+                label: "Copy OTP",
                 shortcut: "Ctrl+Alt+C"
             });
         // One row per API key field, named by the field (numbered when names repeat). The
@@ -238,7 +238,7 @@ Scope {
             number: "card number",
             private_key: "private key",
             note: "note",
-            totp: "one-time code"
+            totp: "OTP"
         }[field] ?? field;
     }
 
@@ -823,7 +823,7 @@ Scope {
                         }
 
                         // The last copy's confirmation; otherwise where the open item lives, or the
-                        // keys and the account in the list.
+                        // copy keys and the account in the list; Enter to open goes without saying.
                         RowLayout {
                             Layout.fillWidth: true
                             Layout.leftMargin: 4
@@ -851,7 +851,10 @@ Scope {
                                         return refreshError;
                                     if (root.openedItem)
                                         return `Located in ${root.openedItem.vault}`;
-                                    return list.count > 0 ? "Enter to open  ·  Ctrl+C username  ·  Ctrl+Shift+C password  ·  Ctrl+Alt+C code" : "";
+                                    if (list.count === 0)
+                                        return "";
+                                    // The OTP key only for a highlighted item known to have one.
+                                    return "Ctrl+C username  ·  Ctrl+Shift+C password" + (root.detailsOf(root.current)?.hasTotp ? "  ·  Ctrl+Alt+C OTP" : "");
                                 }
                                 color: {
                                     if (root.notice !== "")
