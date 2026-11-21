@@ -1,5 +1,10 @@
-{ lib, ... }:
+{ lib, pkgs, ... }:
 {
+  # 1Password's CLI alone, for home-ops (`op inject` in its `just template`): no desktop app, so
+  # no app integration; home-ops signs it in with a service account token
+  # (OP_SERVICE_ACCOUNT_TOKEN from its git-ignored .env, loaded by direnv).
+  home.packages = [ pkgs._1password-cli ];
+
   # Vicinae (home/common/programs/vicinae.nix) takes Cmd+Space, so Spotlight's two
   # hotkeys are off: 64 "Show Spotlight search" (Cmd+Space), 65 "Show Finder search window"
   # (Cmd+Option+Space). Added to the dict rather than set through targets.darwin.defaults,

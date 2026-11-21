@@ -41,9 +41,6 @@
     };
   };
 
-  programs._1password.enable = true;
-  programs._1password-gui.enable = true;
-
   # Home-manager's zsh (oh-my-zsh) runs compinit and sets the prompt. nix-darwin's own
   # compinit in /etc/zshrc shares ~/.zcompdump between Ghostty's login shell (/bin/zsh 5.9)
   # and zellij's panes (nix zsh 5.9.2); each rejects the other's dump and rebuilds it,
