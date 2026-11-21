@@ -55,6 +55,9 @@ in
     (bind "${mod} + SHIFT + P" (exec "quickshell ipc -c bar call wallpapers toggle"))
     # Proton Pass quick access (home/common/programs/quickshell/config/modules/PassQuickAccess.qml)
     (bind "CTRL + SHIFT + Space" (exec "quickshell ipc -c bar call pass toggle"))
+    # The Proton Pass desktop app: it runs from login (../default.nix) hidden in the tray, and a
+    # second launch hands over to it and shows its window
+    (bind "CTRL + ALT + Space" (exec "uwsm app -- proton-pass"))
     # Screen recording on the focused monitor (home/common/programs/quickshell/config/services/Recorder.qml)
     (bind "${mod} + SHIFT + R" (exec "quickshell ipc -c bar call recorder toggle"))
     # Instant replay (home/common/programs/quickshell/config/services/Replay.qml): save the last
