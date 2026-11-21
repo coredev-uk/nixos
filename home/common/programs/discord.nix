@@ -183,8 +183,8 @@ in
 
         translate.enable = true;
         validUser.enable = true;
-
-        youtubeAdblock.enable = true;
+        # No youtubeAdblock: it is Equicord-only, so with Vencord it never loaded, and nixcord
+        # now refuses it with an assertion.
       };
     };
   };
