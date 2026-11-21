@@ -1,11 +1,11 @@
 { lib, ... }:
 {
-  # Raycast (Homebrew cask, hosts/poseidon/extra.nix) takes Cmd+Space, so Spotlight's two
+  # Vicinae (home/common/programs/vicinae.nix) takes Cmd+Space, so Spotlight's two
   # hotkeys are off: 64 "Show Spotlight search" (Cmd+Space), 65 "Show Finder search window"
   # (Cmd+Option+Space). Added to the dict rather than set through targets.darwin.defaults,
   # which would replace AppleSymbolicHotKeys whole and re-enable every other one turned off in
   # System Settings. activateSettings applies them without logging out. Spotlight's index stays,
-  # for Raycast's file search.
+  # for Vicinae's file search.
   home.activation.spotlightHotkeys = lib.hm.dag.entryAfter [ "writeBoundary" ] ''
     for entry in "64 32 49 1048576" "65 32 49 1572864"; do
       set -- $entry

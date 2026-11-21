@@ -66,7 +66,6 @@
     };
 
     casks = [
-      "raycast"
       "proton-mail"
       "protonvpn"
       "proton-drive"

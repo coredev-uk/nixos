@@ -17,6 +17,7 @@
     ./common/programs/discord.nix
     ./common/programs/t3code.nix
     ./common/programs/darwin-apps.nix
+    ./common/programs/vicinae.nix
   ];
   home = {
     inherit (meta) username;
