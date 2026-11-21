@@ -8,7 +8,6 @@
     "${self}/hosts/common/services/networkmanager.nix"
     "${self}/hosts/common/services/printing.nix"
     "${self}/hosts/common/services/vfio.nix"
-    "${self}/hosts/common/desktop/1password.nix"
     "${self}/hosts/common/desktop/gaming.nix"
     "${self}/hosts/common/desktop/rgb.nix"
     "${self}/hosts/common/desktop/qmk.nix"

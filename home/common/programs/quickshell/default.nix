@@ -338,7 +338,7 @@ in
   ];
 
   systemd.user.services.quickshell.Service.Environment = [
-    # Electron tray items (Discord, 1Password) expose IconPixmap but no IconName, so every
+    # Electron tray items (Discord) expose IconPixmap but no IconName, so every
     # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
     "QT_LOGGING_RULES=quickshell.dbus.properties.warning=false"
     # wlsunset's location (home/common/programs/hypr/sunset.nix), for the bar's day arc.

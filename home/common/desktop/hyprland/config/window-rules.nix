@@ -142,9 +142,9 @@ _: {
       immediate = true;
     }
 
-    # Keep the password managers out of screen shares and recordings
+    # Keep the password manager out of screen shares and recordings
     {
-      match.class = "^(1Password|Proton Pass|proton-pass|proton-pass-desktop)$";
+      match.class = "^(Proton Pass|proton-pass|proton-pass-desktop)$";
       no_screen_share = true;
     }
 
