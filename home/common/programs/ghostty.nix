@@ -34,6 +34,9 @@ in
   # OOMPolicy=continue: when the kernel OOM-kills one process in a tab (a `go test` binary,
   # a linker), the scope's default OOMPolicy=stop tore down the whole tab, shell and agent
   # included; now only the killed process goes.
+  # MemoryHigh/MemoryMax: one tab (an agent running several test suites at once) may use at
+  # most 40% of RAM. Past 35% the kernel reclaims and throttles it; at 40% the OOM kill happens
+  # inside that tab, not system-wide, where it took Proton Pass (the SSH agent) instead.
   xdg.configFile."systemd/user/app-ghostty-surface-transient-.scope.d/stop.conf" =
     lib.mkIf (!meta.isDarwin)
       {
@@ -42,6 +45,8 @@ in
           SendSIGHUP=yes
           TimeoutStopSec=10s
           OOMPolicy=continue
+          MemoryHigh=35%
+          MemoryMax=40%
         '';
       };
 
