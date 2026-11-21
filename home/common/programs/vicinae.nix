@@ -130,24 +130,45 @@ lib.mkMerge [
         };
       };
 
-      settings = {
-        theme = {
-          dark.name = "meridian";
-          light.name = "meridian";
-        };
-        font.normal.family = theme.fonts.shell.name;
+      settings =
+        lib.recursiveUpdate
+          {
+            theme = {
+              dark.name = "meridian";
+              light.name = "meridian";
+            };
+            font.normal.family = theme.fonts.shell.name;
 
-        # File search unused (apps, calculator, power only). The indexer watched all of $HOME, looped
-        # incremental scans on Go's build cache every ~1.5s, and grew its DB to 14 GB of rewrites on
-        # the snapshotted /home subvolume, stalling btrfs commits for seconds.
-        providers.files.preferences.autoIndexing = false;
-      }
-      # Linux opens it from Hyprland's bind (`vicinae open`); macOS has no such bind, so the
-      # launcher's own global shortcut takes Cmd+Space (`cmd` is ⌘ there), which Spotlight
-      # gives up in darwin-apps.nix.
-      // lib.optionalAttrs meta.isDarwin {
-        global_shortcuts.toggle = "cmd+space";
-      };
+            # File search unused (apps, calculator, power only). The indexer watched all of $HOME, looped
+            # incremental scans on Go's build cache every ~1.5s, and grew its DB to 14 GB of rewrites on
+            # the snapshotted /home subvolume, stalling btrfs commits for seconds.
+            providers.files.preferences.autoIndexing = false;
+          }
+          # Linux opens it from Hyprland's bind (`vicinae open`); macOS has no such bind, so the
+          # launcher's own global shortcut takes Cmd+Space (`cmd` is ⌘ there), which Spotlight
+          # gives up in darwin-apps.nix.
+          (
+            lib.optionalAttrs meta.isDarwin {
+              global_shortcuts.toggle = "cmd+space";
+
+              # Proton Pass quick access on macOS, where the shell's widget (Quickshell, Wayland
+              # only) can't run: the Raycast Store's Proton Pass extension, installed from Vicinae's
+              # store. It keeps its own pass-cli, whose keychain entry trusts only that binary. Set up
+              # like the widget: the same keys as its Hyprland bind (`super` is ⌃ on macOS, `cmd` ⌘),
+              # website icons, items by name. No browser-tab suggestions: they need Raycast's browser
+              # extension.
+              providers."@izyuumi/store.raycast.proton-pass" = {
+                preferences = {
+                  showWebsiteIcons = true;
+                  enableWebIntegration = false;
+                };
+                entrypoints.search-items = {
+                  shortcut = "super+shift+space";
+                  preferences.sortBy = "name";
+                };
+              };
+            }
+          );
     };
   }
 
