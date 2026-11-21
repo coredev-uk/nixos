@@ -1,19 +1,24 @@
-{ pkgs, ... }:
+_:
 {
-  # Raycast/Proton Mail/MediaMate/Tailscale have no update opt-out and reinstall to
-  # /Applications regardless of launch path, so they're Homebrew casks
-  # instead (hosts/poseidon/extra.nix).
-  home.packages = with pkgs; [
-    alt-tab-macos
-    bartender
-  ];
-
-  # Disables AltTab's Sparkle auto-updater; version is pinned via the flake.
-  targets.darwin.defaults."com.lwouis.alt-tab-macos".SUEnableAutomaticChecks = false;
 
   # Tailscale (standalone) signs in to Headscale on the Oracle VPS instead of Tailscale's
   # servers; read as a system policy, so the app needs no "custom login server" step.
   targets.darwin.defaults."io.tailscale.ipn.macsys".LoginURL = "https://hs.hera.ac";
 
-  # Bartender: uncheck "Check for Updates Automatically" once in-app (no defaults key for it).
+  # Its own "Launch at Login" toggle fails on macOS 27 (1.104.x never registers the
+  # login item, logs "Could not find the launch daemon", flips back to off), so Tailscale
+  # stays down after a reboot: tailscale/tailscale#18042. Drop once the cask ships the
+  # SMAppService.mainApp fix (1.105+). -g: start in the background without stealing focus.
+  launchd.agents.tailscale-app = {
+    enable = true;
+    config = {
+      ProgramArguments = [
+        "/usr/bin/open"
+        "-g"
+        "-a"
+        "/Applications/Tailscale.app"
+      ];
+      RunAtLoad = true;
+    };
+  };
 }
