@@ -244,8 +244,11 @@ in
   # Start zellij in every interactive shell outside it, and close the shell when zellij exits.
   # Inlined instead of HM's integration, which runs `zellij setup --generate-auto-start` in
   # every shell (~35ms) to print this same check.
+  # Only for a shell on a terminal that isn't running a -c command: GUI apps read the login
+  # environment with `$SHELL -l -i -c printenv` (zellij 0.46's own desktop app does), and zellij
+  # started there, with no terminal, opens a window of its own and the probe gets nothing.
   programs.zsh.initContent = lib.mkOrder 200 ''
-    if [[ "$TERM" != "dumb" && -z "$ZELLIJ" ]]; then
+    if [[ "$TERM" != "dumb" && -z "$ZELLIJ" && -z "$ZSH_EXECUTION_STRING" && -t 0 && -t 1 ]]; then
       ${lib.getExe config.programs.zellij.package}
       exit
     fi
