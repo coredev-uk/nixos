@@ -31,6 +31,9 @@ in
   # all of them. Interactive zsh (e.g. zellij panes, whose pty zellij keeps open) ignores
   # SIGTERM, so stopping the scope at shutdown/logout hung until the 90s timeout. SIGHUP
   # makes the shells exit; the shorter timeout bounds anything else that ignores both.
+  # OOMPolicy=continue: when the kernel OOM-kills one process in a tab (a `go test` binary,
+  # a linker), the scope's default OOMPolicy=stop tore down the whole tab, shell and agent
+  # included; now only the killed process goes.
   xdg.configFile."systemd/user/app-ghostty-surface-transient-.scope.d/stop.conf" =
     lib.mkIf (!meta.isDarwin)
       {
@@ -38,6 +41,7 @@ in
           [Scope]
           SendSIGHUP=yes
           TimeoutStopSec=10s
+          OOMPolicy=continue
         '';
       };
 
