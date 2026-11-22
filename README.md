@@ -114,7 +114,9 @@ leaves the development tools out; `-Test` shows what has drifted:
 powershell -ExecutionPolicy Bypass -File \\wsl.localhost\NixOS\home\paul\.dotfiles\hosts\athena\windows\apply.ps1 -Debloat
 ```
 
-What winget can't install is listed at the top of `gaming.winget`.
+What winget can't install is listed at the top of `gaming.winget`. Zen gets atlas's setup
+(`zen.nix`: policies, extensions, containers, spaces and pins) once it has a profile: start it
+once, close it, and apply again.
 
 </details>
 

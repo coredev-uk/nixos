@@ -56,6 +56,27 @@ foreach ($font in Get-ChildItem "$rendered\fonts") {
   $files[$font.FullName] = Join-Path $fontDir $font.Name
 }
 
+# Zen: atlas's setup (home/common/programs/zen.nix). The policies go in the install; user.js and
+# containers.json in the profile Zen starts (installs.ini's Default=), which Zen must have made on
+# a first run, and only while Zen is closed: it rewrites containers.json, and the module's
+# spaces/pins writer (run in WSL, below) edits its session file.
+$zenInstall = "$env:ProgramFiles\Zen Browser"
+$zenInstalls = "$env:APPDATA\zen\installs.ini"
+$zenProfile = $null
+if (Test-Path "$zenInstall\zen.exe") {
+  $files["$rendered\zen\policies.json"] = "$zenInstall\distribution\policies.json"
+  $default = if (Test-Path $zenInstalls) { Select-String -Path $zenInstalls -Pattern '^Default=(.+)$' | Select-Object -First 1 }
+  if (-not $default) {
+    Write-Warning 'Zen has no profile yet: start it once, close it, and apply again'
+  } elseif (Get-Process zen -ErrorAction SilentlyContinue) {
+    Write-Warning 'Zen is running: close it and apply again for its profile (prefs, containers, spaces and pins)'
+  } else {
+    $zenProfile = Join-Path "$env:APPDATA\zen" ($default.Matches[0].Groups[1].Value -replace '/', '\')
+    $files["$rendered\zen\user.js"] = "$zenProfile\user.js"
+    $files["$rendered\zen\containers.json"] = "$zenProfile\containers.json"
+  }
+}
+
 foreach ($src in $files.Keys) {
   $dest = $files[$src]
   # Literal paths: a variable font's name ("…[wght].ttf") is a wildcard to -Path.
@@ -73,6 +94,15 @@ foreach ($src in $files.Keys) {
       New-ItemProperty $fontKey -Name $name -Value $dest -PropertyType String -Force | Out-Null
     }
   }
+}
+
+# The Zen module's activation (spaces, pins, extension buttons), pointed at the Windows profile
+# through the link its paths go by (./default.nix). -e runs it without a shell, so the profile's
+# path (which has spaces) stays one argument.
+if ($zenProfile -and -not $Test) {
+  $linuxProfile = (wsl.exe -d $distro -e wslpath -u $zenProfile).Trim()
+  wsl.exe -d $distro -e "$($out.Trim())/zen/activate" $linuxProfile
+  if ($LASTEXITCODE) { throw "Zen's activation failed ($LASTEXITCODE)" }
 }
 
 # WinUtil's own headless mode (-Config: the list its Export writes), from the release pinned here
