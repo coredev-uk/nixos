@@ -118,16 +118,23 @@ properties:
           $d = ("$env:LOCALAPPDATA\sona-dev") -replace '\\', '/'
           $repo = "$env:USERPROFILE\src\sona-go"
           $git = "$env:ProgramFiles\Git\cmd\git.exe"
+          # git and the scripts report progress on stderr, which the Script resource takes for a
+          # failure: each runs with stderr in a log, and only its exit code counts.
+          $log = "$env:LOCALAPPDATA\sona-dev\setup.log"
+          New-Item -ItemType Directory -Force (Split-Path $log) | Out-Null
+          function Run($file, $arguments, $what) {
+            $p = Start-Process $file -ArgumentList $arguments -Wait -PassThru -NoNewWindow -RedirectStandardError $log
+            if ($p.ExitCode) { throw "$what failed ($($p.ExitCode)): $(Get-Content $log -Raw)" }
+          }
           if (-not (Test-Path "$repo\.git")) {
             New-Item -ItemType Directory -Force (Split-Path $repo) | Out-Null
-            & $git clone https://github.com/coredev-uk/sona-go $repo
-            if ($LASTEXITCODE) { throw 'git clone failed' }
+            Run $git @('clone', 'https://github.com/coredev-uk/sona-go', "`"$repo`"") 'git clone'
             # devenv's enterShell does this on Linux: hooks that refuse commits on main.
-            & $git -C $repo config core.hooksPath .githooks
+            Run $git @('-C', "`"$repo`"", 'config', 'core.hooksPath', '.githooks') 'git config'
           }
           $r = $repo -replace '\\', '/'
-          & "$env:ProgramFiles\Git\bin\bash.exe" -lc "cd '$r' && GSTREAMER_PKG_CACHE='$d/gstreamer-pkg' build/windows/install-gstreamer.sh '$d/gstreamer' && build/windows/build-shim.sh '$d/shim'"
-          if ($LASTEXITCODE) { throw 'install-gstreamer.sh or build-shim.sh failed' }
+          Run "$env:ProgramFiles\Git\bin\bash.exe" @('-lc', "`"cd '$r' && GSTREAMER_PKG_CACHE='$d/gstreamer-pkg' build/windows/install-gstreamer.sh '$d/gstreamer' && build/windows/build-shim.sh '$d/shim'`"") 'install-gstreamer.sh or build-shim.sh'
+          Remove-Item $log
 
     # install-gstreamer.sh's install registers as winget's gstreamerproject.gstreamer: pinned, so
     # `winget upgrade --all` leaves it at the repository's version.
