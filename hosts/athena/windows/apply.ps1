@@ -41,8 +41,10 @@ $files = [ordered]@{
   "$rendered\vicinae\home-manager.json" = "$env:LOCALAPPDATA\vicinae\config\home-manager.json"
   "$rendered\vscode\settings.json"      = "$env:APPDATA\Code\User\settings.json"
 }
-# Vicinae layers home-manager.json over its own settings.json (as on Linux).
-$vicinaeOverrides = "$env:LOCALAPPDATA\vicinae\config\home-manager.json"
+# Vicinae layers home-manager.json over its own settings.json (as on Linux). It splits
+# VICINAE_OVERRIDES on ':' (a Unix path list) and reads "C:\…" as two paths, so the path goes
+# without its drive: Vicinae resolves "\Users\…" on the current drive.
+$vicinaeOverrides = ($env:LOCALAPPDATA -replace '^[A-Za-z]:', '') + '\vicinae\config\home-manager.json'
 if ([Environment]::GetEnvironmentVariable('VICINAE_OVERRIDES', 'User') -ne $vicinaeOverrides) {
   if ($Test) { Write-Host 'differs: VICINAE_OVERRIDES' }
   else { [Environment]::SetEnvironmentVariable('VICINAE_OVERRIDES', $vicinaeOverrides, 'User') }
