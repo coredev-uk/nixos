@@ -183,6 +183,44 @@ properties:
       id: vicinae
       directives: { description: Vicinae, allowPrerelease: true }
       settings: { id: Vicinae.Vicinae, source: winget }
+
+    # The shell, as home/common/shell on Linux: PowerShell 7 (Wintty's shell) with the
+    # oh-my-posh prompt, zoxide as `cd`, eza, bat, fzf, ripgrep and atuin. The profile that
+    # wires them up is rendered by ./default.nix and put in place by apply.ps1.
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: pwsh
+      directives: { description: PowerShell 7, securityContext: elevated, allowPrerelease: true }
+      settings: { id: Microsoft.PowerShell, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: oh-my-posh
+      directives: { description: oh-my-posh, allowPrerelease: true }
+      settings: { id: JanDeDobbeleer.OhMyPosh, source: winget }
+    # Portable packages, which winget installs for the user by default and refuses to from an
+    # elevated process (WinGetPackage has no scope): installed machine-wide instead.
+    - resource: PSDscResources/Script
+      id: cli-tools
+      directives: { description: "zoxide, eza, bat, ripgrep", securityContext: elevated, allowPrerelease: true }
+      settings:
+        GetScript: |
+          @{ Result = ((winget list --disable-interactivity --accept-source-agreements) -match 'zoxide|eza|sharkdp.bat|ripgrep' -join "`n") }
+        TestScript: |
+          $have = (winget list --disable-interactivity --accept-source-agreements) -join "`n"
+          -not ('ajeetdsouza.zoxide', 'eza-community.eza', 'sharkdp.bat', 'BurntSushi.ripgrep.MSVC' | Where-Object { $have -notmatch [regex]::Escape($_) })
+        SetScript: |
+          $have = (winget list --disable-interactivity --accept-source-agreements) -join "`n"
+          foreach ($id in 'ajeetdsouza.zoxide', 'eza-community.eza', 'sharkdp.bat', 'BurntSushi.ripgrep.MSVC') {
+            if ($have -match [regex]::Escape($id)) { continue }
+            winget install --id $id -e --scope machine --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
+            if ($LASTEXITCODE) { throw "winget install $id failed ($LASTEXITCODE)" }
+          }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: fzf
+      directives: { description: fzf, allowPrerelease: true }
+      settings: { id: junegunn.fzf, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: atuin
+      directives: { description: atuin, allowPrerelease: true }
+      settings: { id: Atuinsh.Atuin, source: winget }
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: wsl
       directives: { description: "WSL (NixOS-WSL, nixosConfigurations.athena)", securityContext: elevated, allowPrerelease: true }

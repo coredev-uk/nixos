@@ -40,6 +40,10 @@ $files = [ordered]@{
   "$rendered\vicinae\meridian.toml"     = "$env:LOCALAPPDATA\vicinae\data\themes\meridian.toml"
   "$rendered\vicinae\home-manager.json" = "$env:LOCALAPPDATA\vicinae\config\home-manager.json"
   "$rendered\vscode\settings.json"      = "$env:APPDATA\Code\User\settings.json"
+  # PowerShell 7's profile for every host (Wintty, VS Code's terminal), and what it reads.
+  "$rendered\shell\profile.ps1"         = "$([Environment]::GetFolderPath('MyDocuments'))\PowerShell\profile.ps1"
+  "$rendered\shell\theme.omp.json"      = "$home_\.config\oh-my-posh\theme.omp.json"
+  "$rendered\shell\atuin.toml"          = "$home_\.atuin\config.toml"
 }
 # Vicinae layers home-manager.json over its own settings.json (as on Linux). It splits
 # VICINAE_OVERRIDES on ':' (a Unix path list) and reads "C:\…" as two paths, so the path goes
