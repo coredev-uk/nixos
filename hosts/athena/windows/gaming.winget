@@ -178,10 +178,6 @@ properties:
       id: proton-vpn
       directives: { description: Proton VPN, securityContext: elevated, allowPrerelease: true }
       settings: { id: Proton.ProtonVPN, source: winget }
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: mpv
-      directives: { description: mpv, allowPrerelease: true }
-      settings: { id: shinchiro.mpv, source: winget }
     # Theme and settings from home/common/programs/vicinae-shared.nix, through apply.ps1.
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vicinae
