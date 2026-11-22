@@ -36,7 +36,8 @@ $files = [ordered]@{
   "$PSScriptRoot\files\bashrc"          = "$home_\.bashrc"
   "$PSScriptRoot\files\bash_profile"    = "$home_\.bash_profile"
   "$PSScriptRoot\files\wslconfig"       = "$home_\.wslconfig"
-  "$rendered\wintty\config.wintty"      = "$home_\.config\wintty\config.wintty"
+  # The one file Wintty reads (its docs' ~/.config/wintty isn't).
+  "$rendered\wintty\config.wintty"      = "$env:APPDATA\wintty\config.wintty"
   "$rendered\vicinae\meridian.toml"     = "$env:LOCALAPPDATA\vicinae\data\themes\meridian.toml"
   "$rendered\vicinae\home-manager.json" = "$env:LOCALAPPDATA\vicinae\config\home-manager.json"
   "$rendered\vscode\settings.json"      = "$env:APPDATA\Code\User\settings.json"
