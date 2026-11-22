@@ -35,6 +35,19 @@ properties:
       id: golangci-lint
       directives: { description: golangci-lint, allowPrerelease: true }
       settings: { id: GolangCI.golangci-lint, source: winget }
+    # Sona's developer commands (the justfile: `just dev`, `just check`, …). A portable package,
+    # which winget won't install for the user from an elevated process: installed machine-wide.
+    - resource: PSDscResources/Script
+      id: just
+      directives: { description: just, securityContext: elevated, allowPrerelease: true }
+      settings:
+        GetScript: |
+          @{ Result = ((winget list --id Casey.Just -e --disable-interactivity --accept-source-agreements) -join "`n") }
+        TestScript: |
+          [bool]((winget list --id Casey.Just -e --disable-interactivity --accept-source-agreements) -match 'Casey\.Just')
+        SetScript: |
+          winget install --id Casey.Just -e --scope machine --silent --accept-package-agreements --accept-source-agreements --disable-interactivity
+          if ($LASTEXITCODE) { throw "winget install Casey.Just failed ($LASTEXITCODE)" }
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vscode
       directives: { description: Visual Studio Code, allowPrerelease: true }
