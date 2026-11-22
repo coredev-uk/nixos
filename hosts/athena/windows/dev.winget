@@ -94,10 +94,10 @@ properties:
             if ($LASTEXITCODE) { throw "go install $p failed" }
           }
 
-    # The checkout, GStreamer at build/windows/gstreamer.sha256's version (the repo's own
-    # install-gstreamer.sh) and sona_cdm_shim.dll (build-shim.sh), in %LOCALAPPDATA%\sona-dev.
-    # A new pin in the checkout reinstalls GStreamer on the next apply. git clones over SSH
-    # (~/.config/git/config, from apply.ps1), so Proton Pass must be unlocked.
+    # The checkout (%USERPROFILE%\Projects\sona-go), GStreamer at build/windows/gstreamer.sha256's
+    # version (the repo's own install-gstreamer.sh) and sona_cdm_shim.dll (build-shim.sh), in
+    # %LOCALAPPDATA%\sona-dev. A new pin in the checkout reinstalls GStreamer on the next apply.
+    # git clones over SSH (~/.config/git/config, from apply.ps1), so Proton Pass must be unlocked.
     - resource: PSDscResources/Script
       id: sona-dev
       dependsOn: [git, vs-cpp]
@@ -108,7 +108,7 @@ properties:
           @{ Result = if (Test-Path $gst) { [string](& $gst --version | Select-Object -Last 2 | Select-Object -First 1) } else { '' } }
         TestScript: |
           $d = "$env:LOCALAPPDATA\sona-dev"
-          $repo = "$env:USERPROFILE\src\sona-go"
+          $repo = "$env:USERPROFILE\Projects\sona-go"
           $gst = "$d\gstreamer\bin\gst-launch-1.0.exe"
           if (-not (Test-Path "$repo\.git") -or -not (Test-Path $gst) -or -not (Test-Path "$d\shim\sona_cdm_shim.dll")) { return $false }
           $want = (Select-String -Path "$repo\build\windows\gstreamer.sha256" -Pattern '^version (\S+)').Matches[0].Groups[1].Value
@@ -116,7 +116,7 @@ properties:
           [bool]((& $gst --version) -match "^GStreamer $([regex]::Escape($want))( |$)")
         SetScript: |
           $d = ("$env:LOCALAPPDATA\sona-dev") -replace '\\', '/'
-          $repo = "$env:USERPROFILE\src\sona-go"
+          $repo = "$env:USERPROFILE\Projects\sona-go"
           $git = "$env:ProgramFiles\Git\cmd\git.exe"
           # git and the scripts report progress on stderr, which the Script resource takes for a
           # failure: each runs with stderr in a log, and only its exit code counts.
