@@ -87,11 +87,14 @@ sudo sbctl setup --migrate
 
 athena is atlas's Windows install, on the other drive: a gaming machine first, with Sona's
 Windows build tools beside it. Windows is described by WinGet configurations in
-`hosts/athena/windows` (`gaming.winget`, `dev.winget`) and the home files next to them; Linux is
-`nixosConfigurations.athena` and `paul@athena` under NixOS-WSL.
+`hosts/athena/windows` (`gaming.winget`, `dev.winget`), the WinUtil debloat it was set up with
+(`winutil.json`), and the home files next to them, some rendered by the flake (Wintty's and
+Vicinae's config, fonts). Linux is `nixosConfigurations.athena` and `paul@athena` under NixOS-WSL.
 
-From any Nix (another WSL distribution, or atlas), build the distribution and install it from an
-elevated PowerShell:
+On a fresh install of Windows 11 (stock ISO), sign in, install Proton Pass and turn on its SSH
+agent (Settings → SSH agent), and install the Wintty sponsor build from wintty.io. Then, from any
+Nix (another WSL distribution, or atlas), build the distribution and install it from an elevated
+PowerShell:
 
 ```sh
 nix build .#nixosConfigurations.athena.config.system.build.tarballBuilder
@@ -103,13 +106,17 @@ wsl --install --from-file nixos.wsl --name NixOS
 wsl --set-default NixOS
 ```
 
-In NixOS, clone this repository to `~/.dotfiles` and run `nh home switch`. Proton Pass's SSH agent
-(Settings → SSH agent) is bridged in for git and SSH. Then apply Windows' half, elevated, with
-`-GamingOnly` to leave the development tools out or `-Test` to see what has drifted:
+In NixOS, clone this repository to `~/.dotfiles` and run `nh home switch`. Then apply Windows'
+half, elevated, the first time with `-Debloat` (WinUtil's tweaks and app removals). `-GamingOnly`
+leaves the development tools out; `-Test` shows what has drifted:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File \\wsl.localhost\NixOS\home\paul\.dotfiles\hosts\athena\windows\apply.ps1
+powershell -ExecutionPolicy Bypass -File \\wsl.localhost\NixOS\home\paul\.dotfiles\hosts\athena\windows\apply.ps1 -Debloat
 ```
+
+What winget can't install is listed at the top of `gaming.winget`. Zen gets atlas's setup
+(`zen.nix`: policies, extensions, containers, spaces and pins) once it has a profile: start it
+once, close it, and apply again.
 
 </details>
 

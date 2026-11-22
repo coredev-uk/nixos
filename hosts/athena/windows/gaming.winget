@@ -9,9 +9,18 @@
 # Not here, because nothing can install them unattended:
 #   NVIDIA graphics driver   through the NVIDIA App
 #   AMD Chipset Software     amd.com
+#   Wintty                   the sponsor build from wintty.io (it updates itself); its config,
+#                            from ghostty-shared.nix, is apply.ps1's
 #   Audeze HQ, MOZA Pit House, the games and their anti-cheats (Steam and Ubisoft Connect
 #   libraries: Battlefield 6, BeamNG.drive, Counter-Strike 2, Le Mans Ultimate, Rainbow Six
 #   Siege, WARDOGS)
+#
+# Nor are runtimes that drivers and games install for themselves (PhysX, GameInput, the Visual
+# C++ redistributables, DirectX), or Windows' own apps (Windows Terminal).
+#
+# The debloat (Chris Titus Tech's WinUtil: its tweaks and the Store apps it removed) is
+# winutil.json, run once on a fresh install by `apply.ps1 -Debloat`. Its toggles and Windows
+# Update setting are below, as registry values every apply checks.
 properties:
   configurationVersion: 0.2.0
   resources:
@@ -29,6 +38,73 @@ properties:
         ValueData: "1"
         Force: true
 
+    # WinUtil's toggles, as set on this install: dark mode, file extensions and hidden files
+    # shown, the taskbar's icons on the left with no Search box or Task View, Num Lock on at the
+    # sign-in screen.
+    - resource: PSDscResources/Registry
+      id: dark-apps
+      directives: { description: Dark mode (apps), allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize, ValueName: AppsUseLightTheme, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: dark-system
+      directives: { description: Dark mode (Windows), allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Themes\Personalize, ValueName: SystemUsesLightTheme, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: show-extensions
+      directives: { description: File extensions shown, allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced, ValueName: HideFileExt, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: show-hidden
+      directives: { description: Hidden files shown, allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced, ValueName: Hidden, ValueType: Dword, ValueData: "1", Force: true }
+    - resource: PSDscResources/Registry
+      id: taskbar-left
+      directives: { description: Taskbar icons on the left, allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced, ValueName: TaskbarAl, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: taskbar-no-task-view
+      directives: { description: No Task View button, allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Explorer\Advanced, ValueName: ShowTaskViewButton, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: taskbar-no-search
+      directives: { description: No Search box on the taskbar, allowPrerelease: true }
+      settings: { Key: HKEY_CURRENT_USER\Software\Microsoft\Windows\CurrentVersion\Search, ValueName: SearchboxTaskbarMode, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: numlock-sign-in
+      directives: { description: Num Lock on at sign-in, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_USERS\.DEFAULT\Control Panel\Keyboard, ValueName: InitialKeyboardIndicators, ValueType: String, ValueData: "2", Force: true }
+
+    # WinUtil's "Recommended" Windows Update setting: drivers never come from Windows Update
+    # (the NVIDIA App and AMD's installer own them), and no restart while signed in.
+    - resource: PSDscResources/Registry
+      id: wu-no-drivers
+      directives: { description: No drivers in quality updates, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate, ValueName: ExcludeWUDriversInQualityUpdate, ValueType: Dword, ValueData: "1", Force: true }
+    - resource: PSDscResources/Registry
+      id: wu-no-reboot
+      directives: { description: No automatic restart while signed in, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU, ValueName: NoAutoRebootWithLoggedOnUsers, ValueType: Dword, ValueData: "1", Force: true }
+    - resource: PSDscResources/Registry
+      id: wu-no-wake
+      directives: { description: Windows Update doesn't wake the PC, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\WindowsUpdate\AU, ValueName: AUPowerManagement, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: driver-search-no-prompt
+      directives: { description: Device installs don't prompt for Windows Update, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DriverSearching, ValueName: DontPromptForWindowsUpdate, ValueType: Dword, ValueData: "1", Force: true }
+    - resource: PSDscResources/Registry
+      id: driver-search-off
+      directives: { description: Device installs don't search Windows Update, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DriverSearching, ValueName: DontSearchWindowsUpdate, ValueType: Dword, ValueData: "1", Force: true }
+    - resource: PSDscResources/Registry
+      id: driver-wizard-off
+      directives: { description: Driver wizard doesn't search Windows Update, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\DriverSearching, ValueName: DriverUpdateWizardWuSearchEnabled, ValueType: Dword, ValueData: "0", Force: true }
+    - resource: PSDscResources/Registry
+      id: device-metadata-off
+      directives: { description: No device companion apps from the network, securityContext: elevated, allowPrerelease: true }
+      settings: { Key: HKEY_LOCAL_MACHINE\SOFTWARE\Policies\Microsoft\Windows\Device Metadata, ValueName: PreventDeviceMetadataFromNetwork, ValueType: Dword, ValueData: "1", Force: true }
+
     # Gaming
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: steam
@@ -42,22 +118,43 @@ properties:
       id: discord
       directives: { description: Discord, allowPrerelease: true }
       settings: { id: Discord.Discord, source: winget }
+    # Vencord, as atlas's Discord (home/common/programs/discord.nix), patched into the newest
+    # app-* folder. A Discord update installs a new folder without it: the next apply patches
+    # that. Plugins and Quick CSS are set in Discord, not here.
+    - resource: PSDscResources/Script
+      id: vencord
+      dependsOn: [discord]
+      directives: { description: Vencord, allowPrerelease: true }
+      settings:
+        GetScript: |
+          $app = Get-ChildItem "$env:LOCALAPPDATA\Discord" -Directory -Filter 'app-*' -ErrorAction SilentlyContinue |
+            Sort-Object { [version]($_.Name -replace '^app-') } | Select-Object -Last 1
+          @{ Result = if ($app) { "$($app.Name): $(Test-Path "$($app.FullName)\resources\_app.asar")" } else { '' } }
+        TestScript: |
+          $app = Get-ChildItem "$env:LOCALAPPDATA\Discord" -Directory -Filter 'app-*' -ErrorAction SilentlyContinue |
+            Sort-Object { [version]($_.Name -replace '^app-') } | Select-Object -Last 1
+          [bool]$app -and (Test-Path "$($app.FullName)\resources\_app.asar")
+        SetScript: |
+          $cli = Join-Path $env:TEMP 'VencordInstallerCli.exe'
+          $log = Join-Path $env:TEMP 'VencordInstallerCli.log'
+          Invoke-WebRequest https://github.com/Vencord/Installer/releases/latest/download/VencordInstallerCli.exe -OutFile $cli
+          # It logs to stderr, which the Script resource takes for a failure: only its exit code counts.
+          $p = Start-Process $cli -ArgumentList '-install', '-branch', 'stable' -Wait -PassThru -NoNewWindow -RedirectStandardError $log
+          Remove-Item $cli
+          if ($p.ExitCode) { throw "VencordInstallerCli failed ($($p.ExitCode)): $(Get-Content $log -Raw)" }
+          Remove-Item $log
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: nvidia-app
       directives: { description: NVIDIA App (drivers), securityContext: elevated, allowPrerelease: true }
       settings: { id: XP8CLZL93F5Z4P, source: msstore }
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: physx
-      directives: { description: NVIDIA PhysX, securityContext: elevated, allowPrerelease: true }
-      settings: { id: Nvidia.PhysX, source: winget }
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: gameinput
-      directives: { description: Microsoft GameInput, securityContext: elevated, allowPrerelease: true }
-      settings: { id: Microsoft.GameInput, source: winget }
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: nzxt-cam
       directives: { description: NZXT CAM (Kraken), securityContext: elevated, allowPrerelease: true }
       settings: { id: NZXT.CAM, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: rsi-launcher
+      directives: { description: RSI Launcher (Star Citizen), securityContext: elevated, allowPrerelease: true }
+      settings: { id: CloudImperiumGames.RSILauncher, source: winget }
 
     # Everyday
     - resource: Microsoft.WinGet.DSC/WinGetPackage
@@ -72,18 +169,24 @@ properties:
       id: plex
       directives: { description: Plex, allowPrerelease: true }
       settings: { id: XP9CDQW6ML4NQN, source: msstore }
+    # Proton Mail and VPN, as home/common/desktop's protonmail-desktop and proton-vpn-cli.
     - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: terminal
-      directives: { description: Windows Terminal, allowPrerelease: true }
-      settings: { id: Microsoft.WindowsTerminal, source: winget }
+      id: proton-mail
+      directives: { description: Proton Mail, allowPrerelease: true }
+      settings: { id: Proton.ProtonMail, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: proton-vpn
+      directives: { description: Proton VPN, securityContext: elevated, allowPrerelease: true }
+      settings: { id: Proton.ProtonVPN, source: winget }
+    # Theme and settings from home/common/programs/vicinae-shared.nix, through apply.ps1.
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: vicinae
+      directives: { description: Vicinae, allowPrerelease: true }
+      settings: { id: Vicinae.Vicinae, source: winget }
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: wsl
       directives: { description: "WSL (NixOS-WSL, nixosConfigurations.athena)", securityContext: elevated, allowPrerelease: true }
       settings: { id: Microsoft.WSL, source: winget }
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: oscdimg
-      directives: { description: OSCDIMG (ISO images), securityContext: elevated, allowPrerelease: true }
-      settings: { id: Microsoft.OSCDIMG, source: winget }
 
     # Sona, the release build (it updates itself). Per-user NSIS installer from the latest release.
     - resource: PSDscResources/Script

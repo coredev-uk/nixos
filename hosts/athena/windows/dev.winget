@@ -40,6 +40,10 @@ properties:
       directives: { description: Visual Studio Code, allowPrerelease: true }
       settings: { id: Microsoft.VisualStudioCode, source: winget }
     - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: t3code
+      directives: { description: T3 Code (home/common/programs/t3code.nix), allowPrerelease: true }
+      settings: { id: T3Tools.T3Code, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vs-buildtools
       directives: { description: Visual Studio 2022 Build Tools, securityContext: elevated, allowPrerelease: true }
       settings: { id: Microsoft.VisualStudio.2022.BuildTools, source: winget }
