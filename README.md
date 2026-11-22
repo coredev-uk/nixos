@@ -26,7 +26,7 @@ Core's Nix flake for NixOS and macOS: one configuration for every machine, from 
 | :--------: | :----------------: | :-----: | :------: | :-----: |
 |  `atlas`   |       NixOS        | Desktop | Hyprland | Working |
 | `poseidon` | macOS (nix-darwin) | Laptop  |   N/A    | Working |
-|  `athena`  |  Windows (WSL HM)  | Desktop |   N/A    | Working |
+|  `athena`  | Windows + NixOS-WSL | Desktop |   N/A    | Working |
 
 </details>
 
@@ -78,6 +78,37 @@ location first with:
 
 ```sh
 sudo sbctl setup --migrate
+```
+
+</details>
+
+<details>
+<summary>Setting up athena (Windows and NixOS-WSL)</summary>
+
+athena is atlas's Windows install, on the other drive: a gaming machine first, with Sona's
+Windows build tools beside it. Windows is described by WinGet configurations in
+`hosts/athena/windows` (`gaming.winget`, `dev.winget`) and the home files next to them; Linux is
+`nixosConfigurations.athena` and `paul@athena` under NixOS-WSL.
+
+From any Nix (another WSL distribution, or atlas), build the distribution and install it from an
+elevated PowerShell:
+
+```sh
+nix build .#nixosConfigurations.athena.config.system.build.tarballBuilder
+sudo ./result/bin/nixos-wsl-tarball-builder   # writes nixos.wsl
+```
+
+```powershell
+wsl --install --from-file nixos.wsl --name NixOS
+wsl --set-default NixOS
+```
+
+In NixOS, clone this repository to `~/.dotfiles` and run `nh home switch`. Proton Pass's SSH agent
+(Settings → SSH agent) is bridged in for git and SSH. Then apply Windows' half, elevated, with
+`-GamingOnly` to leave the development tools out or `-Test` to see what has drifted:
+
+```powershell
+powershell -ExecutionPolicy Bypass -File \\wsl.localhost\NixOS\home\paul\.dotfiles\hosts\athena\windows\apply.ps1
 ```
 
 </details>

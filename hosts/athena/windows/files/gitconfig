@@ -1,0 +1,52 @@
+# Git for Windows' user config (~/.config/git/config), the Windows side of
+# home/common/shell/git.nix. ~/.gitconfig is left to tools (gh). Managed by apply.ps1.
+[user]
+	name = Paul
+	email = core@coredev.uk
+	signingKey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINQpQFDxvGq+x6sHldr81kFtftS6KFEzbOtoRKKTXFR7
+[core]
+	# Windows' OpenSSH reaches Proton Pass's agent (\\.\pipe\openssh-ssh-agent); Git's bundled one doesn't.
+	sshCommand = C:/Windows/System32/OpenSSH/ssh.exe
+	# Sona's scripts run in Git Bash and have no .gitattributes: keep LF.
+	autocrlf = false
+	whitespace = fix,-indent-with-non-tab,trailing-space,cr-at-eol
+[gpg]
+	format = ssh
+[gpg "ssh"]
+	program = C:/Windows/System32/OpenSSH/ssh-keygen.exe
+	allowedSignersFile = ~/.config/git/allowed_signers
+[commit]
+	gpgSign = true
+[tag]
+	gpgSign = true
+	sort = version:refname
+[url "ssh://git@github.com/"]
+	insteadOf = https://github.com/
+[url "ssh://git@gitlab.com/"]
+	insteadOf = https://gitlab.com/
+[rerere]
+	enabled = 1
+	autoupdate = 1
+[push]
+	autoSetupRemote = true
+[fetch]
+	prune = true
+[pull]
+	rebase = false
+[rebase]
+	autoStash = true
+	autoSquash = true
+[merge]
+	conflictStyle = zdiff3
+[diff]
+	algorithm = histogram
+[help]
+	autocorrect = prompt
+[column]
+	ui = auto
+[branch]
+	sort = -committerdate
+[init]
+	defaultBranch = main
+[alias]
+	lg = log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit

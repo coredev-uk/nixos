@@ -1,0 +1,4 @@
+# Git Bash (~/.bashrc). Managed by apply.ps1.
+# Git Bash's /etc/profile replaces PKG_CONFIG_PATH with MSYS2's own: take back the user
+# variable (Sona's GStreamer .pc files, dev.winget's sona-env) so cgo finds them.
+export PKG_CONFIG_PATH="$(cygpath -m "$LOCALAPPDATA")/sona-dev/gstreamer/sona-pkgconfig"

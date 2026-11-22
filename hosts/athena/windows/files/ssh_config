@@ -1,0 +1,6 @@
+# Windows OpenSSH (~/.ssh/config); keys come from Proton Pass's agent. Managed by apply.ps1.
+Host *
+  UserKnownHostsFile ~/.ssh/common_hosts ~/.ssh/known_hosts
+
+Host github.com
+  User git

@@ -1,0 +1,10 @@
+{
+  // Managed by apply.ps1 (hosts/athena/windows); changes made in VS Code are overwritten.
+  // Sona's style: gofumpt (`check` fails otherwise) and golangci-lint.
+  "gopls": {
+    "formatting.gofumpt": true
+  },
+  "go.lintTool": "golangci-lint",
+  "go.toolsManagement.autoUpdate": false,
+  "files.eol": "\n"
+}
