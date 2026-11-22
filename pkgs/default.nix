@@ -3,4 +3,5 @@
 { pkgs }:
 {
   jellium-desktop = pkgs.callPackage ./jellium-desktop { };
+  npiperelay = pkgs.callPackage ./npiperelay { };
 }
