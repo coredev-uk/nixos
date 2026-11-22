@@ -11,6 +11,7 @@
   ]
   ++ lib.optional (!meta.isHeadless) ./common/dev
   ++ lib.optional meta.isDesktop ./common/desktop
+  ++ lib.optional meta.isWSL ./common/wsl.nix
   ++ lib.optionals meta.isDarwin [
     ./common/programs/zen.nix
     ./common/programs/ghostty.nix

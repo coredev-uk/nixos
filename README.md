@@ -26,7 +26,7 @@ Core's Nix flake for NixOS and macOS: one configuration for every machine, from 
 | :--------: | :----------------: | :-----: | :------: | :-----: |
 |  `atlas`   |       NixOS        | Desktop | Hyprland | Working |
 | `poseidon` | macOS (nix-darwin) | Laptop  |   N/A    | Working |
-|  `athena`  |      Windows       | Desktop |   N/A    |   N/A   |
+|  `athena`  |  Windows (WSL HM)  | Desktop |   N/A    | Working |
 
 </details>
 

@@ -110,6 +110,12 @@
           desktop = "hyprland";
           stateVersion = "26.05";
         };
+        # Ubuntu on WSL under athena (atlas's Windows install, on its other drive).
+        "${username}@athena" = libx.mkHome {
+          hostname = "athena";
+          type = "wsl";
+          stateVersion = "26.05";
+        };
       };
 
       # NixOS configurations
