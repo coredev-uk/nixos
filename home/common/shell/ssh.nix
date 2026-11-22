@@ -26,7 +26,8 @@ let
 
   # Proton Pass's SSH agent serves its SSH key items: the desktop app's own (Settings → SSH
   # agent), which listens here on both Linux and macOS. On Linux the app starts with the session
-  # (home/common/desktop/hyprland); on macOS it needs "Start at login" set in the app.
+  # (home/common/desktop/hyprland); on macOS it needs "Start at login" set in the app. Under WSL
+  # the Windows app's agent is bridged to the same path (home/common/wsl.nix).
   agentSocket = "${meta.homeDirectory}/.ssh/proton-pass-ssh-agent.sock";
   SSH_AUTH_SOCK = agentSocket;
   IdentityAgent = agentSocket;

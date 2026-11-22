@@ -33,6 +33,10 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "unstable";
 
+    # athena's Linux side runs as a NixOS distribution under WSL (hosts/athena).
+    nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
+    nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
+
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
     # Only used by nixcord's own tests/formatter/CI shell. `nixpkgs-packages` is
@@ -110,6 +114,12 @@
           desktop = "hyprland";
           stateVersion = "26.05";
         };
+        # NixOS-WSL under athena (atlas's Windows install, on its other drive).
+        "${username}@athena" = libx.mkHome {
+          hostname = "athena";
+          type = "wsl";
+          stateVersion = "26.05";
+        };
       };
 
       # NixOS configurations
@@ -117,6 +127,10 @@
         atlas = libx.mkHost {
           hostname = "atlas";
           desktop = "hyprland";
+        };
+        athena = libx.mkHost {
+          hostname = "athena";
+          type = "wsl";
         };
       };
 

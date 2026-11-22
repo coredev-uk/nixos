@@ -38,7 +38,14 @@ let
         username = user;
         isDesktop = builtins.isString desktop;
         isDarwin = type == "darwin";
-        isHeadless = type == "server" || (type != "darwin" && type != "desktop");
+        # Home Manager on a WSL distribution (not NixOS): a workstation without a desktop.
+        isWSL = type == "wsl";
+        isHeadless =
+          !builtins.elem type [
+            "darwin"
+            "desktop"
+            "wsl"
+          ];
       };
     };
 

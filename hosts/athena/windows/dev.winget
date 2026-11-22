@@ -1,0 +1,181 @@
+# yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
+#
+# athena's Windows development tools, kept apart from gaming.winget so the gaming install can
+# go without them. Mainly Sona's Windows build: what .github/actions/setup-windows gives CI
+# (Go, MinGW-w64 gcc, pkg-config, GStreamer at the pin, the MSVC-built CDM shim), with the same
+# environment variables. The Linux side is NixOS-WSL (nixosConfigurations.athena).
+properties:
+  configurationVersion: 0.2.0
+  resources:
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: git
+      directives: { description: Git for Windows (Git Bash runs Sona's build scripts), securityContext: elevated, allowPrerelease: true }
+      settings: { id: Git.Git, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: gh
+      directives: { description: GitHub CLI, securityContext: elevated, allowPrerelease: true }
+      settings: { id: GitHub.cli, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: go
+      directives: { description: Go, securityContext: elevated, allowPrerelease: true }
+      settings: { id: GoLang.Go, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: mingw
+      directives: { description: "MinGW-w64 gcc for cgo (WinLibs, UCRT)", allowPrerelease: true }
+      settings: { id: BrechtSanders.WinLibs.POSIX.UCRT, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: pkg-config
+      directives: { description: pkg-config-lite (CI's pkgconfiglite), allowPrerelease: true }
+      settings: { id: bloodrock.pkg-config-lite, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: nsis
+      directives: { description: NSIS (build/windows/package.sh), securityContext: elevated, allowPrerelease: true }
+      settings: { id: NSIS.NSIS, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: golangci-lint
+      directives: { description: golangci-lint, allowPrerelease: true }
+      settings: { id: GolangCI.golangci-lint, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: vscode
+      directives: { description: Visual Studio Code, allowPrerelease: true }
+      settings: { id: Microsoft.VisualStudioCode, source: winget }
+    - resource: Microsoft.WinGet.DSC/WinGetPackage
+      id: vs-buildtools
+      directives: { description: Visual Studio 2022 Build Tools, securityContext: elevated, allowPrerelease: true }
+      settings: { id: Microsoft.VisualStudio.2022.BuildTools, source: winget }
+    # The C++ x64 tools build/windows/build-shim.sh finds with vswhere.
+    - resource: Microsoft.VisualStudio.DSC/VSComponents
+      id: vs-cpp
+      dependsOn: [vs-buildtools]
+      directives: { description: MSVC C++ build tools, securityContext: elevated, allowPrerelease: true }
+      settings:
+        productId: Microsoft.VisualStudio.Product.BuildTools
+        channelId: VisualStudio.17.Release
+        includeRecommended: true
+        components:
+          - Microsoft.VisualStudio.Workload.VCTools
+
+    - resource: PSDscResources/Script
+      id: vscode-extensions
+      dependsOn: [vscode]
+      directives: { description: VS Code extensions, allowPrerelease: true }
+      settings:
+        GetScript: |
+          $code = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd"
+          @{ Result = ((& $code --list-extensions) -join ' ') }
+        TestScript: |
+          $code = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd"
+          $have = & $code --list-extensions
+          $want = 'golang.go', 'ms-vscode-remote.remote-wsl', 'jnoortheen.nix-ide', 'mkhl.direnv', 'timonwong.shellcheck'
+          -not ($want | Where-Object { $have -notcontains $_ })
+        SetScript: |
+          $code = "$env:LOCALAPPDATA\Programs\Microsoft VS Code\bin\code.cmd"
+          $want = 'golang.go', 'ms-vscode-remote.remote-wsl', 'jnoortheen.nix-ide', 'mkhl.direnv', 'timonwong.shellcheck'
+          foreach ($e in $want) { & $code --install-extension $e }
+
+    # The editor's Go tools, as the Go extension would install them.
+    - resource: PSDscResources/Script
+      id: go-tools
+      dependsOn: [go]
+      directives: { description: "gopls, gofumpt, dlv", allowPrerelease: true }
+      settings:
+        GetScript: |
+          @{ Result = ((Get-ChildItem "$env:USERPROFILE\go\bin" -ErrorAction SilentlyContinue).Name -join ' ') }
+        TestScript: |
+          -not ('gopls', 'gofumpt', 'dlv' | Where-Object { -not (Test-Path "$env:USERPROFILE\go\bin\$_.exe") })
+        SetScript: |
+          $go = "$env:ProgramFiles\Go\bin\go.exe"
+          foreach ($p in 'golang.org/x/tools/gopls', 'mvdan.cc/gofumpt', 'github.com/go-delve/delve/cmd/dlv') {
+            & $go install "$p@latest"
+            if ($LASTEXITCODE) { throw "go install $p failed" }
+          }
+
+    # The checkout, GStreamer at build/windows/gstreamer.sha256's version (the repo's own
+    # install-gstreamer.sh) and sona_cdm_shim.dll (build-shim.sh), in %LOCALAPPDATA%\sona-dev.
+    # A new pin in the checkout reinstalls GStreamer on the next apply. git clones over SSH
+    # (~/.config/git/config, from apply.ps1), so Proton Pass must be unlocked.
+    - resource: PSDscResources/Script
+      id: sona-dev
+      dependsOn: [git, vs-cpp]
+      directives: { description: "sona-go checkout, GStreamer and the CDM shim", allowPrerelease: true }
+      settings:
+        GetScript: |
+          $gst = "$env:LOCALAPPDATA\sona-dev\gstreamer\bin\gst-launch-1.0.exe"
+          @{ Result = if (Test-Path $gst) { [string](& $gst --version | Select-Object -Last 2 | Select-Object -First 1) } else { '' } }
+        TestScript: |
+          $d = "$env:LOCALAPPDATA\sona-dev"
+          $repo = "$env:USERPROFILE\src\sona-go"
+          $gst = "$d\gstreamer\bin\gst-launch-1.0.exe"
+          if (-not (Test-Path "$repo\.git") -or -not (Test-Path $gst) -or -not (Test-Path "$d\shim\sona_cdm_shim.dll")) { return $false }
+          $want = (Select-String -Path "$repo\build\windows\gstreamer.sha256" -Pattern '^version (\S+)').Matches[0].Groups[1].Value
+          # "GStreamer 1.28.8 (GIT)"
+          [bool]((& $gst --version) -match "^GStreamer $([regex]::Escape($want))( |$)")
+        SetScript: |
+          $d = ("$env:LOCALAPPDATA\sona-dev") -replace '\\', '/'
+          $repo = "$env:USERPROFILE\src\sona-go"
+          $git = "$env:ProgramFiles\Git\cmd\git.exe"
+          if (-not (Test-Path "$repo\.git")) {
+            New-Item -ItemType Directory -Force (Split-Path $repo) | Out-Null
+            & $git clone https://github.com/coredev-uk/sona-go $repo
+            if ($LASTEXITCODE) { throw 'git clone failed' }
+            # devenv's enterShell does this on Linux: hooks that refuse commits on main.
+            & $git -C $repo config core.hooksPath .githooks
+          }
+          $r = $repo -replace '\\', '/'
+          & "$env:ProgramFiles\Git\bin\bash.exe" -lc "cd '$r' && GSTREAMER_PKG_CACHE='$d/gstreamer-pkg' build/windows/install-gstreamer.sh '$d/gstreamer' && build/windows/build-shim.sh '$d/shim'"
+          if ($LASTEXITCODE) { throw 'install-gstreamer.sh or build-shim.sh failed' }
+
+    # install-gstreamer.sh's install registers as winget's gstreamerproject.gstreamer: pinned, so
+    # `winget upgrade --all` leaves it at the repository's version.
+    - resource: PSDscResources/Script
+      id: gstreamer-pin
+      dependsOn: [sona-dev]
+      directives: { description: Pin GStreamer in winget, allowPrerelease: true }
+      settings:
+        GetScript: |
+          @{ Result = ((winget pin list --disable-interactivity) -join "`n") }
+        TestScript: |
+          [bool]((winget pin list --disable-interactivity) -match 'gstreamerproject\.gstreamer')
+        SetScript: |
+          winget pin add --id gstreamerproject.gstreamer --blocking --disable-interactivity
+
+    # What .github/actions/setup-windows exports for cgo and the CDM tests, for every new
+    # terminal. Git Bash's /etc/profile overrides PKG_CONFIG_PATH; ~/.bashrc (apply.ps1) sets it back.
+    - resource: PSDscResources/Script
+      id: sona-env
+      dependsOn: [sona-dev, pkg-config]
+      directives: { description: User environment for Sona's cgo build, allowPrerelease: true }
+      settings:
+        GetScript: |
+          @{ Result = [Environment]::GetEnvironmentVariable('GSTREAMER_ROOT', 'User') }
+        TestScript: |
+          $d = "$env:LOCALAPPDATA\sona-dev"
+          $pc = (Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\bloodrock.pkg-config-lite_*\*\bin\pkg-config.exe" | Select-Object -First 1).FullName
+          $want = @{
+            GSTREAMER_ROOT  = "$d\gstreamer" -replace '\\', '/'
+            PKG_CONFIG_PATH = "$d\gstreamer\sona-pkgconfig" -replace '\\', '/'
+            PKG_CONFIG      = $pc -replace '\\', '/'
+            SONA_CDM_SHIM   = "$d\shim\sona_cdm_shim.dll"
+            CGO_ENABLED     = '1'
+            GOFLAGS         = '-tags=sqlite_fts5'
+          }
+          $path = [Environment]::GetEnvironmentVariable('Path', 'User') -split ';'
+          -not ($want.Keys | Where-Object { [Environment]::GetEnvironmentVariable($_, 'User') -ne $want[$_] }) -and
+            ($path -contains "$d\gstreamer\bin") -and ($path -contains "${env:ProgramFiles(x86)}\NSIS")
+        SetScript: |
+          $d = "$env:LOCALAPPDATA\sona-dev"
+          $pc = (Get-ChildItem "$env:LOCALAPPDATA\Microsoft\WinGet\Packages\bloodrock.pkg-config-lite_*\*\bin\pkg-config.exe" | Select-Object -First 1).FullName
+          $want = @{
+            GSTREAMER_ROOT  = "$d\gstreamer" -replace '\\', '/'
+            PKG_CONFIG_PATH = "$d\gstreamer\sona-pkgconfig" -replace '\\', '/'
+            PKG_CONFIG      = $pc -replace '\\', '/'
+            SONA_CDM_SHIM   = "$d\shim\sona_cdm_shim.dll"
+            CGO_ENABLED     = '1'
+            GOFLAGS         = '-tags=sqlite_fts5'
+          }
+          foreach ($k in $want.Keys) { [Environment]::SetEnvironmentVariable($k, $want[$k], 'User') }
+          $path = [Environment]::GetEnvironmentVariable('Path', 'User')
+          foreach ($p in "$d\gstreamer\bin", "${env:ProgramFiles(x86)}\NSIS") {
+            if (($path -split ';') -notcontains $p) { $path = "$p;$path" }
+          }
+          [Environment]::SetEnvironmentVariable('Path', $path, 'User')

@@ -6,10 +6,14 @@
 }:
 {
   imports = [
+    ./locale.nix
+  ]
+  # Bare metal only: WSL boots its own kernel, has no VT or firmware to manage, brings its own
+  # swap, and nothing logs in to it over SSH.
+  ++ lib.optionals (!meta.isWSL) [
     ./boot.nix
     ./console.nix
     ./hardware.nix
-    ./locale.nix
     ./zramswap.nix
 
     ../services/fail2ban.nix
@@ -42,7 +46,7 @@
 
     # Firmware updates from LVFS (NVMe, peripherals). UEFI capsule updates won't run under
     # lanzaboote's Secure Boot keys unless fwupd's EFI binary is signed with them.
-    fwupd.enable = true;
+    fwupd.enable = !meta.isWSL;
   };
 
   # No sudo.execWheelOnly: services.btrbk runs as the btrbk user and calls sudo for btrfs, so
