@@ -4,15 +4,13 @@ import Quickshell.Wayland
 import qs.common
 import qs.widgets
 
-// Region sharing: the screen stays live under a dim, and a drag cuts the region out of it.
-// Letting go shares it; Escape or a right click goes back to the picker. Coordinates are the
-// output's own, in logical pixels, as xdph takes them.
+// Region sharing: the screen stays live under a dim and a drag cuts the region out; release shares,
+// Escape or right click returns to the picker. Coordinates are the output's logical pixels, as xdph takes them.
 PanelWindow {
     id: root
 
     required property var modelData
 
-    // The region as "x,y,w,h" on this screen.
     signal chosen(string output, string region)
     signal back
 
@@ -43,7 +41,6 @@ PanelWindow {
             keys.forceActiveFocus();
     }
 
-    // The dim, in four pieces around the region (all of it before a drag).
     Rectangle {
         width: parent.width
         height: root.hasArea ? root.area.y : parent.height
@@ -83,7 +80,6 @@ PanelWindow {
         border.color: Theme.gilt
     }
 
-    // The size, under the region's corner (above it near the bottom edge).
     Rectangle {
         id: size
 
@@ -106,7 +102,6 @@ PanelWindow {
         }
     }
 
-    // What to do, until the drag starts.
     Rectangle {
         visible: !root.dragging && !root.hasArea
         anchors.horizontalCenter: parent.horizontalCenter
@@ -149,7 +144,6 @@ PanelWindow {
                 return;
             root.dragging = false;
             const a = root.area;
-            // A click without a drag selects nothing.
             if (a.width < 4 || a.height < 4) {
                 root.from = root.to = Qt.point(0, 0);
                 return;

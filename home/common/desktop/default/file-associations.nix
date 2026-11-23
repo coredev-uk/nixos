@@ -7,11 +7,10 @@ let
   documentViewer = [ "org.gnome.Papers.desktop" ];
 in
 {
-  # XDG MIME types
   associations = {
     "inode/directory" = fileBrowser;
 
-    # Audio and video (mimeapps.list has no wildcards, so the common types are listed)
+    # mimeapps.list has no wildcards
     "audio/mpeg" = videoPlayer;
     "audio/mp4" = videoPlayer;
     "audio/aac" = videoPlayer;
@@ -38,10 +37,8 @@ in
     "video/3gpp" = videoPlayer;
     "video/mp2t" = videoPlayer;
 
-    # "application/json" = browser;
     "application/pdf" = documentViewer;
 
-    # Archives / compressed files
     "application/x-7z-compressed" = archiveManager;
     "application/x-7z-compressed-tar" = archiveManager;
     "application/x-bzip" = archiveManager;
@@ -65,7 +62,6 @@ in
     "application/bzip2" = archiveManager;
     "application/vnd.rar" = archiveManager;
 
-    # Images
     "image/jpeg" = imageViewer;
     "image/png" = imageViewer;
     "image/gif" = imageViewer;

@@ -4,15 +4,13 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Instant replay: gpu-screen-recorder keeps the last few minutes of the primary monitor and of what
-// the default output plays in RAM, and a save writes them, or just their last stretch, to the
-// recordings folder (the capture menu, modules/CaptureMenu.qml; Super+Shift+C for the last 30 s,
-// Super+Ctrl+Shift+C for all of it; `quickshell ipc -c bar call replay save|clip SECONDS`).
-// The buffer runs as the quickshell-replay user unit (default.nix), which systemd supervises and
-// which outlives the bar, so a restart on switch doesn't empty it. Whether it is armed is kept in
-// the state dir like Do Not Disturb, and the bar starts the unit again at login. Buffering shares
-// nothing, so it isn't on air (Privacy): the capture glyph is gilt while it is armed. The clip is
-// named and announced by scripts/record.sh.
+// Instant replay: gpu-screen-recorder keeps the last few minutes of the primary monitor and default
+// output in RAM; a save writes all of it, or just its end, to the recordings folder (CaptureMenu;
+// Super+Shift+C last 30 s, Super+Ctrl+Shift+C all; `quickshell ipc -c bar call replay save|clip SECONDS`).
+// Runs as the quickshell-replay user unit (default.nix), supervised by systemd and outliving the bar so
+// a switch restart doesn't empty it. Armed state is kept in the state dir like Do Not Disturb; the bar
+// restarts the unit at login. Buffering shares nothing, so it isn't on air (Privacy): the capture glyph
+// is gilt while armed. Clips are named and announced by scripts/record.sh.
 Singleton {
     id: root
 
@@ -24,7 +22,6 @@ Singleton {
     // The unit is running: false while it is starting or restarting after a failure.
     property bool active: false
 
-    // "5 min", "1 h 30 min".
     readonly property string span: {
         const minutes = Math.round(seconds / 60);
         return minutes < 60 ? `${minutes} min` : minutes % 60 ? `${Math.floor(minutes / 60)} h ${minutes % 60} min` : `${minutes / 60} h`;
@@ -65,7 +62,6 @@ Singleton {
             "1800": "SIGRTMIN+6"
         })
 
-    // All of the buffer, or (with `last`, one of clipSignals' lengths shorter than it) its end.
     function save(last: int) {
         if (!armed || !active) {
             fail("Instant replay isn't running. Turn it on from the capture menu first.");

@@ -1,12 +1,11 @@
-# The shell's helper programs (../default.nix): each wraps a script beside this file, or a QML
-# entry point in ../config, with what it needs at runtime.
+# Helper programs for the shell: each wraps a script here (or a QML entry point in ../config).
 {
   config,
   lib,
   pkgs,
 }:
 let
-  # ProtonVPN has no D-Bus API, so the bar shells out to its CLI.
+  # ProtonVPN has no D-Bus API; the bar uses its CLI.
   vpn = pkgs.writeShellApplication {
     name = "quickshell-vpn";
     runtimeInputs = with pkgs; [
@@ -23,9 +22,7 @@ let
     text = builtins.readFile ./vpn.sh;
   };
 
-  # Peripheral batteries for the panel (services/Batteries.qml). headsetcontrol is not a
-  # runtime input: it comes from the host's PATH where installed (hosts/atlas/extra.nix),
-  # together with its udev rules.
+  # headsetcontrol is not a runtime input: it comes from the host PATH (hosts/atlas/extra.nix) with its udev rules.
   batteries = pkgs.writeShellApplication {
     name = "quickshell-batteries";
     runtimeInputs = with pkgs; [
@@ -35,21 +32,16 @@ let
     text = builtins.readFile ./batteries.sh;
   };
 
-  # OpenRGB lighting for the control panel's Lighting section (config/services/Lighting.qml),
-  # over the SDK of the system's OpenRGB server (hosts/common/desktop/rgb.nix): the looks, and
-  # the engine (quickshell-rgb.service, ../default.nix) that draws them in Direct mode.
+  # OpenRGB SDK client against the system server (hosts/common/desktop/rgb.nix): looks plus the
+  # engine behind quickshell-rgb.service.
   rgb = pkgs.writers.writePython3Bin "quickshell-rgb" {
     libraries = [ pkgs.python3Packages.openrgb-python ];
   } (builtins.readFile ./rgb.py);
 
-  # atlas's Nix state and the home-lab binary cache for the panel's Nix view
-  # (config/services/NixStatus.qml): main's flake.lock, the open lock update pull request (every
-  # flake input at once, nightly) and its checks, and the Hosts workflow's runs on main and the
-  # store path its newest successful one recorded (GitHub's API, with `gh auth token` from the
-  # user's PATH when it has one), the running system's narinfo in Attic and the cache's size from
-  # Prometheus, fetched in parallel with short timeouts into one JSON object.
-  # nixos-version comes from the running system by absolute path, as does systemctl (failed units,
-  # system and user).
+  # Nix view data (services/NixStatus.qml): GitHub (flake.lock, update PR, Hosts workflow; `gh auth
+  # token` from the user's PATH if present), Attic narinfo and Prometheus cache size, fetched in
+  # parallel with short timeouts into one JSON object. nixos-version and systemctl are called by
+  # absolute path from the running system.
   nixStatus = pkgs.writeShellApplication {
     name = "quickshell-nix-status";
     runtimeInputs = with pkgs; [
@@ -60,9 +52,8 @@ let
     text = builtins.readFile ./nix-status.sh;
   };
 
-  # Claude plan usage for the bar's Claude meter (config/services/ClaudeUsage.qml), from the
-  # usage endpoint behind claude.ai's settings, signed in with omp's Anthropic credential (read
-  # only, never refreshed), and the week's readings for its chart (claude-usage.sh).
+  # Claude plan usage from the endpoint behind claude.ai's settings, using omp's Anthropic
+  # credential (read only, never refreshed); also keeps the week's readings for the chart.
   claudeUsage = pkgs.writeShellApplication {
     name = "quickshell-claude-usage";
     runtimeInputs = with pkgs; [
@@ -71,16 +62,14 @@ let
       jq
       sqlite
     ];
-    # The jq filters are single-quoted on purpose.
+    # jq filters are single-quoted on purpose.
     excludeShellChecks = [ "SC2016" ];
     text = builtins.readFile ./claude-usage.sh;
   };
 
-  # Proton Pass quick access (config/modules/PassQuickAccess.qml). pass-cli is not a runtime
-  # input: it comes from the user's PATH (home/common/desktop/default.nix), sharing the session
-  # the user signs in to. curl fetches the logins' website icons, dwebp (libwebp) turns the WebP
-  # ones into PNGs for the shell's Qt, and the public suffix list tells which websites share a site.
-  # The hidden vaults stay out of the list (and out of each sync's pass-cli runs).
+  # pass-cli is not a runtime input: it comes from the user's PATH (home/common/desktop/default.nix)
+  # to share the signed-in session. dwebp converts WebP site icons to PNG for Qt; the public suffix
+  # list groups websites by site. Hidden vaults are excluded from the list and from sync.
   pass = pkgs.writeShellApplication {
     name = "quickshell-pass";
     runtimeInputs = with pkgs; [
@@ -94,7 +83,7 @@ let
     ];
     runtimeEnv = {
       PUBLIC_SUFFIX_LIST = "${pkgs.publicsuffix-list}/share/publicsuffix/public_suffix_list.dat";
-      # One per line: the names may have spaces, and quotes would need escaping in the wrapper.
+      # One per line: names may contain spaces.
       QUICKSHELL_PASS_HIDDEN_VAULTS = lib.concatStringsSep "\n" [
         "Alias"
         "Kubernetes"
@@ -104,9 +93,8 @@ let
     text = builtins.readFile ./pass.sh;
   };
 
-  # Screen recording (config/services/Recorder.qml): gpu-screen-recorder itself comes from the
-  # NixOS module (hosts/common/desktop/hyprland.nix), whose build finds the capability wrapper
-  # for KMS capture; the script starts it and raises the notifications.
+  # gpu-screen-recorder comes from the NixOS module (hosts/common/desktop/hyprland.nix), whose
+  # build finds the capability wrapper needed for KMS capture.
   record = pkgs.writeShellApplication {
     name = "quickshell-record";
     runtimeInputs = with pkgs; [
@@ -119,10 +107,8 @@ let
     text = builtins.readFile ./record.sh;
   };
 
-  # Events for the calendar popup (config/services/Calendar.qml): iCloud over CalDAV and the
-  # Sonarr/Radarr release calendars, from ~/.config/quickshell/calendars.json (kept out of git;
-  # format in the script's header). pass:// secrets come from Proton Pass; pass-cli is not a
-  # runtime input, for the same reason as quickshell-pass above.
+  # iCloud CalDAV and Sonarr/Radarr events from ~/.config/quickshell/calendars.json (not in git;
+  # format in the script header). pass-cli comes from PATH, as for quickshell-pass.
   calendar = pkgs.writers.writePython3Bin "quickshell-calendar" {
     libraries = with pkgs.python3Packages; [
       caldav
@@ -130,8 +116,7 @@ let
     ];
   } (builtins.readFile ./calendar-events.py);
 
-  # Print key and the screenshot popup (config/modules/ScreenshotPopup.qml): capture, save and
-  # edit. Saves go to the XDG screenshots directory (home/common/shell/xdg.nix).
+  # Print key and screenshot popup. Saves to the XDG screenshots dir (home/common/shell/xdg.nix).
   screenshot = pkgs.writeShellApplication {
     name = "quickshell-screenshot";
     runtimeInputs = with pkgs; [
@@ -147,14 +132,12 @@ let
     + builtins.readFile ./screenshot.sh;
   };
 
-  # Qt Multimedia and the NVIDIA VA-API driver for the clip behind the lock screen
-  # (config/lock/LockVideo.qml); the greeter plays it too (hosts/common/desktop/greeter.nix).
+  # Qt Multimedia + NVIDIA VA-API for the lock clip; the greeter uses it too.
   video = import ../video.nix { inherit pkgs; };
 
-  # Session lock (config/lockscreen.qml): its own one-shot instance, run by hypridle's lock_cmd
-  # (home/common/programs/hypr/idle.nix), so a bar restart can't take the lock down. The idle
-  # timeout runs `quickshell-lock --grace SECONDS` instead, for a lock that input in its first
-  # SECONDS dismisses without the password.
+  # Own one-shot instance (hypridle lock_cmd, hypr/idle.nix) so bar restarts can't drop the lock.
+  # The idle timeout runs `quickshell-lock --grace SECONDS`: input within SECONDS dismisses the
+  # lock without the password.
   lock = pkgs.writeShellApplication {
     name = "quickshell-lock";
     runtimeInputs = [
@@ -162,21 +145,19 @@ let
       pkgs.coreutils
       pkgs.libnotify
       pkgs.systemd
-      # Today's events under the clock (config/lock/LockToday.qml).
+      # Today's events under the clock.
       calendar
     ];
     text = ''
-      # `--grace SECONDS`: leave a note for the lock logind is about to start (lock_cmd runs this
-      # again, without arguments) and go through logind like every other lock, so whatever else
-      # listens for it still hears. Locks for sleep or by hand never write one.
+      # `--grace SECONDS`: leave a note, then lock via logind (lock_cmd re-runs this without args)
+      # so other lock listeners still fire. Sleep/manual locks never write one.
       grace_note="$XDG_RUNTIME_DIR/quickshell-lock-grace"
       if [ "''${1:-}" = --grace ]; then
         printf '%s\n' "''${2:?--grace needs a number of seconds}" > "$grace_note"
         exec loginctl lock-session
       fi
 
-      # Read the note once, and only if it was just left: a stale one (lock-session never got
-      # here) mustn't soften a later lock.
+      # Honour the note only if fresh; a stale one must not soften a later lock.
       grace=0
       if [ -f "$grace_note" ]; then
         if [ $(( $(date +%s) - $(stat -c %Y "$grace_note") )) -le 5 ]; then
@@ -186,30 +167,28 @@ let
       fi
       export QS_LOCK_GRACE="$grace"
 
-      # Without its PAM service the lock could never be dismissed; it comes from the NixOS
-      # config (hosts/common/desktop/hyprland.nix), so refuse to lock on a system without it.
+      # The PAM service comes from the NixOS config (hosts/common/desktop/hyprland.nix); without it
+      # the lock can't be dismissed, so refuse to lock.
       if [ ! -e /etc/pam.d/quickshell-lock ]; then
         notify-send --urgency=critical "Screen not locked" \
           "/etc/pam.d/quickshell-lock is missing; rebuild NixOS first."
         exit 1
       fi
 
-      # The desktop's wallpaper (home/common/programs/hypr/paper.nix).
+      # Wallpaper (hypr/paper.nix).
       export QS_LOCK_WALLPAPER=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.jpg"}
-      # wlsunset's location (home/common/programs/hypr/sunset.nix), for the next sunrise or sunset.
+      # wlsunset's location, for the next sunrise/sunset.
       export QS_LATITUDE=${lib.escapeShellArg config.services.wlsunset.latitude}
       export QS_LONGITUDE=${lib.escapeShellArg config.services.wlsunset.longitude}
-      # The aerial clip of the wallpaper, made by wallpaper-video (home/common/programs/hypr/paper.nix);
-      # the still shows until it exists.
+      # Aerial clip from wallpaper-video (hypr/paper.nix); the still shows until it exists.
       export QS_LOCK_VIDEO=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/current.mp4"}
       ${video.environment}
       exec quickshell --no-duplicate --path ${../config}/lockscreen.qml
     '';
   };
 
-  # xdph's screen-share picker (screencopy:custom_picker_binary): runs config/sharepicker.qml
-  # and hands its choice back on stdout, which xdph parses as "[SELECTION]<flags>/<what>"; no
-  # line is a cancel. Its own instance, like the lock, so a bar restart can't close it.
+  # xdph's screen-share picker (screencopy:custom_picker_binary): prints "[SELECTION]<flags>/<what>"
+  # on stdout; no line = cancel. Own instance so bar restarts can't close it.
   sharePicker = pkgs.writeShellApplication {
     name = "quickshell-share-picker";
     runtimeInputs = [ pkgs.coreutils ];

@@ -20,9 +20,8 @@
   hardware.cpu.amd.updateMicrocode = true;
   services.fstrim.enable = true;
 
-  # amd-pstate-epp in active mode: powersave lets the energy-performance preference pick
-  # between idle and boost (xanmod's default, performance, pins EPP to performance). GameMode
-  # switches to performance while a game runs.
+  # amd-pstate-epp active + powersave: EPP picks idle vs boost (xanmod's performance default pins
+  # it). GameMode switches to performance during games.
   boot.kernelParams = [ "amd_pstate=active" ];
   powerManagement.cpuFreqGovernor = "powersave";
   systemd.services.cpu-epp = {
@@ -38,19 +37,16 @@
   };
 
   services = {
-    # sched_ext scheduler tuned for interactive and gaming latency; stopping the service
-    # (`systemctl stop scx`) falls back to the kernel's EEVDF.
+    # sched_ext; `systemctl stop scx` falls back to EEVDF.
     scx = {
       enable = true;
       scheduler = "scx_lavd";
     };
 
-    # Monthly checksum verification; the default list is de-duplicated per device, so the
-    # single LUKS/btrfs filesystem is scrubbed once despite its many subvolume mounts.
+    # Monthly scrub (once per filesystem despite many subvolume mounts).
     btrfs.autoScrub.enable = true;
 
-    # Hourly snapshots of /home into the @snapshots subvolume (disks.nix). No `volume`
-    # section, so paths are absolute; both live on the same btrfs filesystem.
+    # Hourly /home snapshots into @snapshots (disks.nix).
     btrbk.instances.btrbk = {
       onCalendar = "hourly";
       settings = {
@@ -63,10 +59,8 @@
     };
   };
 
-  # Nested subvolumes are left out of the /home snapshots. Caches (Go's build cache alone
-  # rewrote ~3 GB/h) and omp's agent sessions churned so much under hourly snapshots that
-  # btrfs commits took up to 3.5s of CPU, stalling every fsync-ing app. `v` only creates a
-  # subvolume where nothing exists yet; an existing plain directory needs moving by hand.
+  # Nested subvolumes stay out of /home snapshots: caches and omp sessions churn too much
+  # (btrfs commits stalled up to 3.5s). `v` won't convert an existing plain directory.
   systemd.tmpfiles.rules =
     let
       home = meta.homeDirectory;

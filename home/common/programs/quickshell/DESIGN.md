@@ -161,7 +161,7 @@ The shell keeps time like the Royal Observatory at Greenwich: night-slate ground
 
 There are two registers. **The Instrument** is where the work happens: the 24px bar, its plates (panels, menus, tooltips, notifications), the OSD, the polkit dialog and Pass quick access. It is dense and settled; type runs 11–14px, rows line up on fixed glyph columns, and resting states are enamel and muted so a single gilt or alert glyph reads at once. **The Window** is for arriving and leaving: the lock screen, the greeter and the wallpaper picker. They go full-bleed over the wallpaper (and on the lock and greeter, its aerial clip), with a 300px light clock and slow, rising reveals. Both registers use the same palette, the same family and the same flat, tonal depth; only scale and pacing change.
 
-The same palette is the system palette (`meridian` in `lib/theme/default.nix`), which Hyprland, Vicinae, Ghostty, Neovim, GTK, Qt and Discord read, so everything around the windows reads as one. Terminal programs (zellij, btop, fzf, bat, k9s, lazygit) take no palette of their own: they draw with the terminal's 16 colours, which Ghostty sets from it. `Theme.qml` and `lib/theme` hold the same values; a change goes in both.
+The same palette is the system palette (`meridian` in `lib/theme/default.nix`), which Hyprland, Vicinae, Ghostty, Neovim, GTK, Qt and Discord read, so everything around the windows reads as one. Terminal programs (zellij, btop, fzf, bat, k9s, lazygit) draw with the terminal's 16 colours, which Ghostty sets from it.
 
 Rejected outright: the pastel unixporn bar, the macOS glass menubar, glows, gradients and animated accent colour, and big-tile dashboards.
 
@@ -170,7 +170,7 @@ Rejected outright: the pastel unixporn bar, the macOS glass menubar, glows, grad
 - Gilt means "you are here" or "this is on", and the one primary button. Nothing else is gold.
 - Atkinson Hyperlegible Next everywhere, with tabular figures so readouts never shift.
 - The day arc: the day as a 24-hour track with the daylight lit and a gilt dot at now, in the bar and on the lock.
-- One easing family, OutCubic in and InCubic out: 160ms state changes, 120ms exits, 300ms spatial moves, 650ms Window reveals. Hyprland uses the same curves but runs quicker (150ms to open, switch or move, 100ms for focus, 80ms to close), because it sits between every keystroke and its window.
+- One easing family, OutCubic in and InCubic out: 160ms state changes, 120ms exits, 300ms spatial moves, 650ms Window reveals. Hyprland uses the same curves but quicker (see Motion).
 
 ## Colors
 

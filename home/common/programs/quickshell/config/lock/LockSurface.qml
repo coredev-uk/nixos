@@ -3,28 +3,23 @@ import QtQuick.Effects
 import Quickshell
 import qs.common
 
-// One screen of the lock or greeter. The wallpaper is left sharp (its aerial clip playing over it
-// on the lock screen, where there is one), with the time set large in its bottom-left corner and
-// the date under it; today's events and what's playing sit bottom-right. Any key or click softens
-// the picture and turns the date line into the password field, with the power buttons in place
-// of what's playing. Unlocking sinks everything and sharpens the picture again.
+// One screen of the lock or greeter: sharp wallpaper (aerial clip over it on the lock), time and
+// date bottom-left, events and music bottom-right. Any key or click softens the picture and turns
+// the date line into the password field, with the power buttons replacing the music.
 Rectangle {
     id: root
 
     required property AuthContext context
 
-    // Set by the quickshell-lock and quickshell-greeter wrappers.
+    // Set by the lock and greeter wrappers.
     readonly property string wallpaperPath: Quickshell.env("QS_LOCK_WALLPAPER") ?? ""
-    // Set where there is a clip to play: by the lock's wrapper always, by the greeter's when
-    // /var/lib/greeter-wallpaper has one.
+    // Set by the lock wrapper always, by the greeter's only when /var/lib/greeter-wallpaper has a clip.
     readonly property string videoPath: Quickshell.env("QS_LOCK_VIDEO") ?? ""
-    // Layout scale, 1 at 1080p.
     readonly property real s: Math.max(0.75, height / 1080)
     // The outer margin, and the line under the time that holds the date or the password.
     readonly property real margin: Math.round(80 * s)
     readonly property real lineHeight: Math.round(56 * s)
     readonly property bool engaged: context.active && !context.unlocking
-    // Drives the entrance (on the first frame) and the outro (on unlocking).
     property bool ready: false
     readonly property bool shown: ready && !context.unlocking
 
@@ -32,9 +27,8 @@ Rectangle {
 
     Component.onCompleted: ready = true
 
-    // The still and the clip over it, drawn under the blur that covers them: a video only
-    // paints while it's visible, so this can't be a hidden effect source. Overscan: the blur
-    // pulls transparent pixels in from past the edges.
+    // Still and clip are drawn under the blur: a video only paints while visible, so it can't be a
+    // hidden effect source. Overscan because the blur pulls in transparent pixels from past the edges.
     Item {
         id: backdrop
 
@@ -54,9 +48,8 @@ Rectangle {
 
         Loader {
             anchors.fill: parent
-            // By URL, so an instance without Qt Multimedia (the greeter, when there is no clip)
-            // never compiles it. Asynchronous, so the first frame (with the still) doesn't wait
-            // for Qt Multimedia and FFmpeg.
+            // Loaded by URL so an instance without Qt Multimedia (greeter, no clip) never compiles it;
+            // asynchronous so the first frame doesn't wait for Qt Multimedia and FFmpeg.
             asynchronous: true
             Component.onCompleted: {
                 if (root.videoPath !== "")
@@ -68,7 +61,6 @@ Rectangle {
         }
     }
 
-    // Under the blur until the still has loaded.
     Rectangle {
         anchors.fill: parent
         color: Theme.ground
@@ -106,7 +98,7 @@ Rectangle {
         }
     }
 
-    // Flat scrim so the text holds up on bright wallpapers; deeper with the password up.
+    // Flat scrim so text holds on bright wallpapers; deeper with the password up.
     Rectangle {
         anchors.fill: parent
         color: Theme.ground
@@ -120,7 +112,6 @@ Rectangle {
         }
     }
 
-    // Clicking anywhere brings up the password and gives the keyboard back to it.
     MouseArea {
         anchors.fill: parent
         onClicked: {
@@ -167,7 +158,7 @@ Rectangle {
         rise: 28 * root.s
         delay: 180
 
-        // Today's events and the music come from the user session, so the greeter never loads them.
+        // The greeter never loads these: no user session.
         Loader {
             anchors.fill: parent
             active: root.context.hasUserSession
@@ -197,7 +188,6 @@ Rectangle {
         }
     }
 
-    // An idle lock's grace period, top-left; the greeter never has one.
     Reveal {
         anchors.fill: parent
         shown: root.shown && root.context.graceOpen

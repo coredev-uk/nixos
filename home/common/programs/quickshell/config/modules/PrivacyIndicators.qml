@@ -5,8 +5,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Alert glyphs for whatever is being captured or cast right now: anything leaving the machine is
-// worth noticing, so every kind takes the same colour. Hidden when nothing is. Click lists the apps.
+// Alert glyphs for anything being captured or cast; one colour for every kind. Hidden when idle.
+// Click lists the apps.
 Item {
     id: root
 

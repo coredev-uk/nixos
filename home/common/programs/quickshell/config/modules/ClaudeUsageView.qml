@@ -4,12 +4,10 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The control panel's Claude section: the plan's week, this week's limit in words first (used,
-// and when it runs out at the pace so far), then the week drawn as a chart in an inset well: a day
-// per column split at midnight, the even pace as a muted diagonal, the readings as an enamel line
-// that steps up as the week is used, and a gilt dot at now, as on the day arc. Under it when the
-// week resets and how much of it has gone; then the model and session limits and a link to
-// claude.ai's own page. When the reading was taken (`updated`) goes in the section's header.
+// Control panel's Claude section: the weekly limit in words (used, when it runs out at the pace so far),
+// then the week as a chart in an inset well (day columns split at midnight, even pace as a muted
+// diagonal, readings as a stepping enamel line, gilt dot at now), reset time, model and session
+// limits, link to claude.ai. `updated` goes in the section header.
 ColumnLayout {
     id: root
 
@@ -81,8 +79,8 @@ ColumnLayout {
         }
     }
 
-    // Running out early is the one thing here that asks for a change, so it alone is caution;
-    // the words carry it as well as the colour.
+    // Running out early is the one thing here that asks for action, so it alone is caution
+    // (the words say it too).
     BarText {
         Layout.fillWidth: true
         Layout.topMargin: 2
@@ -109,8 +107,7 @@ ColumnLayout {
             height: 72
         }
 
-        // The days under their columns; a sliver of a day (the week begins and ends at the
-        // same hour) goes unnamed.
+        // Day names under their columns; a sliver of a day (week starts and ends at the same hour) goes unnamed.
         Item {
             id: days
             anchors.left: chart.left
@@ -315,7 +312,6 @@ ColumnLayout {
                 const w = width;
                 const h = height;
 
-                // Midnights.
                 ctx.lineWidth = 1;
                 ctx.strokeStyle = String(Theme.rule);
                 ctx.beginPath();
@@ -326,7 +322,6 @@ ColumnLayout {
                 }
                 ctx.stroke();
 
-                // Even pace, dotted from nothing at the start to the limit at the reset.
                 ctx.fillStyle = String(Theme.muted);
                 const y0 = chart.yOf(0);
                 const y1 = chart.yOf(100);
@@ -350,7 +345,6 @@ ColumnLayout {
                 ctx.lineTo(chart.nowX, chart.yOf(points[points.length - 1][1]));
                 ctx.stroke();
 
-                // Now, as on the day arc: gilt, ringed in the well's own ground.
                 ctx.fillStyle = String(Theme.inset);
                 ctx.beginPath();
                 ctx.arc(chart.nowX, chart.nowY, 5.5, 0, 2 * Math.PI);
@@ -361,7 +355,7 @@ ColumnLayout {
                 ctx.fill();
             }
 
-            // A canvas keeps its last picture when resized; draw it again at the new size.
+            // A canvas keeps its last picture on resize; repaint.
             onWidthChanged: requestPaint()
             onHeightChanged: requestPaint()
             onAvailableChanged: requestPaint()

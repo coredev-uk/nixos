@@ -1,24 +1,22 @@
 # quickshell-pass status|login|logout|list|details SHARE ITEM|copy SHARE ITEM FIELD|icons DOMAIN…
-# Proton Pass for the quick-access window (modules/PassQuickAccess.qml): JSON on stdout, one
-# error line on stderr and a non-zero exit on failure. Secrets only ever go to the clipboard.
+# Proton Pass for the quick-access window (modules/PassQuickAccess.qml): JSON on stdout; on failure
+# one error line on stderr and non-zero exit. Secrets only ever go to the clipboard.
 
-# pass-cli's default Linux key store is the kernel keyring, which is denied here and gone after a
-# reboot; gnome-keyring keeps the session. Set here as well because the quickshell service can
-# start before the session variables are in place.
+# pass-cli's default key store (kernel keyring) is denied here and gone after reboot; gnome-keyring
+# keeps the session. Set here too since the quickshell service can start before session variables exist.
 export PROTON_PASS_LINUX_KEYRING=dbus
-# Updates come with the Nix package.
+# Updates come with the Nix package:
 export PROTON_PASS_NO_UPDATE_CHECK=1
 
-# Seconds a copied secret stays on the clipboard; overridable for testing.
+# Seconds a copied secret stays on the clipboard.
 clear_after=${QUICKSHELL_PASS_CLEAR_AFTER:-45}
 
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 
-# pass-cli's local store isn't safe to share with a pending web login: any other command run
-# meanwhile finds the half-made session, deletes it, and the login then fails with "Error
-# persisting session store: No such file or directory". Login holds this lock exclusively;
-# the rest share it and refuse to run during a login. Long-lived children (wl-copy, the
+# A pending web login makes pass-cli's store unsafe to share: any other command deletes the
+# half-made session and the login fails ("Error persisting session store"). Login holds this lock
+# exclusively, the rest share it and refuse during a login. Long-lived children (wl-copy, the
 # clipboard timer) close it so they don't block the next login.
 exec 9>"${XDG_RUNTIME_DIR:-/tmp}/quickshell-pass.lock"
 lock() {
@@ -35,8 +33,8 @@ lock() {
 	fi
 }
 
-# pass-cli logs tracing lines and anyhow chains ("Error: …", "Caused by:", indented causes) to
-# stderr; boil them down to one readable line. Reads $tmp/errors unless given another file.
+# pass-cli logs tracing lines and anyhow chains to stderr; reduce to one readable line. Reads
+# $tmp/errors unless given another file.
 report_error() {
 	local line message="" cause="" fallback="" errors=${1:-$tmp/errors}
 	while IFS= read -r line; do
@@ -82,8 +80,7 @@ status() {
 	fi
 }
 
-# Web login: prints {"url": …} as soon as pass-cli has the sign-in page, then {"signedIn": true}
-# once the browser side is done. SIGTERM cancels the pending login.
+# Web login: prints {"url": …} once pass-cli has the sign-in page, then {"signedIn": true}. SIGTERM cancels.
 login() {
 	local line pid status=0
 	mkfifo "$tmp/out"
@@ -108,14 +105,12 @@ logout() {
 	jq -nc '{signedIn: false}'
 }
 
-# Every active item of the vaults not in $QUICKSHELL_PASS_HIDDEN_VAULTS (vault names, one per
-# line, set in default.nix), without secrets: [{share, id, title, type, vault, domain}] by
-# title. `domain` is a login's website for its icon (the host of its first web address, without
-# "www."), "" without one or for a private address, which stays off the icon service. Only
-# --show-secrets lists the addresses; as in details below, the secrets stop at jq.
-# Each pass-cli run spends most of a second on its own keyring lookup and API connection, so the
-# vaults are listed all at once. The vault list goes first and alone: it refreshes an expired
-# access token before the parallel runs could each try to.
+# Active items of vaults not in $QUICKSHELL_PASS_HIDDEN_VAULTS (one per line, set in default.nix),
+# without secrets: [{share, id, title, type, vault, domain}] by title. `domain` is a login's
+# website for its icon (host of its first address, minus "www."), "" if none or a private address
+# (kept off the icon service). Only --show-secrets lists addresses; as in details, secrets stop at jq.
+# Each pass-cli run costs ~1 s (keyring + API connection), so vaults are listed in parallel; the
+# vault list goes first and alone so an expired access token is refreshed once, not per run.
 list() {
 	local vaults i status failed=-1 failure=0
 	local -a shares pids files
@@ -130,7 +125,7 @@ list() {
 		pids[i]=$!
 		files[i]=$tmp/items.$i
 	done
-	# All of them finish before any failure is reported, so none outlives the temporary directory.
+	# Wait for all before reporting a failure, so none outlives the temporary directory.
 	for i in "${!pids[@]}"; do
 		status=0
 		wait "${pids[i]}" || status=$?
@@ -143,7 +138,7 @@ list() {
 		report_error "$tmp/errors.$failed"
 		return "$failure"
 	fi
-	# With every vault hidden there are no files, and jq reads the empty stdin instead.
+	# With every vault hidden there are no files; jq reads the empty stdin instead.
 	jq -sc --argjson vaults "$vaults" '
 		def domain:
 			[.content.content | objects | .Login.urls[]? | strings | ascii_downcase
@@ -166,10 +161,9 @@ list() {
 		| sort_by(.title | ascii_downcase)' "${files[@]}" </dev/null
 }
 
-# The non-secret side of one item, plus which secrets it has. `primary` is the field Enter copies;
-# `apiKeys` are the custom fields named like an API key ("SONARR_API_KEY", "API key"), by their
-# position, since two of them may share a name.
-# The content is serde's externally tagged ItemContent from proton-pass-types, e.g.
+# Non-secret side of one item plus which secrets it has. `primary` is the field Enter copies;
+# `apiKeys` are custom fields named like an API key ("SONARR_API_KEY"), by position since names can repeat.
+# Content is serde's externally tagged ItemContent from proton-pass-types, e.g.
 # {"Login": {"username", "email", "password", "urls", "totp_uri", …}}.
 details() {
 	cli item view --share-id "$1" --item-id "$2" --output json | jq -c '
@@ -200,14 +194,14 @@ details() {
 		}'
 }
 
-# One field (password, totp → current code, extra:N → the Nth custom field, …) onto the
-# clipboard, marked sensitive so clipboard managers skip it, and off it again after $clear_after
-# seconds unless something else was copied since. Read into a variable (not piped) so a failed
-# lookup leaves the clipboard alone; only its hash outlives this function.
+# One field (password, totp → current code, extra:N → Nth custom field, …) onto the clipboard,
+# marked sensitive so clipboard managers skip it, cleared after $clear_after seconds unless
+# something else was copied. Read into a variable (not piped) so a failed lookup leaves the
+# clipboard alone.
 copy() {
 	local value hash token
 	if [[ $3 =~ ^extra:([0-9]+)$ ]]; then
-		# By position: pass-cli's --field takes a name, and custom field names can repeat.
+		# By position: --field takes a name and custom field names can repeat.
 		value=$(cli item view --share-id "$1" --item-id "$2" --output json |
 			jq -j --argjson i "${BASH_REMATCH[1]}" '.item.content.extra_fields[$i].content // {} | to_entries[0].value // ""')
 	else
@@ -218,7 +212,7 @@ copy() {
 		return 1
 	fi
 	hash=$(printf '%s' "$value" | sha256sum)
-	# wl-copy keeps serving from a forked child; it must not hold the caller's pipes open.
+	# wl-copy serves from a forked child; it must not hold the caller's pipes open.
 	if ! printf '%s' "$value" | wl-copy --sensitive >/dev/null 2>&1 9>&-; then
 		unset value
 		echo "Couldn't write to the clipboard" >&2
@@ -226,7 +220,7 @@ copy() {
 	fi
 	unset value
 
-	# A newer copy takes over the countdown, so re-copying the same secret starts it afresh.
+	# A newer copy takes over the countdown.
 	token=$(date +%s%N)
 	printf '%s' "$token" >"$XDG_RUNTIME_DIR/quickshell-pass-clear"
 	(
@@ -241,13 +235,11 @@ copy() {
 	jq -nc --argjson clearAfter "$clear_after" '{clearAfter: $clearAfter}'
 }
 
-# Website icons for the list, from DuckDuckGo's favicon service, else Bitwarden's (Proton's own
-# needs the app's session, which pass-cli doesn't hand out), kept for a month in the cache. A
-# website neither has falls back to its parent (signin.aws.amazon.com → aws.amazon.com →
-# amazon.com); one with none at all is remembered as such for the month too, and takes the icon
-# of another website on the same site (example.com that of login.example.com). Prints a
-# {domain, path} line per website that has an icon, its own as soon as it's there; failures are
-# left for the next run.
+# Website icons, from DuckDuckGo's favicon service, else Bitwarden's (Proton's needs the app's
+# session), cached for a month. A website neither has falls back to its parent
+# (signin.aws.amazon.com → aws.amazon.com → amazon.com); one with no icon at all is remembered for
+# the month and takes the icon of another website on the same site. Prints a {domain, path} line
+# per website with an icon as soon as it has one; failures are left for the next run.
 icons() {
 	local dir=${XDG_CACHE_HOME:-$HOME/.cache}/quickshell-pass/icons domain json_dir
 	local -a wanted=() missing=()
@@ -294,13 +286,13 @@ icons() {
 	done
 }
 
-# Helpers of icons, which sets $dir, $json_dir (escaped for a JSON string) and $domain.
-# found_icon DOMAIN [ICON_DOMAIN]: DOMAIN's icon is ICON_DOMAIN's (its own by default).
+# Icon helpers; set $dir, $json_dir (JSON-escaped) and $domain.
+# found_icon DOMAIN [ICON_DOMAIN]: DOMAIN uses ICON_DOMAIN's icon (its own by default).
 found_icon() {
 	printf '{"domain":"%s","path":"%s/%s.ico"}\n' "$1" "$json_dir" "${2:-$1}"
 }
 
-# The public suffix list's rules into icons' `suffixes`.
+# Public suffix list rules into `suffixes`.
 load_suffixes() {
 	local rule
 	while IFS= read -r rule; do
@@ -309,7 +301,7 @@ load_suffixes() {
 }
 
 # The site a host belongs to (REPLY): the label before its public suffix (login.example.co.uk →
-# example.co.uk), by the longest matching rule; "!" rules are exceptions to a "*." one.
+# example.co.uk), by longest matching rule; "!" rules are exceptions to a "*." one.
 site() {
 	local name=$1 above=$1
 	REPLY=$1
@@ -338,7 +330,7 @@ fetch_icon() {
 		for url in "https://icons.duckduckgo.com/ip3/$host.ico" "https://icons.bitwarden.net/$host/icon.png"; do
 			code=$(curl -s --max-time 10 -o "$part" -w '%{http_code}' "$url") || code=000
 			if [[ $code == 200 && -s $part ]] && ! placeholder "$part"; then
-				# A few are WebP, which the shell's Qt can't read.
+				# Some are WebP, which the shell's Qt can't read.
 				if [[ $(head -c 12 "$part" | tail -c 4 | tr -d '\0') == WEBP ]]; then
 					if ! dwebp -quiet "$part" -o "$part.png"; then
 						rm -f "$part" "$part.png"
@@ -351,7 +343,7 @@ fetch_icon() {
 				return
 			fi
 			rm -f "$part"
-			# 404 is no icon (an empty 200 or a placeholder too); anything else may work next time.
+			# 404 = no icon (as are an empty 200 or a placeholder); anything else may work next time.
 			if [[ $code != 404 && $code != 200 ]]; then
 				return
 			fi
@@ -365,8 +357,7 @@ fetch_icon() {
 	done
 }
 
-# Bitwarden's stand-in for a website it has no icon for, sent with a 200: a 19×19 PNG (its IHDR
-# chunk, from byte 12, gives the size).
+# Bitwarden's 200 stand-in for a missing icon: a 19×19 PNG (IHDR from byte 12 gives the size).
 placeholder() {
 	[[ $(od -An -tx1 -j12 -N12 "$1" | tr -d ' \n') == 494844520000001300000013 ]]
 }

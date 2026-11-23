@@ -9,8 +9,7 @@
     alsa.enable = true;
     pulse.enable = true;
 
-    # Each attr is a drop-in file (pipewire.conf.d/<name>.conf); keys are
-    # dotted SPA-JSON names, so they must be quoted.
+    # Drop-in files (pipewire.conf.d/<name>.conf); dotted SPA-JSON keys must be quoted.
     extraConfig.pipewire."92-clock" = {
       "context.properties" = {
         # https://discourse.nixos.org/t/crackling-pipewire/21774/2

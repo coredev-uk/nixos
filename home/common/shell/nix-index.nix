@@ -1,8 +1,6 @@
 { inputs, ... }:
 {
-  # Prebuilt weekly nix-index database (no local `nix-index` run needed):
-  # - zsh command-not-found suggests the package providing a missing command
-  # - `, <cmd>` (comma) runs a command from nixpkgs without installing it
+  # Prebuilt database: command-not-found and `, <cmd>` (comma).
   imports = [ inputs.nix-index-database.homeModules.default ];
 
   programs = {

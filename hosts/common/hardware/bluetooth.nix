@@ -10,7 +10,6 @@
     };
   };
 
-  # Module (not just the package): also registers blueman's D-Bus mechanism and polkit
-  # actions, which the applet/manager need for privileged actions.
+  # Module, not just the package: registers blueman's D-Bus mechanism and polkit actions.
   services.blueman.enable = meta.isDesktop;
 }

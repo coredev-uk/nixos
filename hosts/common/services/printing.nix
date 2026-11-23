@@ -6,8 +6,7 @@ _: {
     openFirewall = true;
   };
 
-  # No cups-browsed: CUPS itself lists driverless (IPP Everywhere/AirPrint) printers found over
-  # mDNS as temporary queues, so the network-facing browse daemon adds nothing.
+  # No cups-browsed: CUPS lists driverless (IPP Everywhere/AirPrint) mDNS printers itself.
   services.printing = {
     enable = true;
     browsed.enable = false;

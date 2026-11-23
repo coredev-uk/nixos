@@ -7,11 +7,10 @@ import Quickshell.Hyprland
 import Quickshell.Io
 import Quickshell.Services.Notifications
 
-// The notification daemon: keeps every notification until it is dismissed (the centre's history)
-// and decides which of them show as popups. Do Not Disturb survives restarts in the state dir;
-// while the screen is shared (Privacy.onAir) popups hold off the same way, and critical ones show
-// redacted (NotificationCard). The counts and DnD are also published for the lock screen, a
-// separate instance (services/NotificationCount.qml).
+// The notification daemon: keeps every notification until dismissed (the centre's history) and decides
+// which show as popups. Do Not Disturb persists in the state dir; while the screen is shared
+// (Privacy.onAir) popups hold off the same way and critical ones show redacted (NotificationCard).
+// Counts and DnD are also published for the lock screen, a separate instance (NotificationCount.qml).
 Singleton {
     id: root
 
@@ -65,7 +64,6 @@ Singleton {
         entry.unread = false;
     }
 
-    // The centre is showing everything.
     function markAllRead() {
         for (const entry of entries)
             entry.unread = false;
@@ -98,7 +96,6 @@ Singleton {
         trimPopups();
     }
 
-    // Only the newest maxPopups show; older ones stay in the centre.
     function trimPopups() {
         for (const extra of popups.slice(maxPopups))
             extra.popup = false;
@@ -221,7 +218,6 @@ Singleton {
     IpcHandler {
         target: "notifications"
 
-        // Opens the centre under the bell of the focused monitor.
         function toggle(): void {
             root.centerToggled(Hyprland.focusedMonitor?.name ?? "");
         }

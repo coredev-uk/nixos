@@ -9,15 +9,14 @@ let
   theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
 
-  # libadwaita's named colours, recoloured with Meridian. adw-gtk3 (GTK 3) reads them as
-  # @define-color; libadwaita 1.6+ (GTK 4) draws from the matching CSS variables and keeps the
-  # named colours only for older apps, so GTK 4 gets both.
+  # libadwaita named colours in Meridian: adw-gtk3 (GTK 3) reads @define-color; libadwaita 1.6+
+  # (GTK 4) uses CSS variables, so GTK 4 gets both.
   colours = {
     accent_color = m.gilt;
     accent_bg_color = m.gilt;
     accent_fg_color = m.ground;
 
-    # Text on the state fills is the ground: enamel on alert/ok/caution is too low contrast.
+    # Ground text on state fills: enamel is too low contrast there.
     destructive_color = m.alert;
     destructive_bg_color = m.alert;
     destructive_fg_color = m.ground;
@@ -68,8 +67,7 @@ let
       lib.mapAttrsToList (name: value: "@define-color ${name} ${value};") (colours // extra)
     );
 
-  # GTK 3 has no CSS variables (it rejects them), and libadwaita derives its borders from
-  # currentColor, so the 1px rule is set under each version's own name.
+  # GTK 3 rejects CSS variables; libadwaita derives borders from currentColor: set the 1px rule per version.
   gtk3Css = defineColours { borders = m.rule; };
   gtk4Css = ''
     ${defineColours { }}
@@ -96,11 +94,10 @@ in
 
     theme = theme.gtkTheme;
 
-    # Also sets the portal/dconf colour scheme and the GTK 3/4 dark preference; GTK 2 gets
-    # nothing from it, so its line below stays.
+    # Also sets the portal/dconf scheme and GTK 3/4 dark preference; not GTK 2.
     colorScheme = "dark";
 
-    # Papirus with its folders in paleorange, the papirus-folders colour nearest gilt.
+    # paleorange: the papirus-folders colour nearest gilt.
     iconTheme = {
       name = "Papirus-Dark";
       package = pkgs.papirus-icon-theme.override { color = "paleorange"; };

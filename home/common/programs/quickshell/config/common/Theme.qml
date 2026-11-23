@@ -3,13 +3,11 @@ pragma Singleton
 import QtQuick
 import Quickshell
 
-// Meridian: the shell keeps time like the Royal Observatory at Greenwich. Night-slate grounds,
-// enamel-cream legends, and gilt kept for "here" and "on". Roles, not hues: every surface takes
-// its colours by what they mean (DESIGN.md). The same values are the system palette in
-// lib/theme (`meridian`), which every other app reads; change them in both places.
+// Meridian palette; roles, not hues (DESIGN.md). Same values as `meridian` in lib/theme (system
+// palette): change both.
 Singleton {
-    // Grounds, darkest to lightest. The bar and full-screen backdrops sit on `ground`, popups are
-    // `plate`s, sections and controls inside a plate are `inset`, and `rule` draws every 1px line.
+    // Grounds, darkest to lightest: bar/backdrops `ground`, popups `plate`, sections/controls in a
+    // plate `inset`, `rule` for every 1px line.
     readonly property color ground: "#151920"
     readonly property color plate: "#222830"
     readonly property color inset: "#191d24"
@@ -17,44 +15,42 @@ Singleton {
     readonly property color rule: "#363d49"
     readonly property color selection: "#47505e"
 
-    // Enamel legends: primary, secondary (sublabels, values, timestamps), and muted (idle
-    // glyphs, chevrons, empty or disabled things).
+    // Enamel legends: primary, secondary (sublabels, values, timestamps), muted (idle/disabled).
     readonly property color text: "#ece5d3"
     readonly property color text2: "#a9a493"
     readonly property color muted: "#6d717a"
 
-    // Gilt: you are here (focused workspace, selection, focus ring) and on (enabled services,
-    // Caffeine, night light, Do Not Disturb, unread). Also the one primary button per dialog.
+    // Gilt: "here" (focused workspace, selection, focus ring) and "on" (enabled services, unread);
+    // also the one primary button per dialog.
     readonly property color gilt: "#c9a24f"
     readonly property color giltHover: "#d8b468"
-    // Slider and progress fills: enamel, toned down so the fill never outshines the label.
+    // Slider/progress fills: toned down so the fill never outshines the label.
     readonly property color fill: "#bdb9a9"
 
-    // State. Alert: errors, destructive actions, critical notifications, recording.
-    // Caution: low-ish battery, Caps Lock. Ok: a success that just happened (copied, unlocked).
+    // Alert: errors, destructive, critical, recording. Caution: low battery, Caps Lock. Ok: a just-happened success.
     readonly property color alert: "#e06c5a"
     readonly property color caution: "#e0954f"
     readonly property color ok: "#6fb39a"
-    // Links in notification bodies.
+    // Notification body links.
     readonly property color link: "#8fb0d3"
 
-    // Categorical series (system stats, network categories, calendar sources); never state.
+    // Categorical series (stats, network, calendars); never state.
     readonly property color series1: "#8fb0d3"
     readonly property color series2: "#6fb39a"
     readonly property color series3: "#d39a8f"
     readonly property color series4: "#a99ad6"
 
-    // Translucent `c` at `alpha`, for tints behind an active row (10%) and scrims.
+    // `c` at `alpha`: active-row tints (10%) and scrims.
     function tint(c: color, alpha: real): color {
         return Qt.rgba(c.r, c.g, c.b, alpha);
     }
 
     readonly property string fontFamily: "Atkinson Hyperlegible Next"
-    // The lock and greeter clock: the same family, light, at display size.
+    // Lock/greeter clock: same family, light, at display size.
     readonly property string displayFontFamily: "Atkinson Hyperlegible Next"
     readonly property string iconFont: "Symbols Nerd Font"
     readonly property string emojiFont: "Noto Color Emoji"
-    // Tabular figures everywhere, so readouts never shift as their digits change.
+    // Tabular figures so readouts don't shift.
     readonly property var fontFeatures: ({
             "tnum": 1
         })
@@ -65,10 +61,8 @@ Singleton {
     readonly property int radiusInset: 8
     readonly property int radiusRow: 6
 
-    // Motion: state changes are short, spatial moves (carousels, the calendar's month) a little
-    // longer, Window-register reveals long; one easing family, OutCubic in and InCubic out, and
-    // leaving quicker than arriving. `durationSwitch` is Hyprland's quick workspace switch, which
-    // the bar's workspace index keeps pace with (home/common/desktop/hyprland/config/animations.nix).
+    // Motion: state changes short, spatial moves longer, reveals longest; exits quicker than entries.
+    // `durationSwitch` matches Hyprland's workspace switch (hyprland/config/animations.nix) for the bar's workspace index.
     readonly property int durationState: 160
     readonly property int durationExit: 120
     readonly property int durationSwitch: 150
@@ -78,7 +72,7 @@ Singleton {
     readonly property int easingExit: Easing.InCubic
 
     readonly property int barHeight: 24
-    // Screen edge the bar sits on; popups and menus open away from it.
+    // Popups and menus open away from the bar's edge.
     readonly property bool barAtTop: true
     readonly property int popupEdges: barAtTop ? Edges.Bottom : Edges.Top
 }

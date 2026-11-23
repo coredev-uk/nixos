@@ -3,8 +3,7 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The capture glyph, opening CaptureMenu. Muted at rest; gilt while instant replay is armed (on);
-// while recording, the alert record dot and the time so far, on every bar. Steady: nothing blinks.
+// Capture glyph opening CaptureMenu. Gilt while instant replay is armed; while recording, alert dot and elapsed time on every bar.
 Item {
     id: root
 
@@ -13,7 +12,7 @@ Item {
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
 
-    // The time gains a digit past an hour; each width is measured so the digits never shift.
+    // The time gains a digit past an hour; each width is measured so digits never shift.
     TextMetrics {
         id: cell
         font: time.font

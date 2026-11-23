@@ -1,38 +1,29 @@
 import QtQuick
 import Quickshell
 
-// State shared by every screen's surface, whatever checks the password: one password buffer
-// and the idle -> active -> finishing flow all screens follow together. LockContext (PAM) and
-// GreeterContext (greetd) build on it: they run the check when `submitted` fires and report
-// back through succeed() or fail().
+// State shared by every screen's surface: one password buffer and the idle -> active -> finishing
+// flow. LockContext (PAM) and GreeterContext (greetd) run the check on `submitted` and report via
+// succeed() or fail().
 Scope {
     id: root
 
-    // tryUnlock() accepted the input; check currentText now.
     signal submitted
-    // The outro has played; unlock or start the session now.
     signal finished
 
     property string currentText: ""
-    // Whose password this is; the greeter sets it, the lock screen is always its own user.
+    // The greeter sets it; the lock is always its own user.
     property string user: Quickshell.env("USER") ?? ""
-    // False before login (the greeter): no calendar, music or other user-session widgets.
+    // False on the greeter: no calendar, music or other user-session widgets.
     property bool hasUserSession: true
-    // Idle shows the clock and the date; any key or click brings up the password.
     property bool active: false
-    // Authenticated; surfaces play their outro before `finished` fires.
     property bool unlocking: false
-    // A check is running; set by the backend.
     property bool checking: false
-    // Shown under the password; cleared as soon as the user types again.
     property string statusText: ""
     property bool statusIsError: false
     // Guessed from typed letters vs Shift (Qt exposes no Caps Lock state).
     property bool capsLock: false
-    // Bumped on every rejected attempt so each surface can replay its shake.
     property int failures: 0
-    // The lock's idle grace (LockContext): while open, any input unlocks without the password,
-    // until graceUntil (ms since the epoch). Never open on the greeter.
+    // Lock idle grace (LockContext): until graceUntil (ms since epoch) any input unlocks. Never open on the greeter.
     property bool graceOpen: false
     property real graceUntil: 0
 
@@ -48,7 +39,6 @@ Scope {
             active = true;
     }
 
-    // Escape: clear the field first, then go back to the clock.
     function cancel() {
         if (checking || unlocking)
             return;
@@ -58,7 +48,7 @@ Scope {
             idle();
     }
 
-    // Back to the clock, dropping any old message so it doesn't greet the next wake.
+    // Drops any old message so it doesn't greet the next wake.
     function idle() {
         active = false;
         statusText = "";
@@ -77,7 +67,6 @@ Scope {
         outroTimer.start();
     }
 
-    // A rejected or failed attempt: clear the field and say why.
     function fail(message: string) {
         currentText = "";
         statusText = message;
@@ -85,13 +74,11 @@ Scope {
         failures++;
     }
 
-    // Informational text from the backend that needs no answer.
     function notice(message: string, isError: bool) {
         statusText = message;
         statusIsError = isError;
     }
 
-    // Back to the clock after a while with nothing typed.
     Timer {
         interval: 15000
         running: root.active && root.currentText === "" && !root.checking && !root.unlocking

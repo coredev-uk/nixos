@@ -78,10 +78,8 @@ let
     fi
   '';
 
-  # Started by the hook once the domain runs: the host has no display then, so this is the only
-  # record of how the guest came up. Every 10 s for 3 minutes: guest CPU time (a guest stuck in
-  # firmware spins or sits at zero) and its DHCP lease (Windows got as far as its network), each
-  # line flushed to disk at once, so a hard reset after a black screen still leaves them.
+  # Started by the hook once the domain runs. Host has no display then, so every 10 s for 3 min
+  # log guest CPU time and DHCP lease, flushed to disk so a hard reset still leaves them.
   watchVfio = pkgs.writeShellScript "${cfg.vmName}-vfio-watch" ''
     VIRSH="${pkgs.libvirt}/bin/virsh -c ${escapeShellArg cfg.libvirtUri}"
     VM=${escapeShellArg cfg.vmName}
@@ -118,8 +116,7 @@ let
     ${pkgs.libvirt}/bin/virsh -c ${escapeShellArg cfg.libvirtUri} start ${escapeShellArg cfg.vmName}
   '';
 
-  # The shell's power menu (home/common/programs/quickshell/config/modules/PowerMenu.qml) offers
-  # these two by name when they're on PATH.
+  # Offered by name in the shell's power menu (quickshell PowerMenu.qml) when on PATH.
   startVfio = pkgs.writeShellScriptBin "vfio-start-vm" ''
     set -euo pipefail
 
@@ -157,9 +154,7 @@ let
     else
       null;
 
-  # Started the same way the VM is: `systemctl start` on a static unit
-  # authorized in security.polkit.extraConfig below, so no password prompt
-  # is needed (a pkexec/polkit-agent GUI prompt proved unreliable here).
+  # Static unit authorized via polkit below; pkexec/polkit-agent prompts were unreliable.
   startNativeBoot =
     if nativeBootEnabled then
       pkgs.writeShellScriptBin "vfio-boot-native" ''
@@ -635,9 +630,8 @@ in
       };
     };
 
-    # snd_hda_intel first: left bound to the GPU's HDA function while the GPU is unbound, it
-    # logs "GPU sound probed, but not operational" and holds the function through the reset.
-    # The host's audio is USB, so nothing on it needs the module while the VM runs.
+    # snd_hda_intel first: left bound to the GPU's HDA function it logs "GPU sound probed, but
+    # not operational" and holds the function through reset. Host audio is USB.
     unloadModules = mkOption {
       type = types.listOf types.str;
       default = [
@@ -709,11 +703,8 @@ in
       ]
       ++ optional nativeBootEnabled startNativeBoot;
 
-    # Static units, so the command run as root is fixed here. The polkit rule
-    # below must never match a transient unit: StartTransientUnit is checked
-    # against the same manage-units action/unit/verb details, with the caller
-    # supplying ExecStart. Settings mirror the former
-    # `systemd-run --system --collect` invocation (Type=simple, collected).
+    # Static units: the root command is fixed here. The polkit rule below must never match a
+    # transient unit (caller supplies ExecStart).
     systemd.services = {
       ${vfioStartUnitName} = {
         description = "Start ${cfg.vmName} with single-GPU passthrough";

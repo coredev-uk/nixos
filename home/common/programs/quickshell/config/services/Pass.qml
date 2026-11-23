@@ -4,12 +4,11 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Proton Pass through the quickshell-pass helper (scripts/pass.sh). Only titles, vaults and the
-// non-secret details are held here, in memory; secrets go from pass-cli straight to the clipboard.
+// Proton Pass via the quickshell-pass helper (scripts/pass.sh). Only titles, vaults and non-secret
+// details are held here, in memory; secrets go from pass-cli straight to the clipboard.
 Singleton {
     id: root
 
-    // Until the first status check neither signed in nor out.
     property bool known: false
     property bool signedIn: false
     property string account: ""
@@ -18,7 +17,6 @@ Singleton {
     // Website -> its icon's file URL, for the domains that have one (scripts/pass.sh icons).
     property var icons: ({})
     property bool loaded: false
-    // Why the items couldn't be listed; cleared by the next successful refresh.
     property string error: ""
     // "share/id" -> { type, username, email, urls, hasPassword, hasTotp, hasNote, primary }
     property var details: ({})
@@ -38,9 +36,9 @@ Singleton {
     }
 
     // Lists right away when signed in before; a failure then checks whether the session is gone.
-    // Nothing runs while a web login is pending (the helper refuses anyway, see scripts/pass.sh):
-    // the window just shows the waiting state until signedInNow. Runs once at shell start, so
-    // the first open already has the items, and again on every open to pick up changes.
+    // Nothing runs while a web login is pending (the helper refuses anyway): the window shows the
+    // waiting state until signedInNow. Runs once at shell start so the first open already has the
+    // items, and again on every open.
     function refresh() {
         if (signingIn)
             return;

@@ -5,13 +5,11 @@ import Quickshell
 import Quickshell.Hyprland
 import Quickshell.Io
 
-// Screen recording: gpu-screen-recorder (hardware encoding) capturing the focused monitor and what
-// the default output plays into the recordings folder (xdg.userDirs, set as QS_RECORDINGS_DIR by
-// default.nix), started and stopped by `quickshell ipc -c bar call recorder toggle` (Super+Shift+R)
-// or the capture menu (modules/CaptureMenu.qml), whose bar glyph shows the time. A recording
-// counts as on air (Privacy.onAir) from the moment it starts until the file is finished. The
-// recorder runs through the quickshell-record helper (scripts/record.sh), which also raises the
-// notifications: the file when it's saved, the reason when it fails.
+// Screen recording: gpu-screen-recorder (hardware encoding) of the focused monitor and what the default
+// output plays, into the recordings folder (xdg.userDirs, QS_RECORDINGS_DIR from default.nix); toggled by
+// `quickshell ipc -c bar call recorder toggle` (Super+Shift+R) or the capture menu (CaptureMenu.qml).
+// Counts as on air (Privacy.onAir) from start until the file is finished. Runs through the
+// quickshell-record helper (scripts/record.sh), which also raises the saved/failed notifications.
 Singleton {
     id: root
 
@@ -21,10 +19,8 @@ Singleton {
     readonly property bool recording: process.running
     // Stop sent; the file is being finished.
     property bool stopping: false
-    // What the running (or last) recording captures and writes.
     property string monitor: ""
     property string file: ""
-    // Whole seconds since it started, and as "mm:ss" ("h:mm:ss" past an hour).
     property int elapsed: 0
     readonly property string elapsedText: {
         const pad = n => String(n).padStart(2, "0");

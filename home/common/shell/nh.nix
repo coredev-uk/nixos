@@ -3,9 +3,8 @@
   programs.nh = {
     enable = true;
     flake = "${meta.flakePath}";
-    # NixOS hosts run the system-wide `nh clean all` (hosts/common/base), which
-    # also covers user profiles. Darwin can't: nix-darwin's nh.clean requires
-    # nix.enable, which Determinate Nix turns off.
+    # NixOS hosts clean system-wide (hosts/common/base); nix-darwin's nh.clean needs nix.enable,
+    # which Determinate Nix disables.
     clean = {
       enable = meta.isDarwin;
       dates = "weekly";

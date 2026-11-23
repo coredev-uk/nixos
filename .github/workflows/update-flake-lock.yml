@@ -1,13 +1,12 @@
 name: "Update flake inputs"
 
-# Nightly, every flake input at once, in one pull request from BOT Cecil (bot-cecil[bot]) on the
-# flake-update branch. It gets the checks main's ruleset requires: Flake Checks, and the atlas and
-# poseidon builds (hosts.yml), which also put both systems into the binary cache. It merges itself
-# (auto-merge, squash) once they pass. A failing update stays open and is redone from main each
-# night, so it lands as soon as upstream (or main) fixes what broke; until then nothing else lands.
+# Nightly update of every input in one PR from bot-cecil[bot] on `flake-update`. Needs main's
+# required checks (Flake Checks, atlas + poseidon builds in hosts.yml, which also fill the cache),
+# then auto-merges (squash). A failing update stays open and is redone from main each night;
+# nothing else lands until it does.
 on:
   schedule:
-    - cron: "30 23 * * *" # before the night, so both systems are built and cached by morning
+    - cron: "30 23 * * *" # so both systems are built and cached by morning
   workflow_dispatch:
 
 permissions:
@@ -24,9 +23,8 @@ jobs:
       contents: read
       id-token: write
     steps:
-      # A bot-cecil token from octo-sts (home-ops, kubernetes/apps/actions-runner-system/octo-sts)
-      # for this job's OIDC token; .github/chainguard/update-flake-lock.sts.yaml grants it. Its
-      # pushes, unlike GITHUB_TOKEN's, trigger the PR's checks.
+      # octo-sts token for bot-cecil (home-ops octo-sts), granted by
+      # .github/chainguard/update-flake-lock.sts.yaml. Unlike GITHUB_TOKEN, its pushes trigger checks.
       - name: Generate BOT Cecil token
         id: app-token
         uses: octo-sts/action@v1.1.1
@@ -42,9 +40,9 @@ jobs:
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
 
-      # One line per root input whose locked source moved: a compare link for GitHub inputs.
-      # Node names can be renumbered between locks (nixpkgs_2 …), so each side is looked up
-      # through its own root. The inputs go into the body as a marker the Nix view reads.
+      # One line per moved root input (compare link for GitHub). Node names can be renumbered
+      # between locks (nixpkgs_2), so each side is looked up via its own root. The `inputs:` marker
+      # in the body is read by the Nix view.
       - name: Update every input
         id: update
         run: |
@@ -84,9 +82,8 @@ jobs:
             echo EOF
           } >>"$GITHUB_OUTPUT"
 
-      # sign-commits: the commit goes through GitHub's API, so it is BOT Cecil's and Verified.
-      # With nothing to change (main already has every input's latest), the branch and its pull
-      # request are removed.
+      # sign-commits: commit goes via GitHub's API, so it's Verified as the bot. With no changes
+      # the branch and PR are removed.
       - name: Open or refresh the update
         id: pr
         uses: peter-evans/create-pull-request@v8

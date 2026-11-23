@@ -1,5 +1,4 @@
-# Keeps the pinned major versions of the actions used in .github/workflows current.
-# https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
+# Keeps pinned action versions in .github/workflows current.
 version: 2
 updates:
   - package-ecosystem: "github-actions"
@@ -10,6 +9,6 @@ updates:
       actions:
         patterns:
           - "*"
-    # Let a new release age a week before it is proposed.
+    # Let releases age a week first.
     cooldown:
       default-days: 7

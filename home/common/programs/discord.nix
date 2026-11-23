@@ -8,11 +8,9 @@ let
   theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
 
-  # Meridian for Discord, as Vencord Quick CSS (nixcord writes local theme files only for
-  # Vesktop/Equibop). Only Discord's colour and font variables are set, never its hashed
-  # component classes, so the theme survives Discord's frequent class renames. The variables
-  # are redeclared on the theme classes because Discord declares them there, and !important
-  # because the visual refresh does so with higher specificity (`.visual-refresh.theme-dark`).
+  # Meridian as Vencord Quick CSS (nixcord only writes theme files for Vesktop/Equibop). Sets colour/font
+  # variables only, not hashed classes, so it survives Discord renames. Redeclared on the theme classes
+  # where Discord declares them; !important beats the visual refresh's `.visual-refresh.theme-dark`.
   quickCss = ''
     :root,
     .theme-dark,
@@ -153,7 +151,6 @@ in
     inputs.nixcord.homeModules.nixcord
   ];
 
-  # Docs: https://flameflag.github.io/nixcord/
   programs.nixcord = {
     enable = true;
 
@@ -183,8 +180,6 @@ in
 
         translate.enable = true;
         validUser.enable = true;
-        # No youtubeAdblock: it is Equicord-only, so with Vencord it never loaded, and nixcord
-        # now refuses it with an assertion.
       };
     };
   };

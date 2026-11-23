@@ -29,26 +29,22 @@
       };
 
       initContent = ''
-        # Completion styling
         zstyle ':completion:*' matcher-list 'm:{a-z}={A-Za-z}'
         zstyle ':completion:*' list-colors "''${(s.:.)LS_COLORS}"
         zstyle ':completion:*' menu no
-        # fzf-tab: take fzf's colours from FZF_DEFAULT_OPTS, preview directories
+        # fzf-tab: colours from FZF_DEFAULT_OPTS
         zstyle ':fzf-tab:*' use-fzf-default-opts yes
         zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
         zstyle ':fzf-tab:complete:__zoxide_z:*' fzf-preview 'eza -1 --color=always $realpath'
       ''
-      # webkit2gtk (Tauri apps) needs glib-networking for TLS
-      # (https://github.com/tauri-apps/wry/issues/605#issuecomment-1215756032). Added to GIO's
-      # search path rather than replacing it, so dconf and the other GIO modules still load.
+      # webkit2gtk (Tauri apps) needs glib-networking for TLS (tauri-apps/wry#605). Appended, not replaced.
       + lib.optionalString pkgs.stdenv.hostPlatform.isLinux ''
         export GIO_EXTRA_MODULES="${pkgs.glib-networking}/lib/gio/modules''${GIO_EXTRA_MODULES:+:$GIO_EXTRA_MODULES}"
       '';
 
       oh-my-zsh = {
         enable = true;
-        # Skip compaudit's permission scan of every completion dir (~20ms per shell): they're
-        # in the read-only nix store, which also has no git checkout to self-update.
+        # Nix store is read-only: skip compaudit scan (~20ms/shell) and self-update.
         extraConfig = ''
           ZSH_DISABLE_COMPFIX=true
           zstyle ':omz:update' mode disabled
@@ -64,7 +60,7 @@
         ];
       };
 
-      # Sourced after oh-my-zsh's compinit and before zsh-syntax-highlighting.
+      # Must load after oh-my-zsh's compinit, before zsh-syntax-highlighting.
       plugins = [
         {
           name = "fzf-tab";
@@ -72,9 +68,7 @@
         }
       ];
 
-      # oh-my-zsh already provides: `..` (auto_cd), `gp` (git plugin) and a `grep` alias with
-      # --color=auto plus VCS dir excludes. nixvim provides `vim`; programs.eza provides
-      # ll/lla/lt and the shared eza flags.
+      # oh-my-zsh, nixvim and programs.eza already provide `..`, `gp`, grep, `vim`, ll/lla/lt.
       shellAliases = {
         ls = "eza -l";
         la = "ls -a";
@@ -91,7 +85,7 @@
       // lib.optionalAttrs (!pkgs.stdenv.hostPlatform.isDarwin) {
         ip = "ip --color";
         ipb = "ip --color --brief";
-        # chrony is disabled; time sync is systemd-timesyncd, which resyncs on restart.
+        # Time sync is systemd-timesyncd, not chrony.
         fix-time = "sudo systemctl restart systemd-timesyncd";
       }
       // (

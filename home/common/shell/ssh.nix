@@ -24,22 +24,20 @@ let
     "atlas ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSWafFdU4bGttTPya205vZdasfISB9uv8v34syjjkPr"
   ];
 
-  # Proton Pass's SSH agent serves its SSH key items: the desktop app's own (Settings → SSH
-  # agent), which listens here on both Linux and macOS. On Linux the app starts with the session
-  # (home/common/desktop/hyprland); on macOS it needs "Start at login" set in the app. Under WSL
-  # the Windows app's agent is bridged to the same path (home/common/wsl.nix).
+  # Proton Pass desktop app's SSH agent (Settings → SSH agent), same path on Linux and macOS.
+  # Linux: started by the session (desktop/hyprland); macOS: enable "Start at login"; WSL: bridged
+  # by home/common/wsl.nix.
   agentSocket = "${meta.homeDirectory}/.ssh/proton-pass-ssh-agent.sock";
   SSH_AUTH_SOCK = agentSocket;
   IdentityAgent = agentSocket;
 
-  # Public halves of the agent's keys (`ssh-add -L`). With IdentitiesOnly, ssh offers only the
-  # matching agent key to each host rather than every key in the vault.
+  # Public halves of the agent's keys (`ssh-add -L`); IdentitiesOnly offers only the matching one.
   publicKeys = {
     github = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAINQpQFDxvGq+x6sHldr81kFtftS6KFEzbOtoRKKTXFR7 GitHub";
     bitbucket = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIIdMAFq7cpWew49M/6U6en4t9NEy4vm12YHMHUYXC8VY BitBucket";
     oracle = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIK6ahRcvyUrGhwAHI9afIwkjkh6TJbCiqocgdmXvZgNO Oracle";
     aur = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBPtuX2qOFQUxuH9wR/ZavxkjCherF9sKQJb1yYML21i AUR";
-    # Logging in to atlas; its authorized key (hosts/common/users/paul/default.nix).
+    # Its authorized key (hosts/common/users/paul/default.nix).
     atlas = "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFkaCsF9IeeIU3ScdvVlUMfWw6Km4i6uImVoUfZWB2vq paul@atlas";
   };
   identity = name: {
@@ -59,7 +57,6 @@ in
     inherit SSH_AUTH_SOCK;
   };
 
-  # Enable the SSH program for your user
   programs.ssh = {
     enable = true;
     enableDefaultConfig = false;

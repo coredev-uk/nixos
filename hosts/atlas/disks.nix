@@ -12,9 +12,7 @@ in
 
   disko.devices = {
     disk = {
-      # Root/boot drive. Configured with:
-      # - A FAT32 ESP partition for systemd-boot
-      # - A LUKS container which contains multiple btrfs subvolumes for NixOS
+      # Root/boot: FAT32 ESP + LUKS with btrfs subvolumes.
       system = {
         # Stable by-id path: nvme0n1/nvme1n1 enumeration order is not fixed, and
         # the other NVMe (Force MP600) holds Windows.
@@ -51,7 +49,7 @@ in
 
                 content = {
                   type = "btrfs";
-                  # Override existing partition
+                  # Overwrite existing partition
                   extraArgs = [ "-f" ];
                   subvolumes = {
                     "@" = {

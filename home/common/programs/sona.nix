@@ -7,25 +7,20 @@
 let
   m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
 
-  # Sona keeps text at 4.5:1 on ground, surface, raised, hover, active and a selected row. The
-  # system palette's `muted` (3.6:1 on the ground) and `alert` (3.96:1 on a selected row) miss
-  # that, and its `selection` is too light to carry text (text2 is 3.27:1 on it), so Sona gets
-  # its own values: lightness raised in OKLCH just enough, hue and chroma kept (muted
-  # #6d717a -> #969aa4, alert #e06c5a -> #ed7865), and `active` is hover's tone with `hover`
-  # a step between raised and active. The system palette is unchanged.
+  # Sona needs text at 4.5:1 on all its surfaces. System `muted` (3.6:1 on ground) and `alert` (3.96:1
+  # on a selected row) miss that and `selection` is too light for text, so Sona gets its own values:
+  # OKLCH lightness raised minimally (muted #6d717a -> #969aa4, alert #e06c5a -> #ed7865); `active` is
+  # hover's tone and `hover` sits between raised and active.
   inkFaint = "#969aa4";
   danger = "#ed7865";
   hover = "#282e37";
 in
 {
-  # Sona (github:coredev-uk/sona-go, its `nix` branch): the native Apple Music client. sona-nightly
-  # is the newest published build, the nightly rc of main or the release when that is newer, with
-  # the Last.fm and Discord credentials. It downloads the Widevine CDM from Google itself on first
-  # start, into ~/.local/share/sona.
+  # Sona (github:coredev-uk/sona-go, `nix` branch): native Apple Music client; sona-nightly is the
+  # newest build, with Last.fm/Discord credentials. Fetches the Widevine CDM itself on first start.
   home.packages = [ inputs.sona.packages.${pkgs.stdenv.hostPlatform.system}.sona-nightly ];
 
-  # Meridian as a Sona theme (dark only), picked in Settings → Appearance. Sona reloads the file
-  # on change.
+  # Meridian as a Sona theme (dark only); pick in Settings → Appearance.
   xdg.configFile."sona/themes/meridian.json".text = builtins.toJSON {
     format = 1;
     id = "meridian";

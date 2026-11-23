@@ -7,14 +7,12 @@
   imports = [
     (./. + "/${meta.desktop}")
 
-    # Environment Configurations
     ./default/gtk.nix
     ./default/qt.nix
     ./default/xdg.nix
 
     ../scripts
 
-    # Standard Programs
     ../programs/discord.nix
     ../programs/gaming.nix
     ../programs/kraken-lcd
@@ -27,26 +25,22 @@
   home.packages = with pkgs; [
     desktop-file-utils
     file-roller
-    # Jellyfin client on CEF + mpv, with MPRIS (pkgs/jellium-desktop; not in nixpkgs).
+    # Not in nixpkgs (pkgs/jellium-desktop).
     jellium-desktop
-    # Plex (and Jellyfin) through Plezy rather than Plex Desktop: the official app has no MPRIS, so
-    # the shell's now playing couldn't see or control it; Plezy publishes title, artwork and
-    # controls over MPRIS (home/common/programs/quickshell, services/Media.qml). Patched in
-    # overlays/default.nix.
+    # Plezy over Plex Desktop: it publishes MPRIS (the official app doesn't), which the shell's
+    # now-playing needs (quickshell services/Media.qml). Patched in overlays/default.nix.
     plezy
     loupe
     mpv
     nautilus
     papers
-    # proton-drive-cli is out until nixpkgs builds it again: 0.9.0's build demands Bun 1.4.2
-    # exactly and nixpkgs ships 1.4.4.
+    # proton-drive-cli omitted until nixpkgs builds it again (needs Bun 1.4.2, nixpkgs has 1.4.4).
     protonmail-desktop
     proton-pass
     proton-pass-cli
     proton-vpn-cli
   ];
 
-  # pass-cli keeps its session key in the kernel keyring by default, which is denied here and
-  # wiped on reboot; gnome-keyring (unlocked at login) keeps it instead.
+  # pass-cli's default kernel keyring is denied here and wiped on reboot; use gnome-keyring.
   home.sessionVariables.PROTON_PASS_LINUX_KEYRING = "dbus";
 }

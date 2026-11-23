@@ -6,10 +6,8 @@
   ...
 }:
 let
-  # Names from `macos-wallpaper list`: the dynamic landscapes, which follow the sun at the
-  # location below. The first six are desktop pictures, the last three the macOS 15-27 places
-  # made from Apple's aerial videos. The wallpaper picker (Super+Shift+P, quickshell's
-  # WallpaperPicker) offers these; the one chosen stays until it's changed there.
+  # Names from `macos-wallpaper list`: dynamic landscapes that follow the sun. First six are desktop
+  # pictures, last three aerial-video places. Offered by quickshell's WallpaperPicker (Super+Shift+P).
   pictures = [
     "The Lake"
     "The Desert"
@@ -22,15 +20,14 @@ let
     "Golden Gate"
   ];
 
-  # Not named after the source: the wallpaper instance and the lock screen read current.jpg from
-  # here (home/common/programs/quickshell/default.nix).
+  # Read by the quickshell wallpaper instance and lock screen.
   current = "${config.xdg.cacheHome}/wallpapers/current.jpg";
 
   macosWallpaper = inputs.macos-wallpapers.packages.${pkgs.stdenv.hostPlatform.system}.default;
   macosWallpaperArgs = [
     "--cache-dir"
     "${config.xdg.cacheHome}/macos-wallpapers"
-    # The same place wlsunset uses (sunset.nix).
+    # Same location as wlsunset (sunset.nix).
     "--latitude"
     config.services.wlsunset.latitude
     "--longitude"
@@ -41,9 +38,8 @@ let
     picture
   ]) pictures;
 
-  # set-wallpaper [current | set NAME]: the image for now of the picture in use, or of NAME
-  # after switching to it. Applies it only when it changed, so the timer's runs are free most
-  # of the time.
+  # set-wallpaper [current | set NAME]: resolve the image for now (of NAME after switching) and apply
+  # it only if changed, so timer runs are cheap.
   setWallpaper = pkgs.writeShellApplication {
     name = "set-wallpaper";
     runtimeInputs = [
@@ -52,9 +48,9 @@ let
       pkgs.systemd
       pkgs.util-linux
     ];
-    # quickshell comes from PATH, the same one the wallpaper instance runs.
+    # quickshell from PATH: same one the wallpaper instance runs.
     text = ''
-      # The timer and the keybind can overlap.
+      # Timer and keybind can overlap.
       exec 9>"''${XDG_RUNTIME_DIR:-/tmp}/set-wallpaper.lock"
       flock 9
 
@@ -62,25 +58,22 @@ let
       img=$(macos-wallpaper "$@" ${lib.escapeShellArgs macosWallpaperArgs})
       [ "$(readlink ${lib.escapeShellArg current} || true)" = "$img" ] && exit 0
 
-      # The wallpaper instance starts on this link, so the next login starts on this image.
+      # The wallpaper instance starts on this link.
       mkdir -p "$(dirname ${lib.escapeShellArg current})"
       ln -sfn "$img" ${lib.escapeShellArg current}
 
-      # The lock screen's clip of the old image no longer matches; wallpaper-video makes or
-      # finds the new one in the background.
+      # Lock screen clip of the old image is stale; wallpaper-video rebuilds it in the background.
       rm -f ${lib.escapeShellArg currentVideo} /var/lib/greeter-wallpaper/wallpaper.mp4
       systemctl --user start --no-block wallpaper-video.service
 
-      # The login screen shows it too; the greeter can't read this cache, so it gets a copy
-      # (hosts/common/desktop/greeter.nix creates the directory). Its clip is copied there by
-      # wallpaper-video, once it has one.
+      # Greeter can't read this cache, so it gets a copy (dir: hosts/common/desktop/greeter.nix).
+      # wallpaper-video copies the clip there.
       greeter=/var/lib/greeter-wallpaper
       if [ -w "$greeter" ]; then
         cp -f "$img" "$greeter/wallpaper.jpg.part" && mv -f "$greeter/wallpaper.jpg.part" "$greeter/wallpaper.jpg"
       fi
 
-      # The wallpaper instance (home/common/programs/quickshell/wallpaper/shell.qml) crossfades
-      # to it. When it isn't running yet it starts on the link above, so there's nothing to tell.
+      # Crossfade the running wallpaper instance (quickshell/wallpaper/shell.qml); if not running it starts on the link.
       if systemctl --user is-active --quiet quickshell-wallpaper.service; then
         for _ in $(seq 1 10); do
           quickshell ipc --config wallpaper call wallpaper change "$img" && exit 0
@@ -92,8 +85,8 @@ let
     '';
   };
 
-  # sylvan.apple.com, which serves the aerial videos, chains to Apple's own root CA rather than
-  # one in the system bundle; pinned by hash, as macos-wallpapers does (it doesn't export its copy).
+  # sylvan.apple.com (aerial videos) chains to Apple's own root CA, not the system bundle; pinned by
+  # hash like macos-wallpapers (which doesn't export its copy).
   appleRootCa =
     pkgs.runCommand "apple-root-ca.pem"
       {
@@ -107,14 +100,11 @@ let
         openssl x509 -inform der -in "$der" -out "$out"
       '';
 
-  # The lock screen's moving background (home/common/programs/quickshell/config/lock/LockVideo.qml):
-  # the aerial video the current image is the first frame of, as current.mp4 next to current.jpg.
-  # Apple ships each as 4K HEVC at 240 fps, more than any screen here shows and enough to
-  # saturate the GPU's decoder on two screens; it's made once per image at the largest screen's
-  # size and the fastest rate Apple's frames divide into evenly within the fastest screen's
-  # refresh (240 / 2^k: 120 for a 144-165 Hz screen), 10-bit like the source. Clips of the
-  # current picture are kept, so the sun's next change finds its clip ready; pictures that
-  # aren't aerial videos (the HEIC landscapes) have none.
+  # Lock screen's moving background (quickshell/config/lock/LockVideo.qml): the aerial video the
+  # current image is a frame of, as current.mp4 next to current.jpg. Apple's 4K HEVC 240 fps source
+  # would saturate the GPU decoder, so the clip is made once per image at the largest screen's size and
+  # 240/2^k fps fitting the fastest refresh (120 for 144-165 Hz), 10-bit. Clips of the current picture
+  # are kept; non-aerial pictures (HEIC) have none.
   currentVideo = "${config.xdg.cacheHome}/wallpapers/current.mp4";
   wallpaperVideo = pkgs.writeShellApplication {
     name = "wallpaper-video";
@@ -125,7 +115,7 @@ let
       pkgs.findutils
       pkgs.jq
     ];
-    # hyprctl comes from PATH so it always matches the running compositor.
+    # hyprctl from PATH matches the running compositor.
     text = ''
       cache=${lib.escapeShellArg "${config.xdg.cacheHome}/macos-wallpapers"}
       videos=${lib.escapeShellArg "${config.xdg.cacheHome}/wallpapers/videos"}
@@ -134,15 +124,14 @@ let
       greeter_clip="$greeter/wallpaper.mp4"
       mkdir -p "$videos"
 
-      # The largest screen, and the fastest refresh; then 240 halved until it fits that.
+      # Largest screen and fastest refresh; fps is 240 halved until it fits.
       monitors=$(hyprctl monitors -j)
       width=$(jq 'map(.width) | max' <<<"$monitors")
       height=$(jq 'map(.height) | max' <<<"$monitors")
       fps=$(jq '(map(.refreshRate) | max) as $hz | [240, 120, 60, 30] | map(select(. <= $hz + 1)) | first // 30' <<<"$monitors")
       size="''${width}x''${height}-''${fps}"
 
-      # Until the image stops changing under us: set-wallpaper starts this on each change, and
-      # systemd folds a start into a run that's already going.
+      # Loop until the image stops changing: set-wallpaper restarts this on each change (systemd folds it into a running one).
       while :; do
         still=$(readlink -f ${lib.escapeShellArg current})
         name=$(basename "$still")
@@ -152,8 +141,8 @@ let
         index=''${index%%-*}
         place=$(jq -r .id "$(dirname "$still")/meta.json")
 
-        # Image i of an aerial place is its i-th video by preferredOrder, as macos-wallpaper
-        # numbers them; the place's subcategory is "AerialSubcategory" + its name without spaces.
+        # Image i of an aerial place is its i-th video by preferredOrder (as macos-wallpaper numbers them);
+        # subcategory key is "AerialSubcategory" + name without spaces.
         url=$(jq -r --arg key "AerialSubcategory''${place// /}" --argjson index "$index" '
           [.categories[].subcategories[]? | select(.localizedNameKey == $key) | .id] as $ids
           | [.assets[] | select(.["url-4K-SDR-240FPS"] and any(.subcategories[]?; IN($ids[])))]
@@ -166,8 +155,7 @@ let
         fi
 
         clip="$videos/$slug-$index-$size.mp4"
-        # Other pictures' clips, this one's at another size, and leftovers of an earlier run
-        # for another image.
+        # Drop other pictures' clips, other sizes and stale partials.
         find "$videos" -mindepth 1 ! -name "$slug-*-$size.mp4" ! -name ".$slug-$index.*" -delete
 
         if [ ! -e "$clip" ]; then
@@ -190,13 +178,11 @@ let
 
         if [ "$(readlink -f ${lib.escapeShellArg current})" = "$still" ]; then
           ln -sfn "$clip" "$link"
-          # The login screen plays it too, from a copy it can read (set-wallpaper has the
-          # reasons; hosts/common/desktop/greeter.nix creates the directory). Skipped when the
-          # copy is already this clip (same size and time), as at every login.
+          # Greeter plays it from a readable copy; skipped if already this clip (size+mtime).
           if [ -w "$greeter" ] && [ "$(stat -c %s.%Y "$clip")" != "$(stat -c %s.%Y "$greeter_clip" 2>/dev/null || true)" ]; then
             cp -fp "$clip" "$greeter_clip.part" && mv -f "$greeter_clip.part" "$greeter_clip"
           fi
-          # set-wallpaper may have moved on during the copy (removing both); go round for it.
+          # set-wallpaper may have changed the image during the copy; loop again.
           if [ "$(readlink -f ${lib.escapeShellArg current})" = "$still" ]; then
             exit 0
           fi
@@ -205,8 +191,7 @@ let
     '';
   };
 
-  # The picker's cards: every picture's low-res image for now, as JSON. The first call makes the
-  # low-res copies (downloading each picture once); after that it's instant.
+  # Picker cards: low-res image per picture, as JSON. First call builds the copies (downloads each picture once).
   wallpaperPreviews = pkgs.writeShellApplication {
     name = "wallpaper-previews";
     runtimeInputs = [ macosWallpaper ];
@@ -217,9 +202,6 @@ let
 
 in
 {
-  # The desktop wallpaper itself is drawn by Quickshell (quickshell-wallpaper,
-  # home/common/programs/quickshell/default.nix).
-
   # Called by name from quickshell's WallpaperPicker.
   home.packages = [
     setWallpaper
@@ -229,9 +211,8 @@ in
   systemd.user.services.macos-wallpaper = {
     Unit = {
       Description = "Show the macOS wallpaper for the sun's position";
-      # Explicit After=graphical-session.target stops the target's implicit After= on this
-      # unit (WantedBy), which would form a cycle with quickshell-wallpaper
-      # (After=graphical-session.target) and stall session startup.
+      # Explicit After=graphical-session.target avoids a cycle with quickshell-wallpaper that the
+      # implicit one from WantedBy would create, stalling session startup.
       After = [
         "graphical-session.target"
         "quickshell-wallpaper.service"
@@ -245,9 +226,8 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # The lock screen's clip of the current image (wallpaperVideo above): started by set-wallpaper
-  # whenever the image changes, and at login in case an earlier run didn't finish. Downloading
-  # and re-encoding takes a few minutes once per image; a no-op when the clip exists.
+  # Lock screen clip of the current image (wallpaperVideo): started by set-wallpaper on change and at
+  # login in case a run didn't finish. Takes minutes per image; no-op if the clip exists.
   systemd.user.services.wallpaper-video = {
     Unit = {
       Description = "Make the lock screen's clip of the macOS wallpaper";
@@ -266,8 +246,7 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # Makes the picker's low-res copies of any picture that doesn't have them yet (a new name in
-  # the list), so opening it doesn't wait; a no-op otherwise.
+  # Builds picker previews for pictures lacking them (new names in the list); no-op otherwise.
   systemd.user.services.wallpaper-previews = {
     Unit = {
       Description = "Make low-res previews of the macOS wallpapers";
@@ -288,8 +267,7 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # Dynamic pictures change with the sun; the images it can land between are an hour or more
-  # apart, so ten minutes is close enough.
+  # Images a dynamic picture lands between are >= 1 h apart, so 10 min is enough.
   systemd.user.timers.macos-wallpaper = {
     Unit = {
       Description = "Keep the macOS wallpaper in step with the sun";

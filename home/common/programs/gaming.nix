@@ -18,12 +18,10 @@ in
       hud_compact = true;
       width = 150;
 
-      ## Background
       round_corners = 5;
       background_alpha = 0.4;
       background_color = stripHash m.plate;
 
-      ## Text
       font_size = 20;
       text_outline = true;
       text_outline_color = stripHash m.ground;
@@ -42,15 +40,13 @@ in
       gpu_stats = false;
       cpu_stats = false;
 
-      ## Toggle hotkeys
       toggle_hud = "Shift_R+F12";
       toggle_fps_limit = "Shift_L+F1";
     };
   };
 
-  # BeamMP (overlays/default.nix) in the app launcher. The launcher must stay open while playing
-  # and only logs, so it runs in Ghostty: nothing here answers a Terminal=true entry
-  # (x-scheme-handler/terminal is unset). The icon is BeamNG.drive's, which Steam installs.
+  # BeamMP launcher must stay open and only logs, so run it in Ghostty (x-scheme-handler/terminal is
+  # unset, so Terminal=true wouldn't work). Icon is Steam's BeamNG.drive one.
   xdg.desktopEntries.beammp-launcher = {
     name = "BeamMP";
     comment = "Launcher for the BeamMP mod for BeamNG.drive";

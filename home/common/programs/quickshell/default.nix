@@ -9,13 +9,10 @@
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
 
-  # The shell's helper programs: the scripts beside the QML, wrapped (scripts/default.nix).
   scripts = import ./scripts { inherit config lib pkgs; };
 
-  # Instant replay (config/services/Replay.qml, the quickshell-replay unit below). The one place
-  # that says how much is kept and of which screen. Kept in RAM at 20 Mbit/s (scripts/record.sh),
-  # so every minute costs 150 MB: 300 s is 750 MB. The monitor is the gaming one (the 165 Hz
-  # screen with VRR, workspace 1 at login; home/common/desktop/hyprland/config/monitors.nix).
+  # Replay buffer lives in RAM at 20 Mbit/s (record.sh): 300 s ≈ 750 MB.
+  # DP-1 is the 165 Hz VRR gaming monitor.
   replaySeconds = 300;
   replayMonitor = "DP-1";
 in
@@ -24,16 +21,13 @@ in
     enable = true;
     configs = {
       bar = ./config;
-      # Run by quickshell-wallpaper below, not by the module's service.
       wallpaper = ./wallpaper;
     };
     activeConfig = "bar";
     systemd.enable = true;
   };
 
-  # The desktop wallpaper (wallpaper/shell.qml), in place of hyprpaper: its own instance so the
-  # bar's restarts on switch never blank the desktop, restarted only when its own file changes.
-  # set-wallpaper (home/common/programs/hypr/paper.nix) tells it about a new image over IPC.
+  # Own instance so bar restarts never blank the desktop. set-wallpaper (hypr/paper.nix) signals it over IPC.
   systemd.user.services.quickshell-wallpaper = {
     Unit = {
       Description = "Desktop wallpaper (Quickshell)";
@@ -51,12 +45,9 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # The instant replay buffer (config/services/Replay.qml). A unit of its own, not a child of the
-  # bar, so the bar's restarts on switch don't empty the buffer, and systemd restarts it if the
-  # recorder dies (a driver reset, a resume from suspend). Not wanted by anything: the bar starts
-  # it when replay is armed (state kept in its state dir) and the toggle stops it. SIGINT ends
-  # the recorder cleanly; after five failures in five minutes the unit stays failed and the bar
-  # turns replay off and says why.
+  # Own unit, not a bar child: bar restarts on switch must not empty the buffer. Started/stopped
+  # by the bar (not wanted by anything); SIGINT ends the recorder cleanly; after 5 failures in
+  # 5 min it stays failed and the bar turns replay off.
   systemd.user.services.quickshell-replay = {
     Unit = {
       Description = "Instant replay buffer (Quickshell)";
@@ -73,10 +64,8 @@ in
     };
   };
 
-  # The lighting engine (scripts/rgb.py serve): draws the look chosen in the Lighting section on
-  # every OpenRGB device, LED by LED (only Direct mode reaches atlas's controllers), and again
-  # whenever openrgb.service starts (boot, or the VFIO VM handing the devices back). Without a
-  # server it waits and retries.
+  # Lighting engine (scripts/rgb.py serve): redraws on every openrgb.service start (boot, VFIO VM
+  # handback); only Direct mode reaches atlas's controllers.
   systemd.user.services.quickshell-rgb = {
     Unit = {
       Description = "Lighting engine for OpenRGB (Quickshell)";
@@ -93,8 +82,7 @@ in
     Install.WantedBy = [ "graphical-session.target" ];
   };
 
-  # The config is a store symlink and fonts are only read at startup, so a running
-  # instance never sees either change; restart it on switch instead.
+  # Config is a store symlink and fonts load at startup: restart on change.
   systemd.user.services.quickshell.Unit.X-Restart-Triggers = [
     "${./config}"
     "${theme.fonts.shell.package}"
@@ -102,27 +90,26 @@ in
   ];
 
   systemd.user.services.quickshell.Service.Environment = [
-    # Electron tray items (Discord) expose IconPixmap but no IconName, so every
-    # icon update logs a harmless "Error updating property …IconName" warning (~1k per boot).
+    # Electron tray items (Discord) have IconPixmap but no IconName: silences the warning per update.
     "QT_LOGGING_RULES=quickshell.dbus.properties.warning=false"
-    # wlsunset's location (home/common/programs/hypr/sunset.nix), for the bar's day arc.
+    # For the bar's day arc.
     "QS_LATITUDE=${config.services.wlsunset.latitude}"
     "QS_LONGITUDE=${config.services.wlsunset.longitude}"
-    # Where screen recordings go (xdg.userDirs, home/common/shell/xdg.nix).
+    # xdg.userDirs RECORDINGS
     "QS_RECORDINGS_DIR=${config.xdg.userDirs.extraConfig.RECORDINGS}"
-    # Instant replay (replaySeconds, replayMonitor above), for the capture menu's labels.
+    # For the capture menu's labels.
     "QS_REPLAY_SECONDS=${toString replaySeconds}"
     "QS_REPLAY_MONITOR=${replayMonitor}"
   ];
 
   home.packages = [
-    # The shell's face and glyphs; installed here so they don't depend on the system font set.
+    # Installed here so they don't depend on the system font set.
     theme.fonts.shell.package
     theme.fonts.iconFont.package
     pkgs.iproute2
-    # Holds the night light's session temperature (config/services/NightLight.qml).
+    # Holds the night light's session temperature.
     pkgs.hyprsunset
-    # The Connections panel's Cast screen row (patched in overlays/default.nix).
+    # Cast screen row (patched in overlays/default.nix).
     pkgs.gnome-network-displays
     scripts.vpn
     scripts.batteries

@@ -2,13 +2,13 @@ import QtQuick
 import Quickshell
 import qs.common
 
-// Popup attached to a bar item that opens away from the bar's screen edge.
-// Content should fill the window inside `topInset`/`bottomInset`, which leave `gap` on the bar side.
+// Popup attached to a bar item, opening away from the bar's edge. Content fills the window inside
+// `topInset`/`bottomInset`, which leave `gap` on the bar side.
 PopupWindow {
     id: root
 
     required property Item anchorItem
-    // Grab input so that clicking anywhere outside the popup closes it.
+    // Grab input so a click outside closes it.
     property bool dismissible: false
     property int gap: 8
     readonly property int topInset: Theme.barAtTop ? gap : 0
@@ -22,7 +22,7 @@ PopupWindow {
             visible = false;
             return;
         }
-        // Clicking the toggle button while open dismisses the grab first; don't reopen on that same click.
+        // Clicking the toggle while open dismisses the grab first; don't reopen on that click.
         if (Date.now() - closedAt < 250)
             return;
         opening();

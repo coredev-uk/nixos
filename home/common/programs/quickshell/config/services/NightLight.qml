@@ -4,11 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Night light follows wlsunset's sunset schedule (home/common/programs/hypr/sunset.nix). A colour
-// temperature picked in the panel overrides it for the rest of the session: wlsunset stops and a
-// transient hyprsunset unit holds the temperature, adjusted live over its IPC while dragging (a
-// wlsunset restart per change would flash the screen back to daylight in between). Nothing is
-// saved, so the next login is back on the schedule; following the schedule again ends the override.
+// Follows wlsunset's sunset schedule (home/common/programs/hypr/sunset.nix). A temperature picked in the
+// panel overrides it for the session: wlsunset stops and a transient hyprsunset unit holds it, adjusted
+// live over its IPC while dragging (a wlsunset restart per change would flash daylight in between).
+// Nothing is saved, so the next login follows the schedule; following it again ends the override.
 Singleton {
     id: root
 
@@ -17,7 +16,6 @@ Singleton {
     readonly property int warmest: 2000
     readonly property int neutral: 6500
 
-    // wlsunset is running its schedule.
     property bool scheduled: false
     // The session's temperature, 0 when not overriding.
     property int custom: 0
@@ -61,7 +59,6 @@ Singleton {
 
     Component.onCompleted: refresh()
 
-    // Coalesces a drag into a few IPC calls.
     Timer {
         id: apply
         interval: 60

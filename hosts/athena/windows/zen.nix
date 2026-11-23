@@ -1,7 +1,6 @@
-# atlas's Zen (home/common/programs/zen.nix) for Windows, through the Zen flake's Home Manager
-# module as on atlas, with the profile at /tmp/athena-zen/zen/default: apply.ps1 links that to
-# the Windows profile before running the module's activation there. Nothing of it is installed in
-# WSL, so this is its own Home Manager evaluation rather than part of paul@athena.
+# atlas's Zen (home/common/programs/zen.nix) for Windows via the Zen flake's HM module. Own HM
+# evaluation (not paul@athena): profile at /tmp/athena-zen/zen/default, which apply.ps1 links to
+# the Windows profile before running the activation.
 {
   self,
   inputs,
@@ -28,7 +27,7 @@ let
             stateVersion = "26.05";
           };
           xdg.configHome = "/tmp/athena-zen";
-          # Nix updates Zen on Linux; on Windows it updates itself.
+          # Zen self-updates on Windows.
           programs.zen-browser.policies.DisableAppUpdate = lib.mkForce false;
         }
       ];
@@ -36,18 +35,18 @@ let
   profile = "${zen.programs.zen-browser.profilesPath}/default";
 in
 {
-  # For the install (distribution\policies.json).
+  # Install: distribution\policies.json.
   policies = (pkgs.formats.json { }).generate "policies.json" {
     inherit (zen.programs.zen-browser) policies;
   };
-  # For the profile.
+  # Profile.
   userJs = zen.home.file."${profile}/user.js".source;
   containers = zen.home.file."${profile}/containers.json".source;
 
-  # `activate <profile>`: links the Windows profile (its WSL path) where the module's scripts look
-  # for it, then runs the module's activation for it (spaces, pins, extension buttons).
+  # `activate <profile>`: links the Windows profile (WSL path) where the module's scripts expect
+  # it, then runs the activation (spaces, pins, extension buttons).
   activate = pkgs.writeShellScript "zen-activate" ''
-    # The tools Home Manager's activation puts on PATH, which the module's scripts expect.
+    # PATH the module's scripts expect from HM activation.
     export PATH=${
       lib.makeBinPath (
         with pkgs;

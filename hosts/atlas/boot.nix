@@ -7,13 +7,10 @@
   ...
 }:
 let
-  # TPM2 unlock enrollment command for this host:
+  # Enroll TPM2 (keep a working LUKS passphrase before wiping slots):
   #   sudo systemd-cryptenroll --tpm2-device=auto --tpm2-pcrs=7+12 --wipe-slot=tpm2 /dev/sdX
-  # Keep a working LUKS passphrase/recovery key before wiping TPM2 slots.
-
-  # Set this after booting once with tpm2-measure-pcr enabled and recording:
-  #   systemd-analyze pcrs 15 --json=short
-  # Keep null until the real value is known, otherwise initrd will refuse to boot.
+  # PCR15 value from `systemd-analyze pcrs 15 --json=short` after one boot with tpm2-measure-pcr;
+  # null skips the check (initrd refuses to boot on a wrong value).
   expectedPcr15 = "a701700021416549c66fdb8693a771a159f78fde232e5aa3aca4d3c23f268ef9";
 in
 {
@@ -24,8 +21,7 @@ in
     ../common/users/${meta.username}
   ];
 
-  # First-install release of this host. Never bump it with NixOS upgrades:
-  # it gates stateful migrations, see `man configuration.nix` (system.stateVersion).
+  # Never bump (gates stateful migrations).
   system.stateVersion = "26.05";
 
   environment.systemPackages = with pkgs; [
@@ -33,17 +29,14 @@ in
   ];
 
   boot = {
-    # Secure boot configuration
-    loader.systemd-boot.enable = lib.mkForce false;
-    # The systemd-boot menu shows for 1s instead of the default 5s.
+    loader.systemd-boot.enable = lib.mkForce false; # lanzaboote replaces it
     loader.timeout = 1;
     lanzaboote = {
       enable = true;
       pkiBundle = "/var/lib/sbctl";
-      # Bound the generations installed on the 1 GiB ESP (default: unlimited).
+      # Bounds generations on the 1 GiB ESP.
       configurationLimit = 10;
-      # New generations get 3 boot attempts; if none reaches boot-complete.target,
-      # systemd-boot falls back to the previous generation (systemd-bless-boot).
+      # 3 boot attempts, then systemd-boot falls back to the previous generation.
       bootCounting.initialTries = 3;
     };
 
@@ -92,7 +85,7 @@ in
       };
     };
 
-    # Use the Xanmod Kernel for gaming-related optimisations.
+    # Gaming-tuned kernel.
     kernelPackages = pkgs.linuxPackages_xanmod_latest;
   };
 }

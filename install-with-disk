@@ -30,8 +30,7 @@ echo
 if [[ $REPLY =~ ^[Yy]$ ]]; then
   sudo true
 
-  # Build via the flake's locked disko input, not disko/latest, so this
-  # matches the pinned disko module version used elsewhere in the config.
+  # Use the flake's locked disko, not disko/latest.
   DISKO_SCRIPT="$(mktemp -d)/disko-script"
   nix --experimental-features "nix-command flakes" build \
     "${DIR}#nixosConfigurations.${TARGET_HOST}.config.system.build.diskoScript" \
@@ -52,7 +51,6 @@ if [[ $REPLY =~ ^[Yy]$ ]]; then
 
   sudo nixos-install --flake "${DIR}#${TARGET_HOST}"
 
-  # Rsync my nix-config to the target install
   mkdir -p "/mnt/home/${TARGET_USER}/.dotfiles"
   rsync -a --delete "${DIR}/" "/mnt/home/${TARGET_USER}/.dotfiles/"
 fi

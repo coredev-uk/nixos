@@ -1,10 +1,10 @@
-# Events for the bar's calendar (config/services/Calendar.qml), from iCloud
-# over CalDAV and the Sonarr/Radarr release calendars.
+# Events for the bar's calendar (services/Calendar.qml): iCloud over CalDAV
+# and Sonarr/Radarr release calendars.
 #
 #   quickshell-calendar START END    (ISO dates, END exclusive)
 #
-# Sources come from $XDG_CONFIG_HOME/quickshell/calendars.json, kept out of
-# git; every section is optional:
+# Sources: $XDG_CONFIG_HOME/quickshell/calendars.json (not in git); every
+# section is optional:
 #
 #   {
 #     "icloud": {"username": "pass://Vault/iCloud/email",
@@ -15,10 +15,10 @@
 #                "apiKey": "pass://Vault/Radarr/RADARR_API_KEY"}
 #   }
 #
-# The iCloud password is an app-specific one (account.apple.com, Sign-In and
-# Security). Any value starting with pass:// (vault/item/field, by name) is
-# read from Proton Pass with pass-cli on each run, through the session it keeps
-# in the keyring, so nothing prompts; anything else is used as is.
+# The iCloud password is app-specific (account.apple.com, Sign-In and
+# Security). pass://vault/item/field values (by name) are read from Proton
+# Pass via pass-cli on each run with the keyring session, so nothing prompts;
+# anything else is used as is.
 #
 # Prints one JSON object, events unsorted:
 #   {"configured": bool,
@@ -28,7 +28,7 @@
 #    "passSignedOut": true}  (only when Proton Pass has no session)
 # All-day events have date starts/ends (end exclusive); timed ones ISO
 # datetimes, with an offset unless floating (local time). A failing source
-# only adds an error; the others still report their events.
+# only adds an error.
 
 import fcntl
 import json
@@ -68,10 +68,9 @@ def config_path():
 
 
 def read_secret(ref):
-    # As in pass.sh: without the dbus key store, pass-cli falls back to the
-    # kernel keyring, is denied, and deletes the signed-in session. Callers
-    # (the bar, the lock under hypridle) can start before the session
-    # variables are in place, so don't rely on them.
+    # As in pass.sh: without the dbus key store pass-cli falls back to the
+    # kernel keyring, is denied, and deletes the session. Callers (bar, lock
+    # under hypridle) can start before session variables exist.
     env = dict(os.environ, PROTON_PASS_LINUX_KEYRING="dbus",
                PROTON_PASS_NO_UPDATE_CHECK="1")
     try:
@@ -264,10 +263,8 @@ def icloud_events(conf, start, end):
         password=conf["password"],
         timeout=TIMEOUT,
     )
-    # caldav 3 talks to iCloud through niquests, which upgrades to HTTP/3 when
-    # the server offers it; iCloud drops those QUIC connections now and then
-    # ("HTTP/3 connection terminated"), failing about one fetch in three.
-    # HTTP/2 over TCP never has.
+    # caldav 3 (niquests) upgrades to HTTP/3 when offered; iCloud drops those
+    # QUIC connections, failing ~1 in 3 fetches. HTTP/2 over TCP doesn't.
     if hasattr(client.session, "quic_cache_layer"):
         client.session = type(client.session)(disable_http3=True)
     try:
@@ -354,8 +351,8 @@ def main():
         result["errors"].append({"source": source, "message": message})
 
     # Secrets first, one pass-cli call at a time under quickshell-pass's lock;
-    # signed out, every pass:// source is skipped and reported once, as
-    # passSignedOut, rather than as one identical error per source.
+    # when signed out, every pass:// source is skipped and reported once as
+    # passSignedOut.
     sources = {}
     lock = None
     for source, (fetch, keys) in SOURCES.items():
@@ -375,7 +372,6 @@ def main():
     if lock is not None:
         lock.close()
 
-    # Then every source in parallel.
     with ThreadPoolExecutor() as pool:
         futures = {
             source: pool.submit(fetch, values, start, end)

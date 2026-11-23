@@ -4,13 +4,10 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The wireless peripherals' batteries in the control panel's Devices section, one 32px row each on
-// the slider rows' columns: the device's glyph, its name, a 64px level track and the level. Level
-// reports only when it needs attention: at 25% or below (not charging) the glyph becomes the
-// battery-alert one and the level turns caution (alert at 10%), so it never rests on colour alone;
-// charging is "on", the charging glyph in gilt. A switched-off device reads "Off" with an empty
-// track. Hidden when there are none. `shown`: whether the panel is open; the levels are read every
-// minute while one is.
+// Wireless peripherals' batteries in the Devices section: glyph, name, 64px level track, level.
+// Attention only at 25% or below (not charging): alert glyph and caution level (alert at 10%), so it
+// never rests on colour alone. Charging is "on" (gilt charging glyph); a switched-off device reads
+// "Off". Hidden when there are none. `shown`: panel open; levels are read every minute while it is.
 ColumnLayout {
     id: root
 

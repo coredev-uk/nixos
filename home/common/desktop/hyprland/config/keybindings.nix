@@ -34,7 +34,7 @@ let
 in
 {
   bind = [
-    # Media Keys (on-screen display: home/common/programs/quickshell/config/modules/Osd.qml)
+    # Media keys (OSD: quickshell Osd.qml)
     (bindWith "XF86AudioMicMute" (exec "quickshell ipc -c bar call osd micMute") { locked = true; })
     (bindWith "XF86AudioMute" (exec "quickshell ipc -c bar call osd mute") { locked = true; })
     (bindWith "XF86AudioPlay" (exec "quickshell ipc -c bar call osd media play-pause") {
@@ -46,26 +46,19 @@ in
     (bindWith "XF86AudioNext" (exec "quickshell ipc -c bar call osd media next") { locked = true; })
     (bindWith "XF86AudioPrev" (exec "quickshell ipc -c bar call osd media previous") { locked = true; })
 
-    # Main Apps
     (bind "${mod} + L" (exec lock))
     (bind "${mod} + B" (exec "uwsm app -- ${browser}"))
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
-    # Wallpaper picker (home/common/programs/quickshell/config/modules/WallpaperPicker.qml)
     (bind "${mod} + SHIFT + P" (exec "quickshell ipc -c bar call wallpapers toggle"))
-    # Proton Pass quick access (home/common/programs/quickshell/config/modules/PassQuickAccess.qml)
     (bind "CTRL + SHIFT + Space" (exec "quickshell ipc -c bar call pass toggle"))
-    # The Proton Pass desktop app: it runs from login (../default.nix) hidden in the tray, and a
-    # second launch hands over to it and shows its window
+    # Runs from login (../default.nix) in the tray; a second launch shows its window
     (bind "CTRL + ALT + Space" (exec "uwsm app -- proton-pass"))
-    # Screen recording on the focused monitor (home/common/programs/quickshell/config/services/Recorder.qml)
     (bind "${mod} + SHIFT + R" (exec "quickshell ipc -c bar call recorder toggle"))
-    # Instant replay (home/common/programs/quickshell/config/services/Replay.qml): save the last
-    # 30 seconds, or all of the buffer with Ctrl
+    # Instant replay (quickshell Replay.qml): last 30 s; with Ctrl, the whole buffer
     (bind "${mod} + SHIFT + C" (exec "quickshell ipc -c bar call replay clip 30"))
     (bind "${mod} + CTRL + SHIFT + C" (exec "quickshell ipc -c bar call replay save"))
-    # Proton Mail's scratchpad (window-rules.nix). Hide it with this rather than closing it:
-    # closing quits the app. If it isn't running, start it into the scratchpad and show that.
+    # Proton Mail scratchpad (window-rules.nix): hide with this, closing quits the app; start it if not running
     (bind "${mod} + M" ''
       function()
         for _, w in ipairs(hl.get_windows()) do
@@ -82,62 +75,50 @@ in
       end
     '')
 
-    # WM Controls
     (bind "${mod} + R" (exec "hyprctl reload"))
     (bind "${mod} + SHIFT + Q" (exec "uwsm stop"))
 
-    # Window Management
     (bind "${mod} + Q" "hl.dsp.window.close()")
     (bind "${mod} + SHIFT + Space" "hl.dsp.window.float()")
     (bind "${mod} + P" "hl.dsp.window.pseudo()") # dwindle
     (bind "${mod} + J" "hl.dsp.layout(\"togglesplit\")") # dwindle
     (bind "${mod} + F" "hl.dsp.window.fullscreen()")
 
-    # Focus
     (bind "${mod} + left" (focus "l"))
     (bind "${mod} + right" (focus "r"))
     (bind "${mod} + up" (focus "u"))
     (bind "${mod} + down" (focus "d"))
 
-    # Move the window in a direction, across monitors at the edge
     (bind "${mod} + SHIFT + left" (moveWindow "l"))
     (bind "${mod} + SHIFT + right" (moveWindow "r"))
     (bind "${mod} + SHIFT + up" (moveWindow "u"))
     (bind "${mod} + SHIFT + down" (moveWindow "d"))
 
-    # Resize
     (bind "${mod} + CTRL + left" (resize (-20) 0))
     (bind "${mod} + CTRL + right" (resize 20 0))
     (bind "${mod} + CTRL + up" (resize 0 (-20)))
     (bind "${mod} + CTRL + down" (resize 0 20))
 
-    # Tabbed
     (bind "${mod} + w" "hl.dsp.group.toggle()")
     (bind "${mod} + tab" "hl.dsp.group.next()")
 
-    # Mouse Movement
-    (bind "${mod} + mouse_down" (workspace "e+1")) # Scroll-Up
-    (bind "${mod} + mouse_up" (workspace "e-1")) # Scroll-Down
+    (bind "${mod} + mouse_down" (workspace "e+1"))
+    (bind "${mod} + mouse_up" (workspace "e-1"))
   ]
-  ++ (
-    # workspaces
-    # binds ${mod} + [shift +] {1..9} to [move to] workspace {1..9}
-    builtins.concatLists (
-      builtins.genList (
-        i:
-        let
-          ws = i + 1;
-        in
-        [
-          (bind "${mod} + code:1${toString i}" (workspace ws))
-          (bind "${mod} + SHIFT + code:1${toString i}" (moveToWorkspace ws))
-        ]
-      ) 10
-    )
-  )
+  ++ (builtins.concatLists (
+    builtins.genList (
+      i:
+      let
+        ws = i + 1;
+      in
+      [
+        (bind "${mod} + code:1${toString i}" (workspace ws))
+        (bind "${mod} + SHIFT + code:1${toString i}" (moveToWorkspace ws))
+      ]
+    ) 10
+  ))
   ++ [
-    # Screenshot: Super+Print goes straight to satty; Print copies the area and shows the
-    # popup (home/common/programs/quickshell/config/modules/ScreenshotPopup.qml, scripts/screenshot.sh)
+    # Super+Print goes straight to satty; Print copies the area and shows the popup (quickshell ScreenshotPopup.qml)
     (bindWith "${mod} + Print"
       (exec "${pkgs.grimblast}/bin/grimblast save area - | ${pkgs.satty}/bin/satty --fullscreen --early-exit -f - --copy-command ${pkgs.wl-clipboard}/bin/wl-copy")
       { release = true; }
@@ -146,10 +127,10 @@ in
       release = true;
     })
 
-    (bindWith "${mod} + mouse:272" "hl.dsp.window.drag()" { mouse = true; }) # Left-Click
-    (bindWith "${mod} + mouse:273" "hl.dsp.window.resize()" { mouse = true; }) # Right-Click
+    (bindWith "${mod} + mouse:272" "hl.dsp.window.drag()" { mouse = true; })
+    (bindWith "${mod} + mouse:273" "hl.dsp.window.resize()" { mouse = true; })
 
-    # MultiMedia: Volume and brightness repeat while held and work over the lock screen
+    # Volume/brightness repeat while held and work over the lock screen
     (bindWith "XF86AudioRaiseVolume" (exec "quickshell ipc -c bar call osd volume +5") {
       repeating = true;
       locked = true;

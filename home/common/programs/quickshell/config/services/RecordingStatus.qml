@@ -4,9 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Whether the bar is recording the screen (services/Recorder.qml), for the lock screen, a separate
-// instance from the bar: read from the file the bar publishes. Not recording while the bar isn't
-// running; a bar that died mid-recording leaves it set, which keeps the lock's day redacted.
+// Whether the bar is recording (Recorder.qml), for the lock screen, a separate instance: read from the
+// file the bar publishes. Not recording while the bar isn't running; a bar that died mid-recording
+// leaves it set, which keeps the lock's day redacted.
 Singleton {
     id: root
 

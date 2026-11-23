@@ -5,26 +5,23 @@
   };
 
   environment = {
-    # variables.NIXOS_OZONE_WL = "1";
-
     systemPackages = with pkgs; [
       zenity
-      # Enable HEIC image previews in Nautilus
+      # HEIC previews in Nautilus
       libheif
       libheif.out
-      # Required for Electron apps to use gnome-keyring for password storage
+      # Electron password storage via gnome-keyring
       libsecret
     ];
 
-    # Enable HEIC image previews in Nautilus
+    # Thumbnailers (HEIC previews)
     pathsToLink = [ "share/thumbnailers" ];
   };
 
   services = {
     gnome = {
       gnome-keyring.enable = true;
-      # Enabled by default with gnome-keyring; it would claim SSH_AUTH_SOCK, but the SSH agent
-      # is Proton Pass's (home/common/shell/ssh.nix).
+      # Would claim SSH_AUTH_SOCK; the agent is Proton Pass's (home/common/shell/ssh.nix).
       gcr-ssh-agent.enable = false;
       sushi.enable = true;
     };
@@ -55,22 +52,21 @@
         ];
       };
 
-      # Hyprland-specific portal configuration. xdg-desktop-portal lowercases
-      # XDG_CURRENT_DESKTOP when looking for <desktop>-portals.conf, so the key must be too.
+      # xdg-desktop-portal looks up <desktop>-portals.conf with XDG_CURRENT_DESKTOP lowercased.
       hyprland = {
         default = [
           "hyprland"
           "gtk"
         ];
-        # Use hyprland portal for screencasting/screenshots
+        # Hyprland for screencast/screenshots
         "org.freedesktop.impl.portal.Screenshot" = [ "hyprland" ];
         "org.freedesktop.impl.portal.ScreenCast" = [ "hyprland" ];
         "org.freedesktop.impl.portal.GlobalShortcuts" = [ "hyprland" ];
-        # Use GTK portal for file operations and URI opening
+        # GTK for files and URIs
         "org.freedesktop.impl.portal.FileChooser" = [ "gtk" ];
         "org.freedesktop.impl.portal.OpenURI" = [ "gtk" ];
         "org.freedesktop.impl.portal.AppChooser" = [ "gtk" ];
-        # Secret handling via gnome-keyring
+        # Secrets via gnome-keyring
         "org.freedesktop.impl.portal.Secret" = [ "gnome-keyring" ];
       };
     };

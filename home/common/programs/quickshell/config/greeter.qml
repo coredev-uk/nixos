@@ -5,16 +5,13 @@ import Quickshell.Wayland
 import qs.common
 import qs.lock
 
-// greetd greeter, run by `quickshell-greeter` inside a greeter-only Hyprland
-// (hosts/common/desktop/greeter.nix). Same faces as the lock screen, minus today's events and
-// the music: there is no user session yet to show them from. Once logged in it hands
-// greetd the session command and quits; the wrapper then closes the compositor so greetd can
-// start the session.
+// greetd greeter, run by `quickshell-greeter` in a greeter-only Hyprland (hosts/common/desktop/greeter.nix).
+// Same faces as the lock screen minus today's events and music (no user session yet). After login
+// it hands greetd the session command and quits; the wrapper then closes the compositor.
 ShellRoot {
     id: shell
 
-    // Set by the wrapper: who logs in, and the session to start as JSON
-    // ({"command": [...], "environment": ["NAME=value", ...]}).
+    // Set by the wrapper: the user, and the session as JSON ({"command": [...], "environment": [...]}).
     readonly property var session: JSON.parse(Quickshell.env("QS_GREETER_SESSION") ?? "{}")
 
     GreeterContext {

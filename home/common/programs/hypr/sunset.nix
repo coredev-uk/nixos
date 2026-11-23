@@ -1,6 +1,6 @@
 _: {
 
-  # TODO: CHANGE TO HYPRSUNSET WHEN https://github.com/hyprwm/hyprsunset/pull/72 IS MERGED
+  # TODO: switch to hyprsunset when https://github.com/hyprwm/hyprsunset/pull/72 is merged
 
   services.wlsunset = {
     enable = true;

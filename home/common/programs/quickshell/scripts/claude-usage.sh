@@ -1,5 +1,4 @@
-# Claude plan usage for the bar's Claude meter (config/services/ClaudeUsage.qml). Prints one JSON
-# object:
+# Claude plan usage for the bar's Claude meter (services/ClaudeUsage.qml). Prints one JSON object:
 #
 #   {
 #     "status": "ok" | "expired" | "rejected" | "limited" | "unreachable" | "failed" | "signed-out",
@@ -12,13 +11,11 @@
 #     "history": [[<epoch seconds>, <percent>], …]   # this week's readings of the weekly limit
 #   }
 #
-# The sign-in is omp's (its Anthropic OAuth credential in ~/.omp/agent/agent.db), read only and
-# never refreshed: omp rotates the refresh token when it refreshes, so a second refresher would
-# sign it out. While that access token has expired ("expired") the last good reading is printed
-# again; omp refreshes it the next time it runs. The token goes to curl on stdin, not argv.
-#
-# The history is the shell's own readings (kept when the weekly figure changes) together with
-# omp's, which it records whenever it reads usage itself.
+# Auth is omp's Anthropic OAuth credential (~/.omp/agent/agent.db), read only and never refreshed:
+# omp rotates the refresh token, so a second refresher would sign it out. While the access token
+# is expired ("expired") the last good reading is reprinted until omp refreshes it. The token goes
+# to curl on stdin, not argv.
+# History = this script's readings (kept when the weekly figure changes) plus omp's own.
 
 db="${OMP_AGENT_DB:-$HOME/.omp/agent/agent.db}"
 state="${XDG_STATE_HOME:-$HOME/.local/state}/quickshell-claude-usage"
@@ -27,8 +24,8 @@ log="$state/history.jsonl"
 mkdir -p "$state"
 now=$(date +%s)
 
-# The API's limits, normalised: ISO times to epoch seconds, a label per limit, and a model limit's
-# share of the weekly allowance beside it. The $names are jq's, not the shell's.
+# Normalise the API's limits: ISO times to epoch seconds, a label per limit, a model limit's share
+# of the weekly allowance. The $names are jq's, not the shell's.
 # shellcheck disable=SC2016
 normalise='
   def epoch: if . == null then null else (sub("\\.[0-9]+"; "") | sub("(\\+00:00|Z)$"; "Z") | try fromdateiso8601 catch null) end;
@@ -87,7 +84,7 @@ if [[ -n $credential ]]; then
 			if jq --argjson now "$now" "$normalise" "$body" >"$last.tmp" 2>/dev/null; then
 				mv "$last.tmp" "$last"
 				status=ok
-				# Keep a reading when the weekly figure moved (or a new week began).
+				# Keep a reading when the weekly figure moved or a new week began.
 				reading=$(jq -c '.usage.limits[] | select(.kind == "weekly_all") | { t: $now, p: .percent, r: .resets_at }' --argjson now "$now" "$last")
 				if [[ -n $reading ]]; then
 					previous=$(tail -n 1 "$log" 2>/dev/null || true)
@@ -108,7 +105,7 @@ if [[ -n $credential ]]; then
 	fi
 fi
 
-# Readings older than two weeks are no use to this week's chart.
+# Drop readings older than two weeks.
 if [[ -f $log ]] && (($(wc -l <"$log") > 2000)); then
 	jq -c --argjson since "$((now - 14 * 86400))" 'select(.t >= $since)' "$log" >"$log.tmp" && mv "$log.tmp" "$log"
 fi

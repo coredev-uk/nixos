@@ -5,11 +5,9 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// What's playing, at the foot of the control panel: the cover, the track, its controls, the time
-// so far and, on Sona, the favourite heart, with the song as a track along the card's floor (a
-// click seeks). The card takes the cover's colour (CoverArt) and moves to the next cover's over a
-// spatial move; the title and artist fade in on a new track, and the play glyph grows into place
-// whenever playback starts or stops, whatever started it.
+// Now playing at the foot of the control panel: cover, track, controls, time, Sona's favourite
+// heart, and the song as a seek track along the floor. The card takes the cover's colour
+// (CoverArt) over a spatial move; title and artist fade in on a new track; the play glyph grows in.
 Rectangle {
     id: root
 
@@ -17,8 +15,7 @@ Rectangle {
     readonly property bool playing: player?.isPlaying ?? false
     readonly property real length: player?.lengthSupported ? player.length : 0
     readonly property string track: `${player?.trackTitle ?? ""}\n${player?.trackArtist ?? ""}`
-    // Whether the panel is open: the position runs, the cover can be read and Sona is asked about
-    // its favourite, only then.
+    // Panel open: only then the position runs, the cover is read and Sona is asked about its favourite.
     property bool shown: false
     property bool watching: false
 
@@ -53,8 +50,7 @@ Rectangle {
             Favourite.watch(false);
     }
 
-    // MPRIS sends the position on seeks only; Quickshell works it out from the time since, when
-    // asked.
+    // MPRIS sends the position on seeks only; Quickshell extrapolates when asked.
     Timer {
         interval: 500
         repeat: true
@@ -157,9 +153,8 @@ Rectangle {
                     font.pixelSize: 11
                 }
 
-                // Sona's favourite (services/Favourite): gilt and filled when it is one ("on"), an
-                // outline otherwise; only while Sona is the player and playing, and once it has said
-                // which. The heart fills with a small beat.
+                // Sona's favourite (services/Favourite): gilt and filled when on, outline otherwise;
+                // only while Sona plays and has answered.
                 TransportButton {
                     id: heart
                     Layout.leftMargin: 4
@@ -186,7 +181,7 @@ Rectangle {
         }
     }
 
-    // The new symbol grows into place; nothing overshoots.
+    // New symbol grows into place; no overshoot.
     NumberAnimation {
         id: pop
         target: playPause.glyph

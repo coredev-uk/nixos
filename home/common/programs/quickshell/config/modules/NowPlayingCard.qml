@@ -5,13 +5,11 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Now playing as a compact card under the bar's track (MediaPopup.qml), on the cover's own colour
-// (CoverArt) like what's playing in the control panel. Top: the cover, the title and artist, and on
-// Sona while it plays its favourite heart. Then, on Sona, the timed lyrics (or one line saying why
-// there are none). At the foot one row does the playing: previous, play/pause and next, the song as
-// a track drawn like the day arc (a press or drag seeks), and the time. Clicking the cover brings
-// the player's window forward. The colour moves to the next cover's over a spatial move, the title
-// and artist fade in on a new track, and the play glyph grows into place on a state change.
+// Now playing card under the bar's track (MediaPopup.qml), on the cover's colour (CoverArt). Top:
+// cover, title and artist, and on Sona its favourite heart. Then Sona's timed lyrics (or one line
+// saying why not). Foot: previous, play/pause, next, the seek track (press or drag), the time.
+// Clicking the cover raises the player. Colour moves spatially to the next cover; title and
+// artist fade in on a new track; the play glyph grows in on a state change.
 Rectangle {
     id: root
 
@@ -19,8 +17,7 @@ Rectangle {
     readonly property bool playing: player?.isPlaying ?? false
     readonly property real length: player?.lengthSupported ? player.length : 0
     readonly property string track: `${player?.trackTitle ?? ""}\n${player?.trackArtist ?? ""}`
-    // Whether the card is on screen: the position, the lyrics, the cover's colour and Sona's
-    // favourite are read only then.
+    // Card on screen: position, lyrics, cover colour and Sona's favourite are read only then.
     property bool active: false
     property bool watching: false
 
@@ -58,15 +55,13 @@ Rectangle {
             Favourite.watch(false);
     }
 
-    // The lyrics are read only while the card is out.
     Binding {
         target: Lyrics
         property: "watched"
         value: root.active
     }
 
-    // MPRIS sends the position on seeks only; Quickshell works it out from the time since, when
-    // asked.
+    // MPRIS sends the position on seeks only; Quickshell extrapolates when asked.
     Timer {
         interval: 250
         repeat: true
@@ -185,7 +180,7 @@ Rectangle {
                 enabled: root.player?.canTogglePlaying ?? false
                 onClicked: root.player.togglePlaying()
 
-                // The new symbol grows into place; nothing overshoots.
+                // New symbol grows into place; no overshoot.
                 NumberAnimation {
                     id: pop
                     target: playPause.glyph

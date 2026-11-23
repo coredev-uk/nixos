@@ -5,13 +5,11 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The control panel's Nix view: the lock update waiting to land (BOT Cecil's nightly pull request
-// bumping every flake input, with how its checks go and how long it has been failing), how
-// main's host builds are going, what the cache holds, and where this computer stands against
-// them (services/NixStatus.qml), with any failed systemd units (system and user) listed by
-// name; a click copies the journalctl command for one, or opens an update's pull request or main's
-// latest run. Offline only the failed units and the last section remain. Reads every minute while it is
-// showing.
+// Control panel's Nix view: the pending lock update (nightly PR bumping every flake input; checks,
+// failing duration), main's host builds, the cache, this computer against them
+// (services/NixStatus.qml), and failed systemd units by name. Clicks copy a unit's journalctl
+// command or open the update's PR / main's latest run. Offline only failed units and the last
+// section remain. Reads every minute while showing.
 ColumnLayout {
     id: root
 
@@ -136,8 +134,7 @@ ColumnLayout {
         return n.toLocaleString(Qt.locale(), "f", 0);
     }
 
-    // The lock update's line, keyed by what it bumps: how its checks go, or how long it has failed;
-    // a click opens its pull request.
+    // The lock update's line, keyed by what it bumps: checks status or failing duration; click opens its PR.
     function updateLine(u: var): var {
         const failing = NixStatus.failingChecks(u);
         const pending = NixStatus.pendingChecks(u);
@@ -257,7 +254,6 @@ ColumnLayout {
     // The panel's view Loader destroys this when switching back to the main view.
     Component.onDestruction: NixStatus.release()
 
-    // State at a glance.
     RowLayout {
         Layout.fillWidth: true
         Layout.leftMargin: 12

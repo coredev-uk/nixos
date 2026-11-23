@@ -7,10 +7,9 @@
 {
   programs.btop = {
     enable = true;
-    # GPU monitoring needs the CUDA build (atlas has an Nvidia card).
+    # CUDA build for GPU monitoring.
     package = lib.mkIf (!meta.isDarwin) pkgs.btop-cuda;
-    # The built-in TTY theme draws with the terminal's 16 colours, on the terminal's own
-    # background, so btop follows Ghostty's palette.
+    # TTY theme follows the terminal's 16-colour palette.
     settings = {
       color_theme = "TTY";
       theme_background = false;

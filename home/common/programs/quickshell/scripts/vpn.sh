@@ -1,5 +1,5 @@
 # quickshell-vpn --status|--countries|--connect [COUNTRY]|--disconnect|--notify-state
-# Output is tab separated so the shell never has to parse hand-built JSON.
+# Output is tab separated; no hand-built JSON.
 
 status() {
 	if ip link show proton0 &>/dev/null; then
@@ -32,9 +32,8 @@ last_line() {
 	grep -v '^[[:space:]]*$' <<<"$1" | tail -n1
 }
 
-# Failures only: the bar calls --notify-state whenever the tunnel comes up or goes down,
-# which also covers connections made outside the bar. The reason also goes to stderr, where
-# the panel reads it.
+# Failures only: the bar calls --notify-state when the tunnel changes, which also covers
+# connections made outside the bar. The reason also goes to stderr for the panel.
 connect() {
 	local output
 	if ! output=$(protonvpn connect "$@" 2>&1) || ! grep -q '^Connected to ' <<<"$output"; then

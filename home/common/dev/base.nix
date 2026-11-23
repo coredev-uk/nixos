@@ -5,14 +5,11 @@ in
 {
   programs = {
 
-    # Kubernetes CLI
     k9s = {
       enable = true;
       settings.k9s.ui.skin = "meridian";
-      # k9s turns colour names into fixed RGB (olive is #808000, not the terminal's yellow), so
-      # its skin can't follow the terminal and takes the palette itself. The terminal's own
-      # background shows through; rows are enamel, gilt marks keys, focus and the sort column,
-      # and only state (pending, errors) gets colour.
+      # k9s turns colour names into fixed RGB, so its skin can't follow the terminal and carries the
+      # palette itself. Enamel rows, gilt for keys/focus/sort, colour only for state.
       skins.meridian.k9s = {
         body = {
           fgColor = m.text;
@@ -145,8 +142,7 @@ in
       nix-direnv.enable = true;
       silent = true;
     };
-    # No shell hook: it runs `devenv hook-should-activate` before every prompt (~60ms).
-    # devenv projects load through direnv instead (`use devenv` in their .envrc).
+    # No shell hook: it runs `devenv hook-should-activate` before every prompt (~60ms); direnv loads projects.
     devenv = {
       enable = true;
       enableZshIntegration = false;
@@ -156,8 +152,7 @@ in
       enable = true;
       settings = {
         promptToReturnFromSubprocess = false;
-        # lazygit draws with the terminal's ANSI colours already; only its selected line is
-        # blue by default, which the palette's light blue makes hard to read text on.
+        # Default selected-line blue is unreadable against the palette's light blue.
         gui.theme.selectedLineBgColor = [ "black" ];
       };
     };

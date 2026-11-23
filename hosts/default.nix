@@ -7,10 +7,8 @@
   ...
 }:
 let
-  # Shared between nix.settings below and Determinate's nix.custom.conf. cache.nixos.org is
-  # already the default substituter on both. attic.hera.ac/coredev holds what GitHub Actions
-  # builds for atlas and poseidon (.github/workflows/hosts.yml) and no public cache has: Attic in
-  # coredev-uk/home-ops (kubernetes/apps/nix-cache), public and reachable from anywhere.
+  # Shared by nix.settings and Determinate's nix.custom.conf. attic.hera.ac/coredev holds what CI
+  # builds for atlas and poseidon (.github/workflows/hosts.yml); Attic lives in home-ops.
   substituters = [
     "https://attic.hera.ac/coredev"
     "https://nix-citizen.cachix.org"
@@ -27,24 +25,17 @@ in
     (./. + "/${meta.hostname}/boot.nix")
     (./. + "/${meta.hostname}/hardware.nix")
   ]
-  # Extras
+  # Optional per-host extras
   ++ lib.optional (builtins.pathExists (
     ./. + "/${meta.hostname}/extra.nix"
   )) ./${meta.hostname}/extra.nix
-  # Include desktop config if a desktop is defined
+  # Desktop config
   ++ lib.optional meta.isDesktop ./common/desktop;
 
   nixpkgs = {
     overlays = [
-      # Add overlays your own flake exports (from overlays and pkgs dir):
       outputs.overlays.additions
       outputs.overlays.modifications
-
-      # You can also add overlays exported from other flakes:
-      # inputs.agenix.overlays.default
-
-      # Or just specify overlays directly here, for example:
-      # (_: _: { embr = inputs.embr.packages."${pkgs.system}".embr; })
     ];
 
     config = {
@@ -54,12 +45,9 @@ in
   };
 
   nix = lib.mkIf config.nix.enable {
-    # Register every other flake input so nix3 commands (`nix run home-manager`, …)
-    # use the locked revisions. `nixpkgs` itself, and NIX_PATH's `nixpkgs=flake:nixpkgs`,
-    # come from the nixpkgs.flake.setFlakeRegistry/setNixPath defaults. The non-flake inputs
-    # have nothing to run. Not `self`: its source changes with every commit, so registering it
-    # rebuilt the system (registry.json, etc, activate) on commits that change nothing else, and
-    # CI could never skip atlas as already cached.
+    # Register every input but `self` (its source changes per commit, which rebuilt the system
+    # and kept CI from skipping atlas as cached) and the non-flake inputs. nixpkgs comes from
+    # the nixpkgs.flake.* defaults.
     registry = lib.mapAttrs (_: flake: { inherit flake; }) (
       removeAttrs inputs [
         "self"
@@ -69,12 +57,12 @@ in
       ]
     );
 
-    # Flakes only: no root channel or channel NIX_PATH entries.
+    # Flakes only, no channels.
     channel.enable = false;
 
     optimise.automatic = true;
     settings = {
-      warn-dirty = false; # Disable warning about dirty working directory - annoying af
+      warn-dirty = false;
       experimental-features = [
         "nix-command"
         "flakes"
@@ -85,7 +73,7 @@ in
     };
   };
 
-  # Determinate Nix owns nix.conf when nix.enable is false (see poseidon).
+  # Determinate owns nix.conf when nix.enable is false (poseidon).
   environment.etc."nix/nix.custom.conf" = lib.mkIf (!config.nix.enable) {
     text = ''
       warn-dirty = false

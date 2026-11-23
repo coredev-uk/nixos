@@ -4,12 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Claude plan usage for the control panel's Claude section, from the quickshell-claude-usage
-// helper (schema in scripts/claude-usage.sh): this week's limits and the week's readings of the
-// weekly limit. Read every 5 minutes, so the chart has the whole week and the rail can report the
-// limit, and again when the section shows; a read never starts on top of a running one. Signed in
-// with omp's credential, which only omp refreshes: while it has expired the last reading stays,
-// marked with its time.
+// Claude plan usage via the quickshell-claude-usage helper (schema in scripts/claude-usage.sh): this
+// week's limits and the week's readings of the weekly limit. Read every 5 min (chart, rail alert) and
+// when the section shows; never overlapping. Signed in with omp's credential, which only omp refreshes:
+// while it has expired the last reading stays, marked with its time.
 Singleton {
     id: root
 
@@ -28,7 +26,6 @@ Singleton {
     readonly property var limits: data?.usage?.limits ?? []
     readonly property var weekly: limits.find(l => l.kind === "weekly_all") ?? null
     readonly property bool available: weekly !== null && weekly.resets_at !== null
-    // Model and session limits, beside the weekly one.
     readonly property var others: limits.filter(l => l.kind !== "weekly_all")
     readonly property var extra: data?.usage?.extra ?? null
 
@@ -45,7 +42,6 @@ Singleton {
     readonly property double weekStart: weekEnd - week
     readonly property bool reset: available && weekEnd !== weekly.resets_at * 1000
     readonly property real percent: available && !reset ? weekly.percent : 0
-    // How much of the week has gone, 0-1.
     readonly property real elapsed: available ? Math.min(Math.max((now - weekStart) / week, 0), 1) : 0
     readonly property bool full: percent >= 100 || (available && !reset && ["critical", "locked"].includes(weekly.severity))
     readonly property bool high: !full && (percent >= 90 || (available && !reset && weekly.severity === "warning"))

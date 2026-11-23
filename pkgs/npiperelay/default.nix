@@ -1,5 +1,5 @@
-# npiperelay.exe: relays stdin/stdout to a Windows named pipe. Built for Windows (pure Go, no
-# cgo) and run from WSL through interop: home/common/wsl.nix reaches Proton Pass's SSH agent with it.
+# npiperelay.exe: stdin/stdout <-> Windows named pipe. Built for Windows, run from WSL via interop
+# (home/common/wsl.nix: Proton Pass SSH agent).
 {
   lib,
   buildGoModule,
@@ -16,17 +16,17 @@ buildGoModule (finalAttrs: {
     hash = "sha256-ht4jKaXgo1HW3mp5T5A/q8kVxAJFc1h6HgeTVyZh4m8=";
   };
 
-  # The repository vendors golang.org/x/sys.
+  # Vendored golang.org/x/sys.
   vendorHash = null;
 
   env.CGO_ENABLED = 0;
-  # buildGoModule sets GOOS and GOARCH from the build platform; this builds a Windows binary.
+  # buildGoModule defaults GOOS/GOARCH to the build platform.
   preBuild = ''
     export GOOS=windows GOARCH=amd64
   '';
   ldflags = [ "-s" ];
 
-  # A cross build puts the binary under bin/windows_amd64.
+  # Cross build installs under bin/windows_amd64.
   postInstall = ''
     mv $out/bin/windows_amd64/npiperelay.exe $out/bin/
     rmdir $out/bin/windows_amd64

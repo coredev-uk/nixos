@@ -6,9 +6,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The control panel's Sound section: the default output's volume, named under the track, and the
-// default input's (each glyph toggles mute); then the outputs (this computer's sinks and AirPlay
-// speakers) and per-app volumes, listed in full now that the section has the panel to itself.
+// The control panel's Sound section: default output and input volumes (glyphs toggle mute), then
+// the outputs (this computer's sinks and AirPlay speakers) and per-app volumes.
 ColumnLayout {
     id: root
 

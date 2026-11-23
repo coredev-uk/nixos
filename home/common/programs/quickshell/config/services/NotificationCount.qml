@@ -4,9 +4,8 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Notification counts (kept and unread) and Do Not Disturb state for the lock screen, a separate
-// instance from the bar: read from the file the bar's NotificationService publishes. Zero and off
-// while the bar isn't running.
+// Notification counts (kept, unread) and Do Not Disturb for the lock screen, a separate instance from
+// the bar: read from the file the bar's NotificationService publishes. Zero/off while the bar isn't running.
 Singleton {
     id: root
 

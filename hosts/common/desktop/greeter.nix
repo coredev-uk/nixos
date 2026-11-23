@@ -12,16 +12,15 @@ let
   hyprland = config.programs.hyprland.package;
   toLua = lib.generators.toLua { };
 
-  # The same QML tree as the bar and lock screen (home/common/programs/quickshell); the greeter
-  # reuses the lock screen's faces.
+  # Same QML tree as the bar and lock screen.
   quickshellConfig = ../../../home/common/programs/quickshell/config;
 
-  # set-wallpaper and wallpaper-video (home/common/programs/hypr/paper.nix) copy each new wallpaper
-  # and its clip here: the greeter runs as `greeter` and can't read the cache in the user's home.
+  # set-wallpaper/wallpaper-video (hypr/paper.nix) copy wallpapers here: `greeter` can't read the
+  # user's cache.
   wallpaperDir = "/var/lib/greeter-wallpaper";
 
-  # Qt Multimedia and the VA-API driver for the clip, the same as the lock's (video.nix); built
-  # from unstable like the greeter's quickshell, so the patched Qt matches it.
+  # Qt Multimedia + VA-API for the clip, as the lock's (video.nix); unstable to match the
+  # greeter's quickshell and its patched Qt.
   video = import ../../../home/common/programs/quickshell/video.nix { pkgs = unstable; };
 
   monitors =
@@ -30,13 +29,12 @@ let
     in
     all.${meta.hostname} or all.default;
 
-  # wlsunset's location (home/common/programs/hypr/sunset.nix), for the next sunrise or sunset
-  # under the clock; the greeter can't see the home-manager config, so the module is read as is.
+  # wlsunset location (hypr/sunset.nix) for the next sunrise/sunset; the greeter can't see the
+  # home-manager config, so the module is read directly.
   location = (import ../../../home/common/programs/hypr/sunset.nix { }).services.wlsunset;
 
-  # What greetd starts once the password is accepted: the package's hyprland-uwsm.desktop
-  # launch line. uwsm runs hyprland.desktop (start-hyprland -> /run/wrappers/bin/Hyprland) and
-  # exports the session environment, including ~/.config/uwsm/env, into the systemd user manager.
+  # greetd's launch line, from the package's hyprland-uwsm.desktop; uwsm exports the session
+  # environment (incl. ~/.config/uwsm/env) into the systemd user manager.
   session = {
     command = [
       (lib.getExe config.programs.uwsm.package)
@@ -49,8 +47,8 @@ let
     environment = [ "GTK_THEME=${theme.gtkTheme.name}" ];
   };
 
-  # Runs the greeter UI, then closes the compositor: greetd starts the session only once the greeter
-  # exits. Also the way out if quickshell fails, so greetd starts a fresh greeter.
+  # Runs the greeter UI, then exits the compositor: greetd starts the session only after the
+  # greeter exits, which is also the recovery if quickshell fails.
   greeterShell = pkgs.writeShellScript "quickshell-greeter" ''
     export QS_GREETER_USER=${lib.escapeShellArg meta.username}
     export QS_GREETER_SESSION=${lib.escapeShellArg (builtins.toJSON session)}
@@ -60,13 +58,12 @@ let
     greeter() {
       ${lib.getExe unstable.quickshell} --path ${quickshellConfig}/greeter.qml
     }
-    # The wallpaper's aerial clip, when there is one (set-wallpaper and wallpaper-video copy it
-    # here); without it the still shows and Qt Multimedia isn't even loaded. If the greeter dies
-    # with the clip playing, it starts again with the still alone rather than leave no login.
+    # Wallpaper clip if present (copied by set-wallpaper/wallpaper-video); else the still, without
+    # loading Qt Multimedia. If the greeter dies with the clip, retry with the still alone.
     if [ -s ${wallpaperDir}/wallpaper.mp4 ]; then
       (
         export QS_LOCK_VIDEO=${wallpaperDir}/wallpaper.mp4
-        # The lock's session sets this; the greeter's has no such profile.
+        # The lock's session sets this; the greeter has no such profile.
         export LIBVA_DRIVER_NAME=nvidia
         ${video.environment}
         greeter
@@ -77,8 +74,7 @@ let
     ${hyprland}/bin/hyprctl dispatch 'hl.dsp.exit()'
   '';
 
-  # Greeter-only Hyprland: the session's monitor layout and keyboard layout (the password is typed
-  # here), nothing else.
+  # Greeter-only Hyprland: monitor and keyboard layout only.
   greeterConfig = pkgs.writeText "greeter-hyprland.lua" ''
     ${lib.concatMapStrings (monitor: "hl.monitor(${toLua monitor})\n") monitors}
     hl.config(${
@@ -86,7 +82,7 @@ let
         # Must match home/common/desktop/hyprland/default.nix.
         input.kb_layout = "gb";
         animations.enabled = false;
-        # Its data dir is new every boot, so these would pop up over the login screen.
+        # New data dir every boot: these would pop up over the login screen.
         ecosystem = {
           no_update_news = true;
           no_donation_nag = true;
@@ -94,10 +90,10 @@ let
         misc = {
           disable_hyprland_logo = true;
           disable_splash_rendering = true;
-          # Launched directly rather than through start-hyprland's watchdog.
+          # Not started through start-hyprland's watchdog.
           disable_watchdog_warning = true;
           force_default_wallpaper = 0;
-          # Shown for the moment before the greeter's first frame.
+          # Before the greeter's first frame.
           background_color = "rgb(${lib.removePrefix "#" theme.meridian.ground})";
         };
       }
@@ -108,7 +104,7 @@ let
   '';
 
   greeterSession = pkgs.writeShellScript "greeter-hyprland" ''
-    # The greeter user's home is /var/empty: keep caches and state in its runtime dir.
+    # Home is /var/empty: keep caches/state in the runtime dir.
     export XDG_CACHE_HOME="$XDG_RUNTIME_DIR/cache"
     export XDG_CONFIG_HOME="$XDG_RUNTIME_DIR/config"
     export XDG_DATA_HOME="$XDG_RUNTIME_DIR/data"
@@ -120,12 +116,11 @@ let
   '';
 in
 {
-  # If the greeter can't start, log in on another TTY (Ctrl+Alt+F2).
+  # Greeter broken: log in on another TTY (Ctrl+Alt+F2).
   services.greetd.settings.default_session.command = "${greeterSession}";
 
-  # The greeter runs as `greeter` without a home-manager profile, so the shell's face comes from the
-  # system font set (Symbols Nerd Font is already there, hosts/common/desktop/default.nix). This
-  # also covers the session: the shell, Hyprland's group tabs and Vicinae use the same face.
+  # No home-manager profile for `greeter`: the shell font comes from the system set. The session
+  # (shell, Hyprland group tabs, Vicinae) uses it too.
   fonts.packages = [ theme.fonts.shell.package ];
 
   systemd.tmpfiles.rules = [ "d ${wallpaperDir} 0755 ${meta.username} users -" ];

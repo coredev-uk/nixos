@@ -2,8 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.common
 
-// Main panel row: a 32px inset glyph tile toggles the service (gilt glyph when on), the rest
-// opens its sub-view. Rows without a toggle (canToggle: false) open from the tile too.
+// Main panel row: a 32px inset glyph tile toggles the service (gilt when on), the rest opens its
+// sub-view. Rows with canToggle: false open from the tile too.
 Rectangle {
     id: root
 
@@ -72,7 +72,6 @@ Rectangle {
         MouseArea {
             Layout.fillWidth: true
             Layout.fillHeight: true
-            // Rows with nothing to open toggle on a click anywhere.
             onClicked: root.canOpen ? root.opened() : root.toggled()
 
             RowLayout {

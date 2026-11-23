@@ -5,10 +5,10 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Services.Pipewire
 
-// AirPlay 2 speakers through OwnTone's JSON API (home/common/programs/airplay.nix): which exist,
-// which are chosen, and pairing. Audio reaches OwnTone through the "airplay" PipeWire sink;
-// OwnTone plays it on every selected speaker. Only polled while someone is looking. While
-// casting, the bar's player (services/Media.qml) is passed on as the track the devices show.
+// AirPlay 2 speakers via OwnTone's JSON API (home/common/programs/airplay.nix): which exist, which are
+// chosen, pairing. Audio reaches OwnTone through the "airplay" PipeWire sink, which plays it on every
+// selected speaker. Polled only while watched. While casting, the bar's player (services/Media.qml)
+// is passed on as the track the devices show.
 Singleton {
     id: root
 
@@ -17,7 +17,6 @@ Singleton {
     // watch(); speakers are polled while any does.
     property int watchers: 0
     readonly property bool watching: watchers > 0
-    // OwnTone answered the last request.
     property bool available: false
     // Some request has answered, so `available` means something.
     property bool known: false
@@ -29,7 +28,6 @@ Singleton {
     // [{ id, name, chosen, failed, needsPin }] by name.
     property var speakers: []
     readonly property var chosen: speakers.filter(speaker => speaker.chosen)
-    // The last failure, for the Sound panel's output list.
     property string error: ""
     // The sink that feeds OwnTone; casting means it is the default output.
     readonly property PwNode sink: Pipewire.nodes.values.find(node => node.name === "airplay") ?? null
@@ -84,7 +82,6 @@ Singleton {
         });
     }
 
-    // Plays on exactly these speakers (none stops).
     function select(ids: var) {
         chosenIds = ids;
         error = "";

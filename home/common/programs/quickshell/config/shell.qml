@@ -4,7 +4,7 @@ import qs.modules
 import qs.services
 
 ShellRoot {
-    // Singletons start on first use; replay must be up for its key and to start the buffer at login.
+    // Singletons start on first use; Replay must start the buffer at login and own its key.
     Component.onCompleted: Replay.refresh()
 
     Variants {

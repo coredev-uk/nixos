@@ -1,6 +1,5 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/octo-sts/app/refs/heads/main/pkg/octosts/octosts.TrustPolicy.json
-# .github/workflows/update-flake-lock.yml on main: the nightly flake-update pull request, opened
-# and auto-merged as bot-cecil[bot].
+# Trust policy for update-flake-lock.yml on main (opens and auto-merges the flake-update PR).
 issuer: https://token.actions.githubusercontent.com
 subject: repo:coredev-uk@64542347/nixos@1102177616:ref:refs/heads/main
 claim_pattern:

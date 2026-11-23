@@ -4,9 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Monitor brightness through set-brightness-all, which scales the dimmer monitor and reports the
-// unscaled setting. DDC/CI monitors have no change notifications, so the value is read at startup
-// and on refresh() (the panel refreshes when it opens); changes made here are tracked locally.
+// Monitor brightness via set-brightness-all, which scales the dimmer monitor and reports the unscaled
+// setting. DDC/CI has no change notifications, so it's read at startup and on refresh() (the panel
+// refreshes when it opens); changes made here are tracked locally.
 Singleton {
     id: root
 

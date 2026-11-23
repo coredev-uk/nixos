@@ -5,13 +5,12 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Everything that captures the screen, under the bar's capture glyph (CaptureButton): a
-// screenshot, a recording, then instant replay in a section of its own (arm it, save its end or
-// all of it). Each row names its keybind on the right, so the keys can be learnt from here.
+// Everything that captures the screen: screenshot, recording, and instant replay in its own section.
+// Each row shows its keybind.
 BarPopup {
     id: root
 
-    // Closes first, so the menu isn't in the picture or the first frames of the file.
+    // Closes first so the menu isn't in the shot or the first frames of the file.
     function run(action: var) {
         visible = false;
         action();
@@ -21,7 +20,7 @@ BarPopup {
     implicitWidth: 280
     implicitHeight: frame.implicitHeight + gap
 
-    // Long enough for the menu to have faded out before the selection freezes the screen.
+    // Long enough for the menu to fade out before the selection freezes the screen.
     Timer {
         id: screenshot
         interval: 150
@@ -49,7 +48,7 @@ BarPopup {
                 onClicked: root.run(() => screenshot.start())
             }
 
-            // Alert while recording, like its glyph in the bar: the row stops it.
+            // Alert while recording, like the bar glyph.
             ListRow {
                 Layout.fillWidth: true
                 enabled: !Recorder.stopping
@@ -80,7 +79,7 @@ BarPopup {
                 font.pixelSize: 11
             }
 
-            // On is gilt, like any service that's on; stays open so the change shows.
+            // On is gilt; stays open so the change shows.
             ListRow {
                 Layout.fillWidth: true
                 icon: Icons.replay
@@ -90,7 +89,7 @@ BarPopup {
                 onClicked: Replay.toggle()
             }
 
-            // Faded until the buffer runs, so the keys can be found before replay is on.
+            // Dimmed until the buffer runs; keys stay visible.
             ListRow {
                 Layout.fillWidth: true
                 enabled: Replay.armed && Replay.active

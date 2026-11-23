@@ -18,7 +18,7 @@
       download = config.home.homeDirectory + "/downloads";
       pictures = config.home.homeDirectory + "/pictures";
 
-      # Nothing here uses ~/Projects; null stops home-manager creating it empty.
+      # null: don't create an empty ~/Projects.
       projects = null;
 
       desktop = config.home.homeDirectory;
@@ -30,7 +30,7 @@
 
       extraConfig = {
         SCREENSHOTS = "${config.home.homeDirectory}/pictures/screenshots";
-        # The shell's screen recorder (home/common/programs/quickshell/config/services/Recorder.qml).
+        # Used by quickshell's Recorder.qml.
         RECORDINGS = "${config.home.homeDirectory}/videos/recordings";
       };
     };

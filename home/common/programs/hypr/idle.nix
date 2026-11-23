@@ -1,11 +1,10 @@
 { pkgs, lib, ... }:
 let
-  # hyprctl from PATH matches the running compositor (NixOS programs.hyprland.package).
-  # With a Lua config, `hyprctl dispatch` evaluates `hl.dispatch(<arg>)`, so pass a Lua dispatcher.
+  # hyprctl from PATH matches the running compositor. Lua config: dispatch takes a Lua dispatcher.
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
 in
 {
-  # Holds a Wayland idle inhibitor (respected by hypridle) while PipeWire is playing audio.
+  # Idle inhibitor (honoured by hypridle) while PipeWire plays audio.
   systemd.user.services.wayland-pipewire-idle-inhibit = {
     Unit = {
       Description = "Inhibit idle while audio is playing";
@@ -23,13 +22,12 @@ in
     enable = true;
     settings = {
       general = {
-        # home/common/programs/quickshell/default.nix; exits at once if a lock is already up.
+        # quickshell/scripts/default.nix; no-op if already locked.
         lock_cmd = "quickshell-lock";
-        # Delay suspend until the session is locked (inhibit via logind, not just before_sleep_cmd).
+        # Delay suspend until locked (logind inhibit).
         inhibit_sleep = 3;
         before_sleep_cmd = "${pkgs.systemd}/bin/loginctl lock-session";
-        # Off then on, not just on: after an NVIDIA resume the outputs can stay black while
-        # reporting DPMS on, so a plain enable is a no-op; the off/on cycle forces a modeset.
+        # Off/on: after an NVIDIA resume outputs can stay black while reporting DPMS on; only a cycle forces a modeset.
         after_sleep_cmd = "${dpms "disable"}; sleep 1; ${dpms "enable"}";
         on_unlock_cmd = "set-brightness-all 100%";
       };
@@ -42,8 +40,7 @@ in
         }
         {
           timeout = 300; # 5 minutes
-          # Through logind like the other locks; input in the first 10 s resumes without the
-          # password (home/common/programs/quickshell/default.nix).
+          # Via logind like the other locks; input within 10 s resumes without password.
           on-timeout = "quickshell-lock --grace 10";
         }
         {

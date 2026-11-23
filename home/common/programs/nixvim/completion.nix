@@ -1,10 +1,8 @@
 {
   programs.nixvim.plugins = {
-    # Auto-completion
     blink-cmp = {
       enable = true;
       settings = {
-        # Tab accepts the selected item (or jumps to the next field inside a snippet).
         keymap.preset = "super-tab";
         sources = {
           default = [
@@ -53,19 +51,16 @@
       };
     };
 
-    # Copilot via blink-copilot (auto-enables copilot-lua)
+    # Auto-enables copilot-lua
     blink-copilot.enable = true;
 
-    # Copilot settings
     copilot-lua.settings = {
       suggestion.enabled = false;
       panel.enabled = false;
     };
 
-    # Auto-pairs
     nvim-autopairs.enable = true;
 
-    # Comments (gc/gcc are built into Neovim)
     todo-comments.enable = true;
   };
 }

@@ -1,8 +1,6 @@
-# Set brightness on all DDC/CI monitors.
-# Takes an absolute percentage ("65", "65%") or a relative step ("10%+", "10%-");
-# "get" prints the current percentage instead.
-# The GN800 is dimmer than the GP850 at the same setting, so it is driven 1.18x higher.
-# Monitors are matched by model: ddcciN follows the i2c bus number, which can change.
+# Set brightness on all DDC/CI monitors: absolute ("65", "65%"), relative ("10%+", "10%-"), or "get".
+# GN800 is dimmer than GP850 at the same setting, hence scale 118.
+# Matched by model: ddcciN follows the i2c bus number, which can change.
 
 declare -A scale=([GN800]=118)
 
@@ -12,7 +10,7 @@ devices=(/sys/class/backlight/ddcci*)
 model() { cat "$1/device/idModel" 2>/dev/null || true; }
 percent() { echo $(($(cat "$1/brightness") * 100 / $(cat "$1/max_brightness"))); }
 
-# Read from an unscaled monitor: a scaled one sits at 100 well before the setting does.
+# Read from an unscaled monitor: a scaled one hits 100 before the setting does.
 current() {
 	for dev in "${devices[@]}"; do
 		if [ -z "${scale[$(model "$dev")]:-}" ]; then

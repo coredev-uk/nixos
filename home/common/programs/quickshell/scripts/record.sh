@@ -1,12 +1,10 @@
 # quickshell-record --start MONITOR FILE | --replay MONITOR DIR SECONDS | --saved TITLE FILE | --failed TITLE REASON
 # --start and --replay become gpu-screen-recorder (--start: the bar signals it by pid, SIGINT
-# finishes the file; --replay: the quickshell-replay user unit, SIGUSR1 saves the buffer).
-# --saved and --failed are the notifications raised once a file is written or the recorder has
-# failed. gpu-screen-recorder calls back as `quickshell-record FILE replay` for each saved replay.
+# finishes the file; --replay: the quickshell-replay unit, SIGUSR1 saves the buffer). --saved and
+# --failed raise notifications. gpu-screen-recorder calls back `quickshell-record FILE replay` per saved replay.
 
-# The NixOS package, built to find the capability wrapper for gsr-kms-server
-# (programs.gpu-screen-recorder, hosts/common/desktop/hyprland.nix). Without the wrapper it
-# would ask for root through polkit on every start.
+# The NixOS package is built to find the capability wrapper for gsr-kms-server
+# (hosts/common/desktop/hyprland.nix); without it every start would ask for root via polkit.
 recorder=/run/current-system/sw/bin/gpu-screen-recorder
 
 require_recorder() {
@@ -19,15 +17,13 @@ require_recorder() {
 start() {
 	require_recorder
 	mkdir -p "$(dirname "$2")"
-	# KMS capture of one monitor at 60 fps (both screens run faster; the file doesn't need it),
-	# with what the default output plays. If the bar dies or restarts, SIGINT finishes the file
-	# rather than leaving a recording no indicator reports (and an mp4 without its index).
+	# KMS capture of one monitor at 60 fps plus default output audio. SIGINT finishes the file if
+	# the bar dies, avoiding an unreported recording and an mp4 without its index.
 	exec setpriv --pdeathsig INT "$recorder" -w "$1" -f 60 -a default_output -o "$2"
 }
 
-# The instant replay buffer (services/Replay.qml): the last SECONDS of the monitor and of what the
-# default output plays, held in RAM at a constant 20 Mbit/s (SECONDS = 300 is 750 MB), written to
-# DIR when the unit gets SIGUSR1. Buffering shares nothing, so it isn't on air.
+# Instant replay buffer (services/Replay.qml): last SECONDS of the monitor and default output audio,
+# in RAM at 20 Mbit/s (300 s = 750 MB), written to DIR on SIGUSR1. Buffering shares nothing.
 replay() {
 	require_recorder
 	mkdir -p "$2"
@@ -35,9 +31,8 @@ replay() {
 		-r "$3" -replay-storage ram -sc "$0" -o "$2"
 }
 
-# Called by gpu-screen-recorder with each saved replay: gives it the recordings' naming, then
-# raises the notification from a unit of its own, since stopping the replay unit would
-# otherwise take the waiting notification (and its actions) with it.
+# Called by gpu-screen-recorder per saved replay: applies the recordings' naming, then notifies from
+# its own unit, since stopping the replay unit would take the waiting notification with it.
 replay_saved() {
 	local file=$1 name clip
 	name=$(basename "$file")
@@ -46,8 +41,8 @@ replay_saved() {
 	systemd-run --user --quiet --collect "$0" --saved "Replay saved" "$clip"
 }
 
-# Clicking the notification plays the file; the button opens its folder. notify-send waits for
-# the choice and prints its action, so this stays around until the notification is closed.
+# Click plays the file, the button opens its folder. notify-send waits and prints the action, so
+# this stays until the notification closes.
 saved() {
 	local choice
 	choice=$(notify-send --app-name="Screen recorder" --icon=camera-video --wait \

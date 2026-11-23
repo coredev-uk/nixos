@@ -8,15 +8,12 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The control panel behind the network glyph: a rail of sections down its left edge (Sound,
-// Display, Network, Devices, Lighting, Nix, Claude) and the chosen one beside it, one at a time.
-// The plate keeps one height whichever section shows, so moving between them never moves an
-// edge; a long section scrolls inside it. What's playing sits under every section (MediaPanel).
-// A rail glyph that reports something (the network down, OpenRGB's server not running, a Nix
-// failure, Claude's limit reached) takes that state's colour. The chosen section is marked by one
-// gilt tint that glides along the rail to the tile picked, and the section arrives from the side
-// it lies on: from below when it sits lower on the rail than the one it replaces. Opening, the
-// contents settle the last 8px as Hyprland fades the popup in.
+// Control panel behind the network glyph: a rail of sections (Sound, Display, Network, Devices,
+// Lighting, Nix, Claude) with the chosen one beside it. The plate keeps one height for every
+// section (long ones scroll); MediaPanel sits under all. A rail glyph reporting a state (network
+// down, OpenRGB server not running, Nix failure, Claude limit reached) takes its colour. One gilt
+// tint glides to the chosen tile; the section slides in from the side it lies on (from below if
+// lower on the rail). On open the contents settle the last 8px as Hyprland fades the popup in.
 BarPopup {
     id: root
 
@@ -30,7 +27,6 @@ BarPopup {
         Claude
     }
 
-    // Network's sub-views.
     enum View {
         Main,
         Wifi,
@@ -43,11 +39,9 @@ BarPopup {
     property int view: ControlPanel.View.Main
     // The section shown before the current one, for the side the next arrives from.
     property int lastSection: section
-    // The section's own height, the same for all of them.
     readonly property int pageHeight: 380
     readonly property var wifiDevice: NetworkStatus.wifiDevice
     readonly property BluetoothAdapter adapter: Bluetooth.defaultAdapter
-    // Secured network waiting for a password, and the last connection error.
     property WifiNetwork passwordNetwork: null
     property string wifiError: ""
 
@@ -58,7 +52,6 @@ BarPopup {
             toggle();
     }
 
-    // NetworkManager's reasons, in plain words.
     function failReason(reason: int): string {
         switch (reason) {
         case ConnectionFailReason.NoSecrets:
@@ -137,7 +130,7 @@ BarPopup {
         pageIn.complete();
         lastSection = section;
         settle.restart();
-        // Both can be changed outside the shell (monitor buttons, hyprsunset's schedule).
+        // Both change outside the shell (monitor buttons, hyprsunset's schedule).
         Brightness.refresh();
         NightLight.refresh();
         AirPlay.refresh();
@@ -178,9 +171,7 @@ BarPopup {
         }
     }
 
-    // A section's place on the rail: a 32px tile over which the rail's marker glides when chosen
-    // (its glyph gilt), else a muted glyph that lifts to text2 on the hover fill, or the state
-    // colour it reports.
+    // Rail tile (32px): the marker glides over it when chosen (glyph gilt); else a muted glyph, or its reported state colour.
     component RailTile: Rectangle {
         id: tile
 
@@ -190,14 +181,12 @@ BarPopup {
         // A state the glyph reports while the section isn't chosen (alert: something failed).
         property bool reporting: false
         property color reportColor: Theme.alert
-        // The VPN's dot, as on the bar's network glyph.
         property bool dot: false
         readonly property bool chosen: root.section === target
 
         implicitWidth: 32
         implicitHeight: 32
         radius: Theme.radiusRow
-        // The chosen tile's fill is the marker under it; the pointer adds a little to it.
         color: chosen ? (area.containsMouse ? Theme.tint(Theme.gilt, 0.06) : "transparent") : area.containsMouse ? Theme.hover : "transparent"
 
         Behavior on color {
@@ -279,8 +268,7 @@ BarPopup {
                 radius: Theme.radiusInset
                 color: Theme.inset
 
-                // The chosen section's 10% gilt tint, one for the rail, gliding to the tile picked
-                // in Hyprland's switch time, as the workspace index does.
+                // 10% gilt tint, one for the rail, gliding in Hyprland's switch time like the workspace index.
                 Rectangle {
                     x: tiles.x
                     y: tiles.y + root.section * (32 + tiles.spacing)
@@ -458,8 +446,8 @@ BarPopup {
                 Layout.fillWidth: true
             }
 
-            // Screens go to a Chromecast through GNOME Network Displays (there is no open-source
-            // AirPlay video sender); audio outputs, AirPlay included, are under Sound.
+            // Screens cast to a Chromecast via GNOME Network Displays (no open-source AirPlay video
+            // sender); audio outputs, AirPlay included, are under Sound.
             PanelRow {
                 Layout.topMargin: 4
                 icon: Icons.cast
@@ -658,7 +646,6 @@ BarPopup {
                     icon: modelData.flag
                     label: modelData.name
                     sublabel: Vpn.connecting && Vpn.target === modelData.code ? "Connecting…" : modelData.code
-                    // Gilt: the country the tunnel comes out in.
                     active: Vpn.connected && Vpn.country === modelData.code
                     onClicked: Vpn.connect(modelData.code)
                 }
@@ -666,8 +653,6 @@ BarPopup {
         }
     }
 
-    // Devices: the Bluetooth switch, the peripherals' batteries, then Bluetooth's devices under a
-    // heading that carries the scan, connected first; a connected device's battery beside its state.
     Component {
         id: devicesPage
 
@@ -704,7 +689,6 @@ BarPopup {
                 shown: root.visible
             }
 
-            // The heading and, on its right, the scan: gilt on its tint while it runs ("on").
             RowLayout {
                 visible: devices.on
                 Layout.fillWidth: true
@@ -801,8 +785,6 @@ BarPopup {
         }
     }
 
-    // Lighting: the looks quickshell-rgb draws on every device OpenRGB has, plain colours (and
-    // off) then effects; the one on now is gilt. A click while another change runs waits for it.
     Component {
         id: lightingPage
 

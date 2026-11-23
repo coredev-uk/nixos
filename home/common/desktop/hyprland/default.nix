@@ -18,7 +18,7 @@ in
     enable = true;
     configType = "lua";
 
-    # Hyprland, XWayland and the portal come from the NixOS module (hosts/common/desktop/hyprland.nix).
+    # Hyprland, XWayland and portal come from the NixOS module (hosts/common/desktop/hyprland.nix).
     package = null;
     portalPackage = null;
 
@@ -33,11 +33,11 @@ in
         browser = "zen-twilight";
         terminal = "${pkgs.ghostty}/bin/ghostty";
         menu = "vicinae open";
-        # Through logind, so hypridle's lock_cmd starts the one lock screen.
+        # Via logind so hypridle's lock_cmd runs the one lock screen.
         lock = "loginctl lock-session";
         animations = import ./config/animations.nix { inherit luaCall; };
 
-        # Hyprland colour strings from the Meridian palette: "#rrggbb" -> "rgb(rrggbb)".
+        # "#rrggbb" -> "rgb(rrggbb)"
         color = name: "rgb(${lib.removePrefix "#" theme.meridian.${name}})";
       in
       {
@@ -48,10 +48,9 @@ in
             "hyprland.start"
             (lua ''
               function()
-                -- Proton Pass serves the SSH agent (home/common/shell/ssh.nix), so it runs from login.
-                -- It has no hidden start on Linux and always shows its window, so close that first
-                -- one: closing only hides it to the tray. The minute's limit keeps a launch of
-                -- yours from being closed if this one never gets a window.
+                -- Proton Pass serves the SSH agent (shell/ssh.nix), so it runs from login. It
+                -- always shows its window on Linux: close the first one (hides to tray); the 60 s
+                -- limit avoids closing a manual launch if none appears.
                 local passWindow
                 passWindow = hl.on("window.open", function(w)
                   if w.class == "proton-pass" then
@@ -62,9 +61,8 @@ in
                 hl.timer(function() passWindow:remove() end, { timeout = 60000, type = "oneshot" })
                 hl.exec_cmd("uwsm app -- proton-pass")
 
-                -- Proton Mail has no tray on Linux and quits when its window closes, so it lives
-                -- in the special:mail scratchpad instead (config/window-rules.nix), out of sight
-                -- until Super+M shows it (config/keybindings.nix).
+                -- Proton Mail has no tray and quits on window close: it lives in the special:mail
+                -- scratchpad (window-rules.nix), shown with Super+M (keybindings.nix).
                 hl.exec_cmd("uwsm app -- proton-mail")
               end
             '')
@@ -73,9 +71,9 @@ in
 
         config = {
           general = {
-            gaps_in = 0; # 5
-            gaps_out = 0; # 5
-            border_size = 2; # 0
+            gaps_in = 0;
+            gaps_out = 0;
+            border_size = 2;
 
             col = {
               active_border = color "gilt";
@@ -86,9 +84,8 @@ in
             layout = "dwindle";
           };
 
-          # Tabbed groups (SUPER+W). The groupbar has no background of its own: without
-          # gradients only the titles and a thin indicator are drawn, so the strip above the
-          # window showed the wallpaper. Filled tabs, no upper gap, flush with the window.
+          # Tabbed groups (SUPER+W). Without gradients the groupbar draws no background and shows
+          # the wallpaper; use filled tabs flush with the window.
           group = {
             col = {
               border_active = color "gilt";
@@ -104,7 +101,7 @@ in
               keep_upper_gap = false;
               gaps_in = 0;
               gaps_out = 0;
-              rounding = 4; # match decoration.rounding
+              rounding = 4; # = decoration.rounding
               gradient_rounding = 4;
               round_only_edges = true;
               gradient_round_only_edges = true;
@@ -134,14 +131,11 @@ in
           };
 
           decoration = {
-            # Rounding
             rounding = 4;
 
-            # Opacity
             active_opacity = 1.0;
             inactive_opacity = 0.95;
 
-            # Blur
             blur = {
               enabled = true;
               size = 3;
@@ -153,34 +147,28 @@ in
             enabled = true;
           };
 
-          # https://wiki.hypr.land/Configuring/Variables/#misc
           misc = {
             force_default_wallpaper = 0;
             disable_hyprland_logo = true;
             disable_splash_rendering = true;
-            # If the lock screen crashes, `quickshell-lock` from a TTY (with WAYLAND_DISPLAY and
-            # HYPRLAND_INSTANCE_SIGNATURE set) can take the session over again.
+            # Recover a crashed lock screen: run `quickshell-lock` from a TTY (WAYLAND_DISPLAY and HYPRLAND_INSTANCE_SIGNATURE set).
             allow_session_lock_restore = true;
-            # Input wakes monitors that hypridle switched off.
+            # Input wakes monitors hypridle turned off.
             key_press_enables_dpms = true;
             mouse_move_enables_dpms = true;
-            # Games and long loads stall for seconds; the dialog only gets in the way.
+            # Stalls in games/long loads trigger it needlessly.
             enable_anr_dialog = false;
           };
 
           dwindle.preserve_split = true;
 
-          # Direct scanout for fullscreen windows with the game content type only (2 = auto).
+          # Direct scanout only for game content type (2 = auto).
           render.direct_scanout = 2;
 
           ecosystem = {
             no_update_news = true;
             no_donation_nag = true;
           };
-
-          # debug = {
-          #   disable_logs = true;
-          # };
         };
 
         layer_rule = [
@@ -189,20 +177,19 @@ in
             blur = true;
             ignore_alpha = 0.5;
           }
-          # Secrets-bearing surfaces stay black in screen shares and recordings.
+          # Secret-bearing surfaces: black in screen shares and recordings.
           {
             match.namespace = "^(notifications|pass-quick-access|polkit)$";
             no_screen_share = true;
           }
-          # The shell animates these itself and keeps them mapped between showings; a fade of
-          # the whole surface on top would double up on map and come too late on unmap.
+          # The shell animates these itself; a compositor fade would double up.
           {
             match.namespace = "^(osd|notifications|screenshot)$";
             no_anim = true;
           }
         ];
 
-        # Primary (DP-1) takes workspaces 1-5, the secondary (DP-2) 6-10 (config/monitors.nix).
+        # DP-1 takes workspaces 1-5, DP-2 6-10.
         workspace_rule = lib.optionals (meta.hostname == "atlas") (
           lib.genList (i: {
             workspace = toString (i + 1);
@@ -235,6 +222,6 @@ in
       };
   };
 
-  # Nvidia Variables
+  # Hyprland on Nvidia
   home.sessionVariables.LIBVA_DRIVER_NAME = "nvidia";
 }

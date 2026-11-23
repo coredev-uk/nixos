@@ -6,9 +6,8 @@ import Quickshell.Networking
 import qs.common
 import qs.widgets
 
-// Addressing and hardware of one network device. Quickshell.Networking has no IP configuration,
-// so it is read from `nmcli device show`, again whenever the device changes state.
-// Clicking a value copies it.
+// Addressing and hardware of one network device, read from `nmcli device show` (Quickshell.Networking
+// has no IP configuration) on every state change. Clicking a value copies it.
 ColumnLayout {
     id: root
 
@@ -151,7 +150,6 @@ ColumnLayout {
         }
     }
 
-    // Connection name and state.
     RowLayout {
         Layout.fillWidth: true
         Layout.leftMargin: 12

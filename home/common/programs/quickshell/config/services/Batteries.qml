@@ -4,10 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Peripheral batteries (OpenRazer + HeadsetControl) via the quickshell-batteries helper.
-// Reading the headset is a HID round trip of ~1.5 s, so the background check that feeds the
-// bar's low-battery glyph runs every 5 minutes; each visible panel (one per screen) holds a
-// reference through acquire()/release() and reads every minute while open.
+// Peripheral batteries (OpenRazer + HeadsetControl) via the quickshell-batteries helper. The headset
+// read is a ~1.5 s HID round trip, so the background check feeding the low-battery glyph runs every
+// 5 min; each visible panel (one per screen) holds a reference via acquire()/release() and reads
+// every minute while open.
 Singleton {
     id: root
 

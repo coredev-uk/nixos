@@ -8,10 +8,8 @@ in
 rec {
   inherit (libx) hexToRgb;
 
-  # Meridian: the system palette (home/common/programs/quickshell/DESIGN.md). The Quickshell
-  # shell's config/common/Theme.qml holds the same values; Hyprland, Vicinae, Ghostty, Neovim,
-  # GTK, Qt and Discord read them from here. Programs running in the terminal use its 16
-  # colours instead of their own copy.
+  # Meridian palette (home/common/programs/quickshell/DESIGN.md); the shell's
+  # config/common/Theme.qml holds the same values. Terminal programs use the 16 ANSI colours below.
   meridian = {
     # Grounds
     ground = "#151920";
@@ -39,9 +37,7 @@ rec {
     series3 = "#d39a8f";
     series4 = "#a99ad6";
 
-    # Code in the editor (Neovim): more chroma than the shell's state colours, which are read
-    # at a glance, because syntax is read in colour line after line. All at least 7:1 on the
-    # ground.
+    # Neovim syntax: more chroma than state colours; all >= 7:1 on ground.
     syntax = {
       keyword = "#b69cf2";
       string = "#8ccf8a";
@@ -51,9 +47,8 @@ rec {
       special = "#e8917f";
     };
 
-    # The 16 ANSI colours, for terminals and the CLI tools that draw with them. Normal on the
-    # ground is at least 5:1, bright at least 6.9:1; bright black (comments, hints) 3.6:1.
-    # Yellow is gilt, so a terminal's emphasis reads like the shell's.
+    # 16 ANSI colours. Normal >= 5:1 on ground, bright >= 6.9:1, bright black 3.6:1.
+    # Yellow is gilt.
     terminal = {
       background = "#151920";
       foreground = "#ece5d3";
@@ -100,8 +95,7 @@ rec {
       package = pkgs.inter;
       size = 11;
     };
-    # The Quickshell shell's face (Meridian, home/common/programs/quickshell/DESIGN.md), also
-    # Hyprland's group tabs and Vicinae, so everything around the windows reads as one.
+    # Quickshell's face (Meridian); also Hyprland group tabs and Vicinae.
     shell = {
       name = "Atkinson Hyperlegible Next";
       package = pkgs.atkinson-hyperlegible-next;

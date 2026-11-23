@@ -3,17 +3,14 @@ import QtMultimedia
 import Quickshell.Wayland
 import qs.common
 
-// The wallpaper's aerial clip, looped over the still it starts on (QS_LOCK_VIDEO, made by
-// wallpaper-video in home/common/programs/hypr/paper.nix; the greeter plays its copy). It fades
-// in on its first frame, so the still shows until then and wherever the clip can't play. Paused
-// after half a minute without input, and for the unlock or login: nobody's watching then, and
-// decoding two screens of video isn't free. Loaded by URL from LockSurface, so an instance
-// without Qt Multimedia (the greeter, when there is no clip) never compiles it.
+// The wallpaper's aerial clip (QS_LOCK_VIDEO, from wallpaper-video in hypr/paper.nix; the greeter
+// plays its copy), looped over the still, which shows until the first frame and wherever the clip
+// can't play. Paused after 30 s without input and during unlock/login to save decoding.
+// Loaded by URL from LockSurface so instances without Qt Multimedia never compile it.
 Item {
     id: root
 
     property string path
-    // Off while unlocking.
     property bool running: true
     property bool hasFrame: false
     readonly property bool playing: running && !idle.isIdle
@@ -33,7 +30,7 @@ Item {
         }
     }
 
-    // Input alone: music holding off hypridle shouldn't keep the video running.
+    // Input only: music holding off hypridle mustn't keep the video running.
     IdleMonitor {
         id: idle
 

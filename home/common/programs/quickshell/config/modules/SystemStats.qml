@@ -4,10 +4,9 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Readouts, not gauges: a text2 label and its value, the value in a fixed-width cell (its slack
-// trailing) so the bar never shifts as digits change. A value near its limit turns caution and
-// takes an underline, so it doesn't rest on a hue alone (caution and gilt are close in luminance,
-// closer still under night light); the underline costs no width.
+// Readouts, not gauges: a text2 label and its value in a fixed-width cell so the bar never shifts.
+// A value near its limit turns caution and underlined, so it doesn't rest on a hue alone (caution and
+// gilt are close in luminance, closer under night light); the underline costs no width.
 Row {
     spacing: 8
 
@@ -16,7 +15,6 @@ Row {
 
         property string label
         property real value
-        // The value as shown; percent unless set.
         property string valueText: `${Math.round(value)}%`
         property string widest: "100%"
         property bool high: value >= 90

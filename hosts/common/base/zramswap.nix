@@ -1,17 +1,14 @@
 _: {
-  # zram is the only swap: no readahead (pages are decompressed one at a time anyway), and
-  # swapping to RAM is cheaper than dropping page cache, hence swappiness above 100.
+  # zram is the only swap: no readahead; swapping to RAM beats dropping page cache, so swappiness > 100.
   boot.kernel.sysctl = {
     "vm.page-cluster" = 0;
     "vm.swappiness" = 180;
   };
 
-  # Hibernate and hybrid-sleep won't work correctly without
-  # an on-disk swap.
+  # No on-disk swap to hibernate to.
   systemd.targets.hibernate.enable = false;
   systemd.targets.hybrid-sleep.enable = false;
 
-  # Enable zramSwap
   zramSwap = {
     algorithm = "lz4";
     enable = true;

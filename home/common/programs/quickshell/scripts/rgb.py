@@ -1,24 +1,20 @@
-# OpenRGB lighting for the control panel's Lighting section
-# (config/services/Lighting.qml), as a client of the system's OpenRGB SDK
-# server (openrgb.service, hosts/common/desktop/rgb.nix).
+# OpenRGB lighting for the control panel (services/Lighting.qml), as a client
+# of the system's OpenRGB SDK server (hosts/common/desktop/rgb.nix).
 #
 #   quickshell-rgb status       the lights and the looks, as JSON
 #   quickshell-rgb set LOOK     a look below, or color:RRGGBB
 #   quickshell-rgb serve        the engine (quickshell-rgb.service)
 #
-# Only Direct mode reaches atlas's hardware: the motherboard's Aura and the
-# NZXT Hue 2 controllers take a built-in mode (Static, Rainbow…) from the
-# server without changing, and the RAM goes dark in one. So every look is
-# drawn here, LED by LED: `set` records the choice in the state dir, and the
-# engine puts it on every device, again after the server restarts (a boot,
-# or the VFIO VM handing the devices back), redrawing the moving ones 20
-# times a second.
+# Only Direct mode reaches atlas's hardware: the Aura and NZXT Hue 2
+# controllers ignore the server's built-in modes and the RAM goes dark in one.
+# So every look is drawn LED by LED: `set` records the choice in the state
+# dir; the engine applies it to every device, again after the server restarts
+# (boot, VFIO VM handing devices back), redrawing moving looks 20x/s.
 #
-# QMK keyboards follow too, over their raw HID interface. With SignalRGB's
-# protocol in the firmware (the K8 Pro runs SRGBmods' build of Keychron's
-# QMK) every key is drawn, from its place on the board; stock VIA firmware
-# takes one colour for the whole board, the look's at the middle of the case,
-# set in its RAM only (VIA's set, never its save).
+# QMK keyboards follow over raw HID. With SignalRGB's protocol in the firmware
+# (the K8 Pro runs SRGBmods' Keychron QMK build) every key is drawn from its
+# position; stock VIA firmware takes one colour for the board (the look's at
+# the case's middle), RAM only (VIA set, never save).
 #
 # `status` prints one JSON object:
 #   {"running": bool,      the server answered
@@ -49,9 +45,8 @@ from openrgb.utils import RGBColor
 STATE = Path(os.environ.get("XDG_STATE_HOME",
                             Path.home() / ".local/state")) / "quickshell-rgb"
 LOOK_FILE = STATE / "look.json"
-# Moving looks redraw this often; a device whose LEDs didn't change between
-# frames isn't sent to (the server writes every frame to the hardware, the
-# RAM over SMBus).
+# Moving looks redraw at this rate; unchanged devices aren't sent to (the
+# server writes every frame to hardware, the RAM over SMBus).
 FPS = 20
 
 
@@ -252,8 +247,8 @@ def draw(lights, fn, t, sent):
 VIA_USAGE_PAGE = bytes([0x06, 0x60, 0xFF])  # report descriptor's first item
 VIA_RATE = 0.1  # seconds between a moving look's one-colour updates
 
-# Each key's (column, row) on the board, by LED index, for boards with
-# SignalRGB's protocol; from SRGBmods' plugin for the board (qmk-plugins).
+# Each key's (column, row) by LED index for SignalRGB-protocol boards, from
+# SRGBmods' plugin (qmk-plugins).
 KEY_POSITIONS = {
     # Keychron K8 Pro ISO RGB: a 17x6 TKL.
     (0x3434, 0x0281): (
@@ -274,8 +269,8 @@ class Keyboard:
         self.fd = os.open(node, os.O_RDWR)
         self.sent, self.at = None, 0.0
         self.keys = KEY_POSITIONS.get(ids)
-        # SignalRGB's protocol: 0x22 answers with its version, 0x25 hands
-        # the LEDs to the host, 0x24 sets up to 9 of them from an index.
+        # SignalRGB's protocol: 0x22 answers with its version, 0x25 hands the
+        # LEDs to the host, 0x24 sets up to 9 of them from an index.
         total = self.ask([0x27]) if self.keys and \
             self.ask([0x22]) is not None else None
         if total is not None and total[1] == len(self.keys):
@@ -283,16 +278,16 @@ class Keyboard:
             width = max(c for c, _ in self.keys) or 1
             height = max(r for _, r in self.keys) or 1
             # x across the board, u down its rows, so a look sweeps over it
-            # the way it does over the case.
+            # as over the case.
             self.leds = [(c / width, r / height, False, 5000 + k)
                          for k, (c, r) in enumerate(self.keys)]
             return
         self.keys = None
         version = self.ask([0x01])
         self.via = (version[1] << 8 | version[2]) if version else 0
-        # VIA's lighting values: brightness, effect, hue and saturation.
-        # Protocol 12 put them on channel 3 (QMK RGB matrix) as 1, 2, 4;
-        # before, they were 0x80, 0x81, 0x83. Effect 1 is a solid colour.
+        # VIA lighting values: brightness, effect, hue, saturation. Protocol
+        # 12 put them on channel 3 (QMK RGB matrix) as 1, 2, 4 (earlier:
+        # 0x80, 0x81, 0x83). Effect 1 is a solid colour.
         self.value = (lambda v: [0x07, 0x03, v]) if self.via >= 12 else \
             (lambda v: [0x07, {1: 0x80, 2: 0x81, 4: 0x83}[v]])
         self.ask(self.value(2) + [0x01])
@@ -336,8 +331,7 @@ class Keyboard:
         self.at = now
 
     def drain(self):
-        # SignalRGB's 0x24 is answered too; reading the replies keeps them
-        # from piling up.
+        # SignalRGB's 0x24 is answered too; drain replies so they don't pile.
         while select.select([self.fd], [], [], 0)[0]:
             os.read(self.fd, 32)
 
@@ -381,7 +375,7 @@ def connect():
     except Exception:
         return None
     # Detection adds devices one at a time with the server already up: wait
-    # until two readings a second apart name the same ones (a minute at most).
+    # until two readings a second apart agree (a minute at most).
     seen = None
     for _ in range(60):
         try:
@@ -403,9 +397,8 @@ def connect():
 
 def serve():
     signal.signal(signal.SIGTERM, lambda *_: sys.exit(0))
-    # OpenRGB and the keyboards come and go on their own: each is retried
-    # every few seconds while it's missing, and the look goes on whatever is
-    # there.
+    # OpenRGB and keyboards come and go: each is retried every few seconds
+    # while missing; the look applies to whatever is present.
     client, lights = None, []
     keyboards = {}
     try:
@@ -499,8 +492,8 @@ def status(error=""):
         result["devices"] = [{"name": d.name, "leds": len(d.leds)}
                              for d in client.devices]
         result["running"] = True
-    # Refused is a server that isn't up; anything else, one that went away
-    # or sent what openrgb-python can't read.
+    # Refused = server not up; anything else = it went away or sent what
+    # openrgb-python can't read.
     except Exception as e:
         if client is not None or not isinstance(e, OSError):
             result["error"] = result["error"] or \

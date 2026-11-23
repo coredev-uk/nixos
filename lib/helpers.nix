@@ -6,7 +6,6 @@
   ...
 }:
 let
-  # Helper function to generate common specialArgs
   mkSpecialArgs =
     {
       hostname,
@@ -22,8 +21,7 @@ let
         inputs
         outputs
         ;
-      # Imported rather than legacyPackages, which has no config, so unfree packages evaluate.
-      # With the flake's overlays, like every other nixpkgs here (overlays/default.nix).
+      # Imported (not legacyPackages) so config/unfree and the flake's overlays apply.
       unstable = import inputs.unstable {
         inherit system;
         config.allowUnfree = true;
@@ -43,7 +41,7 @@ let
         username = user;
         isDesktop = builtins.isString desktop;
         isDarwin = type == "darwin";
-        # Home Manager on a WSL distribution (not NixOS): a workstation without a desktop.
+        # Home Manager on a WSL distro (not NixOS): workstation without a desktop.
         isWSL = type == "wsl";
         isHeadless =
           !builtins.elem type [
@@ -54,20 +52,18 @@ let
       };
     };
 
-  # home.stateVersion is pinned per home configuration (in flake.nix) and must
-  # never be bumped on upgrades; see the Home Manager manual.
+  # home.stateVersion is pinned per config in flake.nix; never bump.
   mkHomeManager =
     { flakeInputs, stateVersion }:
     {
       imports = [
         flakeInputs.nixvim.homeModules.nixvim
-        ../home # This path is relative to where this function is defined and used
+        ../home
       ];
       home.stateVersion = stateVersion;
     };
 in
 {
-  # Helper function for generating home-manager configs (nixos / linux configs)
   mkHome =
     {
       hostname,
@@ -99,7 +95,6 @@ in
       ];
     };
 
-  # Helper function for generating host configs
   mkHost =
     {
       hostname,
@@ -122,7 +117,6 @@ in
           ;
       };
       modules = [
-        # inputs.agenix.nixosModules.default
         inputs.lanzaboote.nixosModules.lanzaboote
         ../hosts
       ];
@@ -138,9 +132,8 @@ in
       flakePath ? "/Users/${user}/.dotfiles",
       homeStateVersion,
     }:
-    # No `system`/`pkgs` args: a passed `pkgs` is mkForce'd over the nixpkgs module,
-    # discarding nixpkgs.overlays/config. hosts/<host>/hardware.nix sets
-    # nixpkgs.hostPlatform, and nix-darwin's nixpkgs input follows `unstable`.
+    # No `system`/`pkgs` args: a passed `pkgs` is mkForce'd over the nixpkgs module, discarding
+    # overlays/config. hosts/<host>/hardware.nix sets hostPlatform; nix-darwin's nixpkgs follows `unstable`.
     inputs.nix-darwin.lib.darwinSystem {
       specialArgs = mkSpecialArgs {
         inherit
@@ -158,8 +151,7 @@ in
         ../hosts
         {
           home-manager = {
-            # Reuse the system's pkgs (hosts/default.nix sets the same overlays and config)
-            # instead of evaluating a second nixpkgs.
+            # Same pkgs as the system (hosts/default.nix: same overlays/config), no second nixpkgs.
             useGlobalPkgs = true;
             useUserPackages = true;
             users."${user}" = mkHomeManager {

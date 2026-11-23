@@ -11,28 +11,23 @@ import qs.common
 import qs.share
 import qs.widgets
 
-// The screen-share picker, in place of hyprland-share-picker: when an app asks to share the
-// screen, xdg-desktop-portal-hyprland runs it (its screencopy:custom_picker_binary, the
-// quickshell-share-picker wrapper in default.nix) and reads the choice back. A card over the
-// dimmed screen shows a still of every screen and window it may share; a click shares one, or
-// the region tile lets a drag cut out part of a screen.
-//
+// Screen-share picker replacing hyprland-share-picker; run by xdph (quickshell-share-picker wrapper).
+// A card shows a still of every screen/window; click shares one, the region tile takes a drag.
 // The choice goes to $QS_SHARE_OUT as xdph's selection ("r/screen:DP-1", "/window:<handle>",
-// "/region:DP-1@x,y,w,h"); nothing written is a cancel. Run by hand (qs -p sharepicker.qml) it
-// lists every window and logs the choice instead.
+// "/region:DP-1@x,y,w,h"); nothing written = cancel. Run by hand (qs -p sharepicker.qml) it lists
+// every window and logs the choice.
 ShellRoot {
     id: root
 
     readonly property string outPath: Quickshell.env("QS_SHARE_OUT") ?? ""
-    // A restore token lets the app share the same thing again without asking.
+    // Restore token: lets the app re-share without asking.
     property bool allowToken: Quickshell.env("QS_SHARE_ALLOW_TOKEN") === "1"
-    // Set by the first Tab or arrow key: the focus ring stays off until then.
+    // Set by the first Tab/arrow key; the focus ring stays off until then.
     property bool keyboard: false
     // "pick" | "region"
     property string mode: "pick"
 
-    // xdph's windows, each "handle[HC>]class[HT>]title[HE>]address[HA>]"; the address is
-    // Hyprland's, in decimal (0 when xdph could not map it).
+    // xdph's windows: "handle[HC>]class[HT>]title[HE>]address[HA>]"; address is Hyprland's, decimal (0 if unmapped).
     readonly property var offered: {
         const list = Quickshell.env("XDPH_WINDOW_SHARING_LIST");
         if (list === null || list === undefined)
@@ -45,8 +40,7 @@ ShellRoot {
                 }));
     }
 
-    // The offered windows (every window, run by hand) with their Hyprland toplevel for the still
-    // and the workspace, in workspace order.
+    // Offered windows (all of them when run by hand) with Hyprland toplevel and workspace, in workspace order.
     readonly property var windows: {
         const tops = Hyprland.toplevels.values;
         const classOf = t => t.lastIpcObject?.class ?? "";
@@ -103,13 +97,11 @@ ShellRoot {
     PanelWindow {
         id: picker
 
-        // The card shows once every screen's still is taken, so the stills hold the desktop and
-        // not the picker over it.
+        // Card shows once every still is taken, so stills don't capture the picker.
         property bool shown: false
         readonly property int columns: 3
         readonly property int gap: 16
-        // Stills are shaped like this screen (windows tiled on it share it), from 16:10 to an
-        // ultrawide's 21:9.
+        // Stills take this screen's shape (tiled windows share it), clamped 16:10 to 21:9.
         readonly property real aspect: Math.max(16 / 10, Math.min(21 / 9, width / Math.max(1, height)))
         readonly property color dim: Theme.tint(Theme.ground, 0.6)
 
@@ -133,7 +125,6 @@ ShellRoot {
             return screenTiles.count > 0 ? screenTiles.itemAt(0) : null;
         }
 
-        // Every tile in reading order: screens, the region tile, then windows.
         function tiles(): var {
             const list = [];
             for (let i = 0; i < screenTiles.count; i++)
@@ -144,8 +135,7 @@ ShellRoot {
             return list.filter(t => t !== null);
         }
 
-        // Arrow keys: left and right step through the list, up and down take the nearest tile in
-        // the next row.
+        // Left/right step through the list; up/down take the nearest tile in the next row.
         function move(dx: int, dy: int) {
             const list = tiles();
             const from = list.findIndex(t => t.activeFocus);
@@ -193,12 +183,10 @@ ShellRoot {
         exclusionMode: ExclusionMode.Ignore
         WlrLayershell.namespace: "quickshell-share-picker"
         WlrLayershell.layer: WlrLayer.Overlay
-        // A region drag takes the keyboard (and draws its own dim) over this window; it stays
-        // mapped so the stills are not taken again.
+        // A region drag takes the keyboard and draws its own dim; this window stays mapped so stills aren't retaken.
         WlrLayershell.keyboardFocus: root.mode === "pick" ? WlrKeyboardFocus.Exclusive : WlrKeyboardFocus.None
         color: shown && root.mode === "pick" ? dim : "transparent"
 
-        // Back from a region drag: the keyboard returns to the region tile.
         Connections {
             target: root
 
@@ -210,7 +198,7 @@ ShellRoot {
             }
         }
 
-        // A screen that never delivers a frame must not hold the picker back.
+        // A screen that never delivers a frame must not block the picker.
         Timer {
             running: !picker.shown
             interval: 500
@@ -246,14 +234,12 @@ ShellRoot {
             }
         }
 
-        // A click outside the card cancels, like Escape.
         MouseArea {
             anchors.fill: parent
             enabled: picker.shown && root.mode === "pick"
             onClicked: root.cancel()
         }
 
-        // The card and its shadow rise and fade in together.
         Item {
             id: stage
 
@@ -267,7 +253,7 @@ ShellRoot {
                 id: nudge
             }
 
-            // Float: the shadow sits under the card, so the live stills are not rendered into a layer.
+            // Float: the shadow sits under the card, so live stills aren't rendered into a layer.
             Rectangle {
                 anchors.fill: parent
                 radius: Theme.radiusPlate
@@ -287,7 +273,6 @@ ShellRoot {
 
                 anchors.fill: parent
 
-                // Swallow clicks so they do not reach the cancelling area behind.
                 MouseArea {
                     anchors.fill: parent
                 }
@@ -298,7 +283,7 @@ ShellRoot {
                     anchors.fill: parent
                     anchors.margins: 20
 
-                    // Tab is walked by Qt and reported by the tiles; the arrows and Escape bubble up here.
+                    // Tab is walked by Qt and reported by tiles; arrows and Escape bubble up here.
                     Keys.onPressed: e => {
                         const step = {
                             [Qt.Key_Left]: [-1, 0],
@@ -334,7 +319,7 @@ ShellRoot {
                                 Icon {
                                     anchors.centerIn: parent
                                     text: Icons.monitorShare
-                                    // A badge for the dialog, not a state: gilt is kept for here and on.
+                                    // Badge for the dialog, not a state: gilt is reserved for here/on.
                                     color: Theme.text2
                                 }
                             }
@@ -481,7 +466,6 @@ ShellRoot {
                             Layout.fillWidth: true
                             Layout.topMargin: 16
 
-                            // Space or Enter flips it when focused with Tab.
                             MouseArea {
                                 id: tokenRow
 
@@ -542,7 +526,6 @@ ShellRoot {
                     }
                 }
 
-                // Where the list is, when it scrolls.
                 Rectangle {
                     visible: flick.contentHeight > flick.height
                     x: card.width - 10

@@ -3,13 +3,11 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// The playing song's timed lyrics in now playing's card (NowPlayingCard.qml), shown only on Sona,
-// flush left, read downward like a score: the sung line in 15px Medium text; the line coming next
-// in text2 and the one just gone in muted, both drawn at 85% so their places don't move as a line
-// takes or gives up the weight; a line further off is faded out rather than cut at the edge. A new
-// line moves the list up (Move) while the size and colour change (State). Between lines the next
-// one waits in the sung line's place, in text2 until it is sung. A sung line too long for the
-// column wraps onto a second. Without timed lyrics, one line in their place says why.
+// Timed lyrics in NowPlayingCard, Sona only, read downward like a score: sung line 15px Medium;
+// next in text2, previous muted, both drawn at 85% so places don't move as the weight changes;
+// farther lines fade out. A new line moves the list (Move) while size and colour change (State).
+// Between lines the next waits in the sung line's place; a too-long sung line wraps onto a
+// second. Without timed lyrics, one line says why.
 Item {
     id: root
 
@@ -47,10 +45,9 @@ Item {
             }
         }
 
-        // The sung line, however many lines it wraps to, keeps one place: one line down, so the
-        // line just gone shows whole above it and the next one below. Its height is read after
-        // the list has laid out (Qt.callLater): bound to currentItem directly, the range would
-        // move the current item and the current item the range.
+        // The sung line keeps one place however many lines it wraps to (one down, so the previous
+        // line shows whole above). Height is read after layout (Qt.callLater): bound to currentItem,
+        // the range and the current item would move each other.
         property real sungHeight: root.lineHeight
 
         function syncSung() {

@@ -5,7 +5,7 @@ _: {
 
   programs.gh = {
     enable = true;
-    # Every GitHub URL is rewritten to SSH, so the HTTPS credential helper is never used.
+    # All GitHub URLs are rewritten to SSH.
     gitCredentialHelper.enable = false;
     settings = {
       git_protocol = "ssh";
@@ -13,7 +13,7 @@ _: {
     };
   };
 
-  # Structural diffs as `git diff`'s external tool.
+  # External diff tool.
   programs.difftastic = {
     enable = true;
     git.enable = true;
@@ -79,7 +79,7 @@ _: {
     ignores = [
       ".vscode"
       ".npm"
-      # Home-directory junk, anchored so nested directories of the same name stay visible.
+      # Anchored so nested dirs of the same name stay visible.
       "/.cache"
       "/.icons"
       "/.mozilla"

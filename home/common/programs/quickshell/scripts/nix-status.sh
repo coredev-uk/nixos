@@ -1,28 +1,25 @@
-# Prints one JSON object describing atlas's Nix state and the home-lab binary cache, for the
-# panel's Nix view (services/NixStatus.qml). Every source is optional and fetched in parallel
-# with short timeouts, so off the LAN the local fields still come out and the rest is null:
+# One JSON object of atlas's Nix state and the home-lab binary cache, for the panel's Nix view
+# (services/NixStatus.qml). Sources are fetched in parallel with short timeouts; off the LAN the
+# local fields still come out and the rest is null:
 #
-#   system    what runs here: nixos-version, generation, reboot pending (kernel, initrd or modules
-#             differ from the booted system), and whether the running system's store path is in
-#             the cache (null = cache unreachable), and matches_main: whether it is the store path
-#             CI recorded for main, the nix-cache/atlas commit status of the newest main commit
-#             whose Hosts run succeeded (null = unknown: unreachable, or main hasn't built yet)
+#   system    nixos-version, generation, reboot pending (kernel/initrd/modules differ from booted),
+#             in_cache (running store path in the cache; null = unreachable), matches_main (it is the
+#             store path CI recorded as the nix-cache/atlas status of the newest main commit whose
+#             Hosts run succeeded; null = unknown)
 #   upstream  main's flake.lock on GitHub: its nixpkgs revision, and update_available when that
 #             differs from the running system's
-#   cache     the Attic cache's numbers from Prometheus (attic-postgres's exporter): objects and
-#             logical_bytes (uncompressed); reachable = Prometheus had them
-#   build     the Hosts workflow's runs on main (.github/workflows/hosts.yml, one matrix job per
-#             host, atlas and poseidon; a run fails when either host does; on every pull request and
-#             every push to main), from GitHub's API: reachable = it answered, running = the latest run
-#             hasn't completed, main: {success (the latest completed run's, cancelled ones skipped;
-#             null if none), finished (its end), failing_since (start of the oldest run in the
-#             unbroken streak of failed ones up to it; null when it succeeded), url}
-#   updates   the open lock update from BOT Cecil: the nightly pull request that bumps every flake
-#             input at once (flake-update), merging itself once its checks pass: [{inputs (from
-#             its body's marker), number, url, opened_at, auto_merge, checks: [{name, state:
-#             success|failure|pending, since}]}], empty when none is open; checks (a request: the
-#             check runs, evaluate, flake-checker, poseidon and atlas required) only with gh's
-#             token, else null; null when GitHub didn't answer
+#   cache     Attic numbers from Prometheus (attic-postgres exporter): objects, logical_bytes
+#             (uncompressed); reachable = Prometheus had them
+#   build     Hosts workflow runs on main (.github/workflows/hosts.yml; one matrix job per host, a run
+#             fails if either does; on every PR and push to main), from GitHub's API: reachable = it
+#             answered, running = latest run not completed, main: {success (latest completed run,
+#             cancelled skipped; null if none), finished, failing_since (start of the oldest run in
+#             the unbroken failed streak; null on success), url}
+#   updates   the open lock update from BOT Cecil (nightly flake-update PR, self-merging once checks
+#             pass): [{inputs (from its body's marker), number, url, opened_at, auto_merge, checks:
+#             [{name, state: success|failure|pending, since}]}], empty when none is open; checks only
+#             with gh's token (evaluate, flake-checker, poseidon, atlas required), else null; null
+#             when GitHub didn't answer
 #   failed_units  [{scope, name, description}] from systemctl --failed, system and user
 #             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
@@ -42,8 +39,7 @@ fetch() {
 fetch "$lock_url" >"$tmp/lock" &
 fetch --get "$prometheus" --data-urlencode 'query={__name__=~"cnpg_nix_cache_objects|cnpg_nix_cache_nar_bytes",cache="coredev"}' >"$tmp/stats" &
 
-# GitHub with gh's token when it has one (5000 requests an hour; anonymous ones get 60, shared
-# with everything else on the home IP).
+# GitHub with gh's token when available (5000 requests/h; anonymous gets 60, shared with the home IP).
 auth=()
 if command -v gh >/dev/null && token=$(timeout 3 gh auth token 2>/dev/null) && [ -n "$token" ]; then
 	auth=(--header "Authorization: Bearer $token")
@@ -51,8 +47,7 @@ fi
 github() {
 	fetch --fail "${auth[@]}" --header "Accept: application/vnd.github+json" "$repo_api$1"
 }
-# The Hosts workflow's latest runs on main (pushes only, newest first), then what the newest
-# successful one recorded as atlas's store path.
+# Hosts workflow's latest runs on main (pushes only, newest first), then the atlas store path the newest successful one recorded.
 : >"$tmp/runs"
 : >"$tmp/pin"
 runs() {
@@ -64,13 +59,13 @@ runs() {
 		jq -r 'first(.[] | select(.context == "nix-cache/atlas") | .description) // empty' >"$tmp/pin" 2>/dev/null || true
 }
 runs &
-# The update pull request (BOT Cecil's, from this repository), then its check runs.
+# The update PR (BOT Cecil's), then its check runs.
 : >"$tmp/updates"
 updates() {
 	github '/pulls?state=open&per_page=100' |
 		jq -c '[.[] | select(.user.login == "bot-cecil[bot]" and .head.repo.full_name == .base.repo.full_name
 			and .head.ref == "flake-update")]' >"$tmp/updates" 2>/dev/null || return 0
-	# No answer from GitHub: leave it empty, which reads as unknown below.
+	# No answer from GitHub: leave empty; reads as unknown below.
 	[ -s "$tmp/updates" ] || return 0
 	local number sha
 	while read -r number sha; do
@@ -80,7 +75,6 @@ updates() {
 		fi
 	done < <(jq -r '.[] | "\(.number) \(.head.sha)"' "$tmp/updates")
 	wait
-	# One array of {pr, runs} for the jq below.
 	jq -c '.[]' "$tmp/updates" | while read -r pr; do
 		number=$(jq -r .number <<<"$pr")
 		jq -nc --argjson pr "$pr" --rawfile runs "$tmp/checks-$number" \
@@ -90,14 +84,14 @@ updates() {
 }
 updates &
 
-# Failed units, both managers; an empty file (no bus, timeout) reads as "unknown" below.
+# Failed units, both managers; an empty file (no bus, timeout) reads as unknown below.
 failed() {
 	timeout 5 /run/current-system/sw/bin/systemctl "${@:2}" --failed --output=json --no-legend >"$tmp/$1" 2>/dev/null || true
 }
 failed system &
 failed user --user &
 
-# The running system's store hash is the narinfo's name; 200 = cached, 404 = not.
+# The store hash is the narinfo's name; 200 = cached, 404 = not.
 current=$(readlink -f /run/current-system)
 hash=${current#/nix/store/}
 hash=${hash%%-*}
@@ -113,7 +107,7 @@ if [ -n "$generation" ]; then
 	generation_time=$(stat --format %Y "/nix/var/nix/profiles/system-$generation-link" || true)
 fi
 
-# A new generation switched in is not a reboot; a different kernel, initrd or module tree is.
+# A new generation is not a reboot; a different kernel, initrd or module tree is.
 reboot_pending=false
 if [ -e /run/booted-system ]; then
 	for part in kernel initrd kernel-modules; do
@@ -151,7 +145,7 @@ jq -n \
       logical_bytes: (first($prom[]? | select(.metric.__name__ == "cnpg_nix_cache_nar_bytes") | .value[1] | tonumber) // null)
     } as $st
   | ($runs | fromjson? // null | if type == "object" and (.workflow_runs | type) == "array" then .workflow_runs else null end) as $wr
-  # Completed runs, newest first; a cancelled one (superseded) says nothing about main.
+  # Newest first; a cancelled (superseded) run says nothing about main.
   | ([$wr[]? | select(.status == "completed" and (.conclusion == "cancelled" or .conclusion == "skipped" | not))]) as $done
   | ($done | map(.conclusion == "success") | index(true)) as $good
   | ($updates | fromjson? // null) as $ups
@@ -187,9 +181,8 @@ jq -n \
           url: $done[0].html_url
         }
       },
-      # Every check the ruleset on main requires is listed, as pending until it first reports
-      # (atlas and poseidon only do once the Hosts workflow starts on the commit); a re-run check counts by its
-      # latest run.
+      # Every check the main ruleset requires is listed, pending until it first reports (atlas and
+      # poseidon only once Hosts starts on the commit); a re-run counts by its latest run.
       updates: (
         if ($ups | type) != "array" then null
         else

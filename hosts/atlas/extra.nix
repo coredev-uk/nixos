@@ -17,18 +17,14 @@
   ];
 
   boot.kernelParams = [
-    # Split top-io usb controller for vfio passthrough
+    # Split top-io USB controller for vfio passthrough
     "pcie_acs_override=downstream,multifunction"
-    # Keep NVMe out of deep APST states: the WD SN770 root drive took ~12ms to wake from them,
-    # stalling btrfs commits (16s) and freezing the desktop at low CPU/RAM use.
+    # SN770 root took ~12ms to wake from deep APST, stalling btrfs commits.
     "nvme_core.default_ps_max_latency_us=0"
   ];
 
-  # Follow main: nixos-upgrade.service switches to main's atlas each morning (or at the next boot,
-  # when atlas was off). Every change reaches main only after the Hosts workflow built atlas into
-  # Attic, and the nightly flake update merges at night, so the switch only downloads. Home
-  # Manager follows the same way (home/default.nix). A system switched to from a local checkout
-  # goes back to main's at the next run.
+  # Follows main each morning (or next boot if off). Main only gets changes after Hosts CI
+  # cached atlas in Attic, so the switch just downloads. Local-checkout switches revert.
   system.autoUpgrade = {
     enable = true;
     flake = "github:coredev-uk/nixos#atlas";
@@ -37,8 +33,7 @@
     randomizedDelaySec = "30min";
   };
 
-  # Battery readout for the quickshell panel (quickshell-batteries); the udev rules give
-  # the logged-in user access to the headset's hidraw node.
+  # Headset battery for the quickshell panel; udev rules give the user hidraw access.
   environment.systemPackages = [ unstable.headsetcontrol ];
   services = {
     udev.packages = [ unstable.headsetcontrol ];
@@ -58,11 +53,11 @@
         "ddcci-nvidia-attach.service"
         "openrgb.service"
       ];
-      # Offered in the shell's power menu, as is starting the VM.
+      # Also offered in the shell's power menu.
       nativeBootEfiEntry = "Windows Boot Manager";
     };
 
-    # Disable suspend of Toslink output to prevent audio popping.
+    # No suspend on the Toslink output (audio popping).
     pipewire.wireplumber.extraConfig."99-disable-suspend" = {
       "monitor.alsa.rules" = [
         {

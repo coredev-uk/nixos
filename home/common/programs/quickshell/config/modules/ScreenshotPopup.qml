@@ -10,13 +10,11 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// What the Print key leaves behind, driven over IPC by quickshell-screenshot (scripts/screenshot.sh,
-// `quickshell ipc -c bar call screenshot taken FILE`) once the area is on the clipboard. A floating
-// card in the bottom-right corner of the focused monitor, away from the notification popups at the
-// top, with the picture and two actions: Edit (satty) and Save (the XDG screenshots directory).
-// Leaves after a few seconds unless hovered. The capture is a private file in $XDG_RUNTIME_DIR that
-// goes with the popup; Hyprland leaves this layer alone (no_anim, like the OSD), the motion is
-// only this.
+// Print-key result, driven over IPC by quickshell-screenshot (scripts/screenshot.sh, `quickshell ipc
+// -c bar call screenshot taken FILE`) once the area is on the clipboard. Floating card bottom-right
+// of the focused monitor, away from the notification popups, with the picture and Edit (satty) /
+// Save (XDG screenshots dir). Leaves after a few seconds unless hovered. The capture is a private
+// file in $XDG_RUNTIME_DIR that goes with the popup. Hyprland leaves this layer alone (no_anim).
 Scope {
     id: root
 
@@ -104,7 +102,6 @@ Scope {
         onTriggered: root.hide(false)
     }
 
-    // Unloads once the fade-out has finished.
     Timer {
         running: !root.shown && root.loaded
         interval: Theme.durationExit + 30
@@ -145,7 +142,6 @@ Scope {
             Plate {
                 id: card
 
-                // Slides in from the screen edge like a notification, and back out to it.
                 property real slide: 24
 
                 width: 300
@@ -246,7 +242,6 @@ Scope {
                         }
                     }
 
-                    // The picture in an inset well, fitted whole whatever the area's shape.
                     ClippingRectangle {
                         Layout.fillWidth: true
                         implicitHeight: 156
@@ -324,7 +319,6 @@ Scope {
         }
     }
 
-    // Inset button with a glyph, as the notification popups' action buttons sit on their plate.
     component ActionButton: Rectangle {
         id: button
 
@@ -351,7 +345,6 @@ Scope {
             anchors.centerIn: parent
             spacing: 6
 
-            // An idle glyph steps up to text2 under the pointer.
             Icon {
                 text: button.glyph
                 color: button.interactive && area.containsMouse ? Theme.text2 : button.accent

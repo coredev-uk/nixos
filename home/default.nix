@@ -25,10 +25,7 @@
     inherit (meta) homeDirectory;
   };
 
-  # The standalone configuration (atlas's) follows main like the system (system.autoUpgrade,
-  # hosts/atlas/extra.nix): home-manager-auto-upgrade.service switches to main's each morning, or
-  # at the next login. Not with useFlake, which builds from a local checkout. The channel update it
-  # runs first finds none (it leaves an empty channels profile).
+  # Standalone (atlas) follows main like system.autoUpgrade; not with useFlake (local checkout).
   services.home-manager.autoUpgrade = lib.mkIf (osConfig == null) {
     enable = true;
     frequency = "05:30";
@@ -42,18 +39,12 @@
   # Standalone home-manager only; under nix-darwin, useGlobalPkgs hands HM the system's pkgs.
   nixpkgs = lib.mkIf (osConfig == null) {
     overlays = [
-      # Add overlays your own flake exports (from overlays and pkgs dir):
       outputs.overlays.additions
       outputs.overlays.modifications
-
-      # You can also add overlays exported from other flakes:
-      # inputs.agenix.overlays.default
     ];
 
     config = {
-      # Disable if you don't want unfree packages
       allowUnfree = true;
-      # permittedInsecurePackages = [ "electron-25.9.0" ];
     };
   };
 }

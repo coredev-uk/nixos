@@ -3,14 +3,13 @@ import QtQuick.Controls
 import QtQuick.Layouts
 import qs.common
 
-// One section of the control panel (ControlPanel): its 13px title, or a back row in a sub-view,
-// over a body that scrolls inside the panel's fixed height, so a long list never grows the plate.
-// Children go into the body's column.
+// One control-panel section (ControlPanel): 13px title, or a back row in a sub-view, over a body
+// that scrolls inside the panel's fixed height. Children go into the body's column.
 ColumnLayout {
     id: root
 
     property string title
-    // 11px text2 beside the title, on the right (when a reading was taken).
+    // 11px text2 right of the title.
     property string detail: ""
     property bool back: false
     default property alias body: column.data
@@ -19,7 +18,7 @@ ColumnLayout {
 
     spacing: 0
 
-    // The same height as the back row, so the body starts at one place in every view.
+    // Same height as the back row so the body starts in one place in every view.
     RowLayout {
         visible: !root.back
         Layout.fillWidth: true

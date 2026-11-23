@@ -2,7 +2,7 @@ pragma Singleton
 
 import Quickshell
 
-// Nerd Font Material Design glyphs (nf-md-*), see https://www.nerdfonts.com/cheat-sheet
+// Nerd Font Material Design glyphs (nf-md-*): https://www.nerdfonts.com/cheat-sheet
 Singleton {
     readonly property string workspace: String.fromCodePoint(0xF0765) // circle
     readonly property string workspaceActive: String.fromCodePoint(0xF043E) // radiobox_marked
@@ -87,18 +87,18 @@ Singleton {
     readonly property string account: String.fromCodePoint(0xF0004) // account
     readonly property string accountGroup: String.fromCodePoint(0xF0849) // account_group
 
-    // Privacy indicators (microphone is shared with the OSD group above)
+    // Privacy indicators
     readonly property string webcam: String.fromCodePoint(0xF05A0) // webcam
     readonly property string monitorShare: String.fromCodePoint(0xF1483) // monitor_share
     readonly property string waveform: String.fromCodePoint(0xF147D) // waveform
     readonly property string application: String.fromCodePoint(0xF08C6) // application
 
-    // Notifications (bell, bellOff and close are shared with the groups above)
+    // Notifications
     readonly property string bellOutline: String.fromCodePoint(0xF009C) // bell_outline
     readonly property string notificationClearAll: String.fromCodePoint(0xF039F) // notification_clear_all
     readonly property string send: String.fromCodePoint(0xF048A) // send
 
-    // Proton Pass quick access (search and wifi are shared with the groups above)
+    // Proton Pass quick access
     readonly property string shieldLockOutline: String.fromCodePoint(0xF0CCC) // shield_lock_outline
     readonly property string key: String.fromCodePoint(0xF0306) // key
     readonly property string noteText: String.fromCodePoint(0xF11D7) // note_text_outline
@@ -112,15 +112,13 @@ Singleton {
     readonly property string web: String.fromCodePoint(0xF059F) // web
     readonly property string twoFactor: String.fromCodePoint(0xF09AF) // two_factor_authentication
 
-    // Sound outputs and Cast screen (monitorShare and headphones are shared with the groups above)
+    // Sound outputs and Cast screen
     readonly property string cast: String.fromCodePoint(0xF0118) // cast
     readonly property string castConnected: String.fromCodePoint(0xF0119) // cast_connected
     readonly property string speaker: String.fromCodePoint(0xF04C3) // speaker
     readonly property string speakerWireless: String.fromCodePoint(0xF071F) // speaker_wireless
 
-    // The bar's capture glyph and its menu (CaptureButton, CaptureMenu): screenshot, recording and
-    // instant replay (contentSave is shared with the screenshot popup below)
-    // Outline, like Caffeine's idle cup beside it.
+    // Bar capture glyph and menu: screenshot, recording, instant replay
     readonly property string capture: String.fromCodePoint(0xF0D5D) // camera_outline
     readonly property string screenshot: String.fromCodePoint(0xF0E51) // monitor_screenshot
     readonly property string record: String.fromCodePoint(0xF044A) // record
@@ -131,21 +129,21 @@ Singleton {
     readonly property string nixos: String.fromCodePoint(0xF313) // linux_nixos
     readonly property string openInNew: String.fromCodePoint(0xF03CC) // open_in_new
 
-    // Screenshot popup (check and close are shared with the groups above)
+    // Screenshot popup
     readonly property string pencil: String.fromCodePoint(0xF03EB) // pencil
     readonly property string contentSave: String.fromCodePoint(0xF0193) // content_save
     readonly property string alertCircle: String.fromCodePoint(0xF0028) // alert_circle
 
-    // The control panel's Claude section (sparkles: there is no Claude glyph)
+    // Control panel Claude section (no Claude glyph; sparkles instead)
     readonly property string claude: String.fromCodePoint(0xF0674) // creation
 
-    // The control panel's Lighting section (OpenRGB)
+    // Control panel Lighting section
     readonly property string ledStrip: String.fromCodePoint(0xF1051) // led_strip_variant
     readonly property string ledStripOff: String.fromCodePoint(0xF1A4B) // led_strip_variant_off
     readonly property string spectrum: String.fromCodePoint(0xF0344) // looks
     readonly property string palette: String.fromCodePoint(0xF03D8) // palette
 
-    // Sona's favourite on what's playing (MediaPanel)
+    // Favourite on what's playing (MediaPanel)
     readonly property string heart: String.fromCodePoint(0xF02D1) // heart
     readonly property string heartOutline: String.fromCodePoint(0xF02D5) // heart_outline
 }

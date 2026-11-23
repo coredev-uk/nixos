@@ -8,8 +8,7 @@
   imports = [
     ./locale.nix
   ]
-  # Bare metal only: WSL boots its own kernel, has no VT or firmware to manage, brings its own
-  # swap, and nothing logs in to it over SSH.
+  # Bare metal only: WSL has its own kernel, swap, no VT/firmware, no SSH.
   ++ lib.optionals (!meta.isWSL) [
     ./boot.nix
     ./console.nix
@@ -41,22 +40,19 @@
   };
 
   services = {
-    # chrony.enable = true;
     journald.extraConfig = lib.mkDefault "SystemMaxUse=250M";
 
-    # Firmware updates from LVFS (NVMe, peripherals). UEFI capsule updates won't run under
-    # lanzaboote's Secure Boot keys unless fwupd's EFI binary is signed with them.
+    # LVFS firmware; UEFI capsule updates need fwupd's EFI binary signed with lanzaboote's keys.
     fwupd.enable = !meta.isWSL;
   };
 
-  # No sudo.execWheelOnly: services.btrbk runs as the btrbk user and calls sudo for btrfs, so
-  # restricting the binary to wheel stops the hourly /home snapshots.
+  # No sudo.execWheelOnly: btrbk runs as its own user and needs sudo for btrfs.
   security = {
     polkit.enable = true;
     rtkit.enable = true;
   };
 
-  # Create dirs for home-manager
+  # home-manager profile dir
   systemd.tmpfiles.rules = [
     "d /nix/var/nix/profiles/per-user/${meta.username} 0755 ${meta.username} root"
   ];

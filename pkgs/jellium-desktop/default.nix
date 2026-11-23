@@ -46,10 +46,9 @@ let
   version = "0.1.0-unstable-2026-11-15";
   rev = "09de0a6d8c3fe7620df71b469c78752892de12e4";
 
-  # The CEF build the `cef` crate in src/Cargo.lock is pinned to (156.4.0+156.0.26): libcef's API
-  # hash must match the bindings, so nixpkgs' cef-binary (another release) can't stand in. Its
-  # minimal tarball no longer ships libEGL/libGLESv2, which nixpkgs' installPhase patches, so this
-  # repacks it here instead of overriding cef-binary.
+  # CEF build pinned by the `cef` crate in src/Cargo.lock (156.4.0+156.0.26); libcef's API hash
+  # must match, so nixpkgs' cef-binary can't be used. Repacked here: the minimal tarball lacks
+  # libEGL/libGLESv2, which nixpkgs' installPhase patches.
   cef =
     let
       cefVersion = "156.0.26";
@@ -98,8 +97,7 @@ let
       dontBuild = true;
       dontPatchELF = true;
 
-      # cef-dll-sys wants one flat directory, as download-cef extracts it: the runtime (Release/ and
-      # Resources/ merged), include/ for the API version, and an archive.json naming the release.
+      # Flat dir as download-cef extracts it: Release/ + Resources/ merged, include/, archive.json.
       installPhase = ''
         runHook preInstall
 
@@ -123,8 +121,7 @@ let
       };
     };
 
-  # Opened at run time rather than linked: wgpu (Vulkan, EGL), the dma-buf probe (libEGL, libgbm,
-  # libX11) and the Wayland/X11 backends.
+  # dlopen()ed at run time: wgpu (Vulkan, EGL), dma-buf probe (libEGL, libgbm, libX11), Wayland/X11.
   runtimeLibs = [
     libGL
     libgbm
@@ -163,16 +160,16 @@ rustPlatform.buildRustPackage {
   ]
   ++ runtimeLibs;
 
-  # The cmake/ninja hooks would take over configure; only cef-dll-sys' build script wants them.
+  # cmake/ninja are only for cef-dll-sys' build script; skip their hooks.
   dontUseCmakeConfigure = true;
   dontUseNinjaBuild = true;
   dontUseNinjaInstall = true;
 
   env = {
     CEF_PATH = cef;
-    # Baked into the binary as CEF's resources and locales dir (linux_util::cef_paths).
+    # CEF resources/locales dir baked into the binary.
     CEF_RESOURCES_DIR = cef;
-    # Same rpath `cargo xtask build --cef-path` gives the AUR build; libmpv comes from pkg-config.
+    # Same rpath as the AUR build (`cargo xtask build --cef-path`); libmpv via pkg-config.
     JFN_EXTRA_RPATH = "${cef}:${lib.makeLibraryPath runtimeLibs}";
     JFN_GIT_HASH = builtins.substring 0 7 rev;
     JFN_GIT_DIRTY = "0";
@@ -181,8 +178,7 @@ rustPlatform.buildRustPackage {
   # Needs a display, a GPU and CEF's subprocesses.
   doCheck = false;
 
-  # mpv's scripts are looked up next to the real executable (current_exe()/mpv/scripts), so the
-  # binary lives in libexec with them and bin/ only links to it.
+  # mpv scripts are found next to the real executable, so the binary lives in libexec; bin/ links it.
   postInstall = ''
     mkdir -p $out/libexec/jellium-desktop
     mv $out/bin/jellium-desktop $out/libexec/jellium-desktop/
@@ -194,12 +190,11 @@ rustPlatform.buildRustPackage {
     install -Dm644 resources/linux/net.nullsum.JelliumDesktop.svg \
       $out/share/icons/hicolor/scalable/apps/net.nullsum.JelliumDesktop.svg
 
-    # cargoInstallHook also picks up the CEF runtime cef-dll-sys copies next to the build; the
-    # binary loads it from ${cef} instead.
+    # Drop the CEF runtime cef-dll-sys copies; the binary loads it from ${cef}.
     rm -r $out/lib
   '';
 
-  # patchelf --shrink-rpath would drop the dlopen()ed library dirs.
+  # --shrink-rpath would drop the dlopen()ed library dirs.
   dontPatchELF = true;
 
   passthru = { inherit cef; };

@@ -3,10 +3,9 @@ import Quickshell
 import qs.common
 import qs.widgets
 
-// Suspend, restart and shut down as plate-toned buttons, shown with the password. Each runs only
-// after being held for a moment, so a stray click can't power the machine off: its armed hue
-// (caution for restart, alert for shut down, as in the bar's power menu) grows from the centre
-// while held. Hovering names the button in a tooltip above it.
+// Suspend, restart, shut down; each acts only after a hold so a stray click can't power off. The
+// armed hue (caution restart, alert shut down, as in the bar's power menu) grows from the centre
+// while held.
 Row {
     id: root
 
@@ -82,7 +81,6 @@ Row {
             font.pixelSize: Math.round(22 * root.s)
         }
 
-        // Above the button: its name on hover, the instruction while pressed.
         Plate {
             id: tooltip
 
@@ -174,7 +172,6 @@ Row {
             }
             onPressed: {
                 drain.stop();
-                // Resume from wherever an earlier, released hold drained to.
                 fill.duration = 900 * (1 - button.progress);
                 fill.restart();
             }

@@ -1,30 +1,23 @@
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
 #
-# athena's Windows: the gaming install on atlas's other drive. Applied by apply.ps1 (beside this
-# file), or alone with `winget configure -f gaming.winget`; `winget configure test` reports drift.
-# Like a NixOS module for what winget can reach: a package listed here is installed when missing
-# (never upgraded or downgraded: Steam, Discord and the NVIDIA App update themselves), but one
-# removed from the list stays installed until it is uninstalled by hand.
+# athena's Windows: the gaming install on atlas's other drive. Applied by apply.ps1, or alone with
+# `winget configure -f gaming.winget`; `winget configure test` reports drift.
+# Packages are installed when missing, never upgraded (Steam, Discord, NVIDIA App self-update);
+# removing one from the list doesn't uninstall it.
 #
-# Not here, because nothing can install them unattended:
-#   NVIDIA graphics driver   through the NVIDIA App
-#   AMD Chipset Software     amd.com
-#   Wintty                   the sponsor build from wintty.io (it updates itself); its config,
-#                            from home/common/programs/ghostty/shared.nix, is apply.ps1's
-#   Audeze HQ, MOZA Pit House, the games and their anti-cheats (Steam and Ubisoft Connect
-#   libraries: Battlefield 6, BeamNG.drive, Counter-Strike 2, Le Mans Ultimate, Rainbow Six
-#   Siege, WARDOGS)
+# Not here (nothing can install them unattended):
+#   NVIDIA graphics driver (via NVIDIA App), AMD Chipset Software (amd.com)
+#   Wintty (sponsor build from wintty.io, self-updating; config is apply.ps1's)
+#   Audeze HQ, MOZA Pit House, games and anti-cheats
+#   Runtimes drivers/games install themselves (PhysX, GameInput, VC++ redist, DirectX)
+#   Windows' own apps (Windows Terminal)
 #
-# Nor are runtimes that drivers and games install for themselves (PhysX, GameInput, the Visual
-# C++ redistributables, DirectX), or Windows' own apps (Windows Terminal).
-#
-# The debloat (Chris Titus Tech's WinUtil: its tweaks and the Store apps it removed) is
-# winutil.json, run once on a fresh install by `apply.ps1 -Debloat`. Its toggles and Windows
-# Update setting are below, as registry values every apply checks.
+# Debloat is winutil.json (`apply.ps1 -Debloat`, once). Its toggles and Windows Update setting
+# are below as registry values.
 properties:
   configurationVersion: 0.2.0
   resources:
-    # Dual boot: Windows reads the hardware clock as UTC, as NixOS writes it.
+    # Dual boot: Windows reads the RTC as UTC, as NixOS writes it.
     - resource: PSDscResources/Registry
       id: rtc-utc
       directives:
@@ -38,9 +31,8 @@ properties:
         ValueData: "1"
         Force: true
 
-    # WinUtil's toggles, as set on this install: dark mode, file extensions and hidden files
-    # shown, the taskbar's icons on the left with no Search box or Task View, Num Lock on at the
-    # sign-in screen.
+    # WinUtil toggles: dark mode, file extensions and hidden files shown, left taskbar icons without
+    # Search/Task View, Num Lock on at sign-in.
     - resource: PSDscResources/Registry
       id: dark-apps
       directives: { description: Dark mode (apps), allowPrerelease: true }
@@ -74,8 +66,8 @@ properties:
       directives: { description: Num Lock on at sign-in, securityContext: elevated, allowPrerelease: true }
       settings: { Key: HKEY_USERS\.DEFAULT\Control Panel\Keyboard, ValueName: InitialKeyboardIndicators, ValueType: String, ValueData: "2", Force: true }
 
-    # WinUtil's "Recommended" Windows Update setting: drivers never come from Windows Update
-    # (the NVIDIA App and AMD's installer own them), and no restart while signed in.
+    # WinUtil "Recommended" Windows Update: no drivers from Windows Update (NVIDIA App/AMD own them),
+    # no restart while signed in.
     - resource: PSDscResources/Registry
       id: wu-no-drivers
       directives: { description: No drivers in quality updates, securityContext: elevated, allowPrerelease: true }
@@ -118,9 +110,8 @@ properties:
       id: discord
       directives: { description: Discord, allowPrerelease: true }
       settings: { id: Discord.Discord, source: winget }
-    # Vencord, as atlas's Discord (home/common/programs/discord.nix), patched into the newest
-    # app-* folder. A Discord update installs a new folder without it: the next apply patches
-    # that. Plugins and Quick CSS are set in Discord, not here.
+    # Vencord (as atlas's home/common/programs/discord.nix), patched into the newest app-* folder;
+    # a Discord update makes a new folder, so the next apply re-patches. Plugins/CSS live in Discord.
     - resource: PSDscResources/Script
       id: vencord
       dependsOn: [discord]
@@ -138,7 +129,7 @@ properties:
           $cli = Join-Path $env:TEMP 'VencordInstallerCli.exe'
           $log = Join-Path $env:TEMP 'VencordInstallerCli.log'
           Invoke-WebRequest https://github.com/Vencord/Installer/releases/latest/download/VencordInstallerCli.exe -OutFile $cli
-          # It logs to stderr, which the Script resource takes for a failure: only its exit code counts.
+          # Stderr output counts as failure to the Script resource: only the exit code matters.
           $p = Start-Process $cli -ArgumentList '-install', '-branch', 'stable' -Wait -PassThru -NoNewWindow -RedirectStandardError $log
           Remove-Item $cli
           if ($p.ExitCode) { throw "VencordInstallerCli failed ($($p.ExitCode)): $(Get-Content $log -Raw)" }
@@ -169,7 +160,7 @@ properties:
       id: plex
       directives: { description: Plex, allowPrerelease: true }
       settings: { id: XP9CDQW6ML4NQN, source: msstore }
-    # Proton Mail and VPN, as home/common/desktop's protonmail-desktop and proton-vpn-cli.
+    # Proton Mail and VPN (as home/common/desktop).
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: proton-mail
       directives: { description: Proton Mail, allowPrerelease: true }
@@ -178,15 +169,14 @@ properties:
       id: proton-vpn
       directives: { description: Proton VPN, securityContext: elevated, allowPrerelease: true }
       settings: { id: Proton.ProtonVPN, source: winget }
-    # Theme and settings from home/common/programs/vicinae/shared.nix, through apply.ps1.
+    # Theme/settings from home/common/programs/vicinae/shared.nix, via apply.ps1.
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vicinae
       directives: { description: Vicinae, allowPrerelease: true }
       settings: { id: Vicinae.Vicinae, source: winget }
 
-    # The shell, as home/common/shell on Linux: PowerShell 7 (Wintty's shell) with the
-    # oh-my-posh prompt, zoxide as `cd`, eza, bat, fzf, ripgrep and atuin. The profile that
-    # wires them up is rendered by ./default.nix and put in place by apply.ps1.
+    # Shell as home/common/shell: PowerShell 7, oh-my-posh, zoxide, eza, bat, fzf, ripgrep, atuin.
+    # Profile rendered by ./default.nix.
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: pwsh
       directives: { description: PowerShell 7, securityContext: elevated, allowPrerelease: true }
@@ -195,8 +185,7 @@ properties:
       id: oh-my-posh
       directives: { description: oh-my-posh, allowPrerelease: true }
       settings: { id: JanDeDobbeleer.OhMyPosh, source: winget }
-    # Portable packages, which winget installs for the user by default and refuses to from an
-    # elevated process (WinGetPackage has no scope): installed machine-wide instead.
+    # Portable packages: winget refuses user scope from elevated (no scope on WinGetPackage), so machine-wide.
     - resource: PSDscResources/Script
       id: cli-tools
       directives: { description: "zoxide, eza, bat, ripgrep", securityContext: elevated, allowPrerelease: true }
@@ -226,7 +215,7 @@ properties:
       directives: { description: "WSL (NixOS-WSL, nixosConfigurations.athena)", securityContext: elevated, allowPrerelease: true }
       settings: { id: Microsoft.WSL, source: winget }
 
-    # Sona, the release build (it updates itself). Per-user NSIS installer from the latest release.
+    # Sona release build (self-updating); per-user NSIS installer.
     - resource: PSDscResources/Script
       id: sona
       directives: { description: Sona, allowPrerelease: true }

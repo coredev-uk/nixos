@@ -2,7 +2,7 @@ _: {
   services.fail2ban = {
     enable = true;
     maxretry = 5;
-    # Repeat offenders get exponentially longer bans across all jails.
+    # Exponentially longer bans for repeat offenders, across jails.
     bantime-increment = {
       enable = true;
       maxtime = "48h";

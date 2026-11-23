@@ -6,31 +6,25 @@ import Quickshell.Widgets
 import qs.common
 import qs.widgets
 
-// One thing that can be shared: a still of it, its name, and a line saying where it is. A click
-// (or Enter, Space) shares it.
+// One shareable thing: a still, its name and where it is. Click, Enter or Space shares it.
 MouseArea {
     id: root
 
-    // A screen or a window's Wayland toplevel; null draws `glyph` instead.
+    // Screen or window toplevel; null draws `glyph` instead.
     property var source: null
     property string title: ""
     property string detail: ""
-    // An app's icon beside the title.
     property string icon: ""
     property string glyph: Icons.application
-    // The frame's shape; stills are letterboxed in it.
     property real aspect: 16 / 10
-    // A dashed selection drawn in the frame, for the region tile.
     property bool dashed: false
-    // Draw the focus ring: set once the keyboard has been used, so a tile focused on open stays plain.
+    // Set once the keyboard has been used, so a tile focused on open stays plain.
     property bool keyboard: false
     readonly property bool captured: still.hasContent
     readonly property bool lit: containsMouse || (activeFocus && keyboard)
 
     signal chosen
-    // Tab or Shift+Tab pressed on this tile.
     signal keyboardUsed
-    // Focus arrived here, to scroll the tile into view.
     signal reached
 
     hoverEnabled: true
@@ -62,7 +56,6 @@ MouseArea {
         radius: Theme.radiusInset
         color: Theme.inset
 
-        // One frame, taken as the picker opens.
         ScreencopyView {
             id: still
 
@@ -120,7 +113,6 @@ MouseArea {
             }
         }
 
-        // Nothing to show (no capture yet, or none possible): the app, or the glyph.
         IconImage {
             anchors.centerIn: parent
             visible: !still.hasContent && root.icon !== ""
@@ -137,7 +129,6 @@ MouseArea {
         }
     }
 
-    // Hover and keyboard focus draw the same ring; a press darkens the still.
     Rectangle {
         anchors.fill: frame
         radius: frame.radius

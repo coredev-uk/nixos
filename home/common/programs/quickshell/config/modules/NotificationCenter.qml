@@ -9,17 +9,15 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Notification history under the bell: every notification not yet dismissed, grouped by app.
-// Groups are ordered by their newest notification, newest first inside; a group of several is a
-// stack of its newest card that expands on click.
+// Notification history under the bell: every undismissed notification, grouped by app, groups ordered
+// by newest; a group of several is a stack of its newest card that expands on click.
 BarPopup {
     id: root
 
-    // Opened over IPC (a key binding) the bar has had no input, which the popup grab needs, so
-    // Hyprland drops it at once; Hyprland's focus grab does the dismissing instead.
+    // Opened over IPC (a key binding) the bar has had no input, which the popup grab needs, so Hyprland
+    // drops it at once; Hyprland's focus grab dismisses instead.
     property bool fromIpc: false
-    // Apps whose stack is expanded, by name. Dropped once an app is down to one notification, so
-    // its next stack starts collapsed.
+    // Apps whose stack is expanded; dropped once down to one notification so its next stack starts collapsed.
     property var expandedApps: []
     // App names, in the order of their newest notification (entries are newest first).
     readonly property var apps: [...new Set(NotificationService.entries.map(entry => NotificationService.appName(entry.notification)))]
@@ -43,7 +41,7 @@ BarPopup {
     implicitHeight: frame.implicitHeight + gap
     dismissible: !fromIpc
 
-    // Open, it shows everything: nothing in it is new any more.
+    // While open, nothing counts as new.
     onVisibleChanged: {
         if (visible)
             NotificationService.markAllRead();
@@ -171,7 +169,6 @@ BarPopup {
                     // every frame. The revealed cards fade in instead (the column's add transition).
                     implicitHeight: cards.implicitHeight + 5 * layers
 
-                    // Behind the newest card, which is the only one shown while collapsed.
                     Repeater {
                         model: group.layers
 

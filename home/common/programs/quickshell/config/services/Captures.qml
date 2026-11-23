@@ -2,11 +2,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Services.Pipewire
 
-// Apps currently capturing the microphone, camera, screen or system audio, read from the PipeWire
-// graph: a capture stream (Stream/Input/*) with an active link from the device it records.
-// Each list holds { name, icon } entries, one per app. Not a singleton: the bar reads it through
-// Privacy, and the lock instance makes its own so it never loads AirPlay, whose metadata feed
-// would then run twice into the one pipe.
+// Apps currently capturing the microphone, camera, screen or system audio, read from the PipeWire graph:
+// a capture stream (Stream/Input/*) with an active link from the device it records. Each list holds
+// { name, icon }, one per app. Not a singleton: the bar reads it through Privacy, and the lock makes its
+// own so it never loads AirPlay, whose metadata feed would then run twice into the one pipe.
 Scope {
     id: root
 
@@ -34,7 +33,7 @@ Scope {
     readonly property var camera: captures.camera
     readonly property var screen: captures.screen
     readonly property var systemAudio: captures.systemAudio
-    // On air: something is sharing the screen, so what it shows may be seen by others.
+    // On air: the screen is being shared, so what it shows may be seen by others.
     readonly property bool onAir: screen.length > 0
 
     // Which device a link group records from, or "" if it isn't an app actively capturing one.

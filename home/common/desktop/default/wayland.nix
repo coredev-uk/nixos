@@ -1,7 +1,7 @@
 { pkgs, config, ... }:
 
 {
-  # The bar, notifications, OSD, polkit agent, lock screen and wallpaper are all Quickshell.
+  # Bar, notifications, OSD, polkit agent, lock screen and wallpaper are all Quickshell.
   imports = [
     ../../programs/quickshell
     ../../programs/airplay.nix
@@ -17,14 +17,13 @@
 
   fonts.fontconfig.enable = true;
 
-  # uwsm sources this into the session and exports the result to the systemd user manager,
-  # so home.sessionVariables reach the compositor, user services and launched apps.
+  # uwsm exports this to the systemd user manager so sessionVariables reach the compositor and apps.
   xdg.configFile."uwsm/env".source =
     "${config.home.sessionVariablesPackage}/etc/profile.d/hm-session-vars.sh";
 
   home.sessionVariables = {
     _JAVA_AWT_WM_NONREPARENTING = "1";
-    # Fall back to X11 (XWayland) for clients/runtimes without Wayland support.
+    # X11 fallback.
     GDK_BACKEND = "wayland,x11,*";
     QT_QPA_PLATFORM = "wayland;xcb";
     QT_WAYLAND_DISABLE_WINDOWDECORATION = "1";

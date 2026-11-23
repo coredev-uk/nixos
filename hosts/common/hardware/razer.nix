@@ -1,7 +1,6 @@
 { meta, ... }:
 {
-  # The daemon alone: the bar reads peripheral batteries from it over D-Bus
-  # (home/common/programs/quickshell/scripts/batteries.sh).
+  # Daemon only; the bar reads peripheral batteries over D-Bus.
   hardware.openrazer = {
     enable = true;
     batteryNotifier = {

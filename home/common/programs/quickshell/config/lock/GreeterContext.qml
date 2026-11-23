@@ -1,15 +1,14 @@
 import QtQuick
 import Quickshell.Services.Greetd
 
-// The greeter's password check: a greetd login for `user`, one conversation per attempt.
+// Password check via a greetd login for `user`, one conversation per attempt.
 AuthContext {
     id: root
 
     checking: Greetd.state === GreetdState.Authenticating
 
-    // Quickshell cancels the greetd session after a rejected password, but greetd's PAM worker
-    // has already exited, so the cancel comes back as an error ("unable to send message:
-    // Connection refused"). That error belongs to the attempt already reported as rejected.
+    // After a rejected password Quickshell cancels the greetd session, but greetd's PAM worker has
+    // already exited, so the cancel errors ("Connection refused"); that error belongs to the rejected attempt.
     property bool rejected: false
 
     onSubmitted: {
@@ -24,7 +23,6 @@ AuthContext {
     Connections {
         target: Greetd
 
-        // Only the password prompt is answered; anything else is shown as is.
         function onAuthMessage(message: string, error: bool, responseRequired: bool, echoResponse: bool) {
             if (responseRequired)
                 Greetd.respond(root.currentText);

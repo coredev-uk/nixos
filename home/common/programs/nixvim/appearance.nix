@@ -6,20 +6,19 @@ let
 in
 {
   programs.nixvim = {
-    # Meridian through base16-nvim: it paints the editor, syntax, Treesitter, LSP and diff groups
-    # from 16 slots, and highlightOverride below corrects the places where base16's conventions
-    # clash with Meridian's world rules (variables in base08 red, cream window separators).
+    # Meridian via base16-nvim; highlightOverride fixes where base16 clashes with Meridian
+    # (variables in red base08, cream window separators).
     colorschemes.base16 = {
       enable = true;
       colorscheme = {
         base00 = m.ground;
         base01 = m.plate;
         base02 = m.selection;
-        # Comments, hints and NonText: the terminal's bright black, tuned for 3.5:1 on the ground.
+        # Comments/hints/NonText: terminal bright black, 3.5:1 on ground.
         base03 = m.terminal.bright.black;
         base04 = m.text2;
         base05 = m.text;
-        # Meridian has no enamel lighter than text, so the "lighter foreground" slots repeat it.
+        # No enamel lighter than text; the lighter-foreground slots repeat it.
         base06 = m.text;
         base07 = m.text;
         base08 = m.alert;
@@ -33,10 +32,9 @@ in
       };
     };
 
-    # Applied after every plugin's setup. Plugins (gitsigns, blink.cmp, noice, snacks, mini,
-    # which-key) only define their groups with `default = true` links, so these win.
+    # Applied after plugin setup; plugins only set `default = true` links, so these win.
     highlightOverride = {
-      # Grounds: the cursor line and floats sit on plate, selection is the selection ground.
+      # Grounds: cursor line and floats on plate, selection on selection ground.
       CursorLine.bg = m.plate;
       CursorColumn.bg = m.plate;
       ColorColumn.bg = m.plate;
@@ -48,7 +46,7 @@ in
         bg = m.plate;
         bold = true;
       };
-      # The GUI cursor matches the terminal's gilt cursor.
+      # Matches the terminal's gilt cursor.
       Cursor = {
         fg = m.ground;
         bg = m.gilt;
@@ -130,7 +128,7 @@ in
         bg = m.gilt;
       };
 
-      # Search is gilt-tinted; the match under the cursor is the one solid gilt mark.
+      # Gilt-tinted search; the current match is the one solid gilt mark.
       Search = {
         fg = m.gilt;
         bg = m.hover;
@@ -142,7 +140,7 @@ in
       };
       IncSearch.link = "CurSearch";
 
-      # Red is for errors only: base16 puts variables, statements, tags and macros in base08.
+      # Red is errors only; base16 puts variables, statements, tags, macros in base08.
       Identifier.fg = m.text;
       TSVariable.fg = m.text;
       TSVariableBuiltin = {
@@ -166,11 +164,10 @@ in
         fg = m.link;
         underline = true;
       };
-      # Commas and semicolons recede instead of taking a categorical hue.
+      # Punctuation recedes.
       Delimiter.fg = m.text2;
       TSPunctDelimiter.fg = m.text2;
-      # base16 paints types in base0A; gilt stays for here/selection/search, so types take the
-      # syntax cyan. @type and @type.builtin link to the TS groups.
+      # base16 types are base0A, but gilt is reserved for here/selection/search; types use syntax cyan.
       Type.fg = syn.type;
       TSType.fg = syn.type;
       TSTypeBuiltin = {
@@ -218,20 +215,20 @@ in
       Added.fg = m.ok;
       Changed.fg = m.caution;
       Removed.fg = m.alert;
-      # Without these gitsigns falls back to base16's GitGutter groups (changes in link blue).
+      # Else gitsigns falls back to base16's GitGutter groups.
       GitSignsAdd.fg = m.ok;
       GitSignsChange.fg = m.caution;
       GitSignsChangedelete.fg = m.caution;
       GitSignsDelete.fg = m.alert;
       GitSignsTopdelete.fg = m.alert;
 
-      # blink.cmp: the menu and docs are floats, so they take the float border.
+      # blink.cmp menu/docs are floats.
       BlinkCmpMenuBorder.link = "FloatBorder";
       BlinkCmpDocBorder.link = "FloatBorder";
       BlinkCmpSignatureHelpBorder.link = "FloatBorder";
       BlinkCmpLabelMatch.link = "PmenuMatch";
 
-      # noice draws the cmdline popup on Normal with an info-blue border by default.
+      # noice's cmdline popup defaults to Normal with an info-blue border.
       NoiceCmdlinePopup.link = "NormalFloat";
       NoiceCmdlinePopupBorder.link = "FloatBorder";
       NoiceCmdlinePopupBorderSearch.link = "FloatBorder";
@@ -252,7 +249,7 @@ in
       SnacksIndentScope.fg = m.muted;
       SnacksDashboardKey.fg = m.gilt;
 
-      # mini.statusline links its mode chips to diff groups, which base16 renders as dark tints.
+      # mini.statusline mode chips link to diff groups, which base16 renders as dark tints.
       MiniStatuslineModeNormal = {
         fg = m.gilt;
         bg = m.selection;
@@ -300,8 +297,7 @@ in
         bg = m.plate;
       };
 
-      # mini.icons hues follow the terminal ANSI colours; its red would otherwise borrow
-      # DiagnosticError for ordinary file types.
+      # mini.icons follows terminal ANSI colours (its red would otherwise reuse DiagnosticError).
       MiniIconsAzure.fg = m.terminal.bright.blue;
       MiniIconsBlue.fg = m.terminal.normal.blue;
       MiniIconsCyan.fg = m.terminal.normal.cyan;
@@ -314,12 +310,10 @@ in
     };
 
     plugins = {
-      # UI enhancements
       noice = {
         enable = true;
       };
 
-      # Syntax-highlighted completion menu
       colorful-menu = {
         enable = true;
         settings = {
@@ -331,10 +325,8 @@ in
         };
       };
 
-      # Mini modules
       mini = {
         enable = true;
-        # Stands in for nvim-web-devicons for plugins that expect it.
         mockDevIcons = true;
         modules = {
           basics = { };

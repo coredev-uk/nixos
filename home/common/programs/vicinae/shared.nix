@@ -1,9 +1,8 @@
-# Vicinae's Meridian theme and the settings every host shares: Linux and macOS (./default.nix)
-# and athena's Windows (hosts/athena/windows).
+# Meridian theme and settings shared by Linux, macOS (./default.nix) and athena's Windows (hosts/athena/windows).
 { theme }:
 let
   m = theme.meridian;
-  # Vicinae colour object: the accent with an opacity on top (the shell's Theme.tint).
+  # Colour object: accent with opacity (the shell's Theme.tint).
   giltTint = opacity: {
     name = "colors.core.accent";
     inherit opacity;
@@ -11,7 +10,7 @@ let
 in
 {
   # Written to $XDG_DATA_HOME/vicinae/themes/meridian.toml (%LOCALAPPDATA%\vicinae\data\themes on
-  # Windows); anything left out is inherited from vicinae-dark. Full key list: `vicinae theme template`.
+  # Windows); omitted keys inherit vicinae-dark. Key list: `vicinae theme template`.
   meridian = {
     meta = {
       version = 1;
@@ -79,7 +78,7 @@ in
         focus.outline = m.gilt;
       };
 
-      # The shell's row language: hover fill, a gilt tint behind the selected row.
+      # Row language of the shell: hover fill, gilt tint on selection.
       list.item = {
         hover = {
           background = m.hover;
@@ -116,9 +115,8 @@ in
     };
     font.normal.family = theme.fonts.shell.name;
 
-    # File search unused (apps, calculator, power only). The indexer watched all of $HOME, looped
-    # incremental scans on Go's build cache every ~1.5s, and grew its DB to 14 GB of rewrites on
-    # the snapshotted /home subvolume, stalling btrfs commits for seconds.
+    # File search off: the indexer watched all of $HOME, rescanned Go's build cache every ~1.5 s and
+    # wrote 14 GB to the snapshotted /home subvolume, stalling btrfs commits.
     providers.files.preferences.autoIndexing = false;
   };
 }

@@ -6,9 +6,9 @@ import Quickshell.Hyprland
 import Quickshell.Services.Mpris
 import Quickshell.Wayland
 
-// The player the bar follows: native clients (Sona and the other music apps, Plezy for Plex), then
-// browser players on a music site; of those, whichever is playing, else the one that played last
-// (pausing it doesn't hand the bar to another paused player), else the first in that order.
+// The player the bar follows: native clients (Sona and other music apps, Plezy for Plex), then browser
+// players on a music site; of those whichever is playing, else the last one that played (pausing doesn't
+// hand the bar to another paused player), else the first in that order.
 Singleton {
     id: root
 
@@ -45,7 +45,6 @@ Singleton {
 
     readonly property MprisPlayer player: playingNow ?? (candidates.includes(lastPlayed) ? lastPlayed : candidates[0] ?? null)
 
-    // Playing or paused; stopped players have nothing to show.
     readonly property bool active: player !== null && player.playbackState !== MprisPlaybackState.Stopped
 
     // Bound at startup: the toplevel list fills in asynchronously, so a lookup made on first use comes back empty.

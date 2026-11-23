@@ -8,8 +8,8 @@
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
 
-  # The NZXT Kraken Elite's screen as a CPU, GPU and coolant gauge (lcd.py), through liquidctl's
-  # API. liquidctl's udev rules (hosts/common/desktop/rgb.nix) give the logged-in user the cooler.
+  # Kraken Elite screen as a CPU/GPU/coolant gauge via liquidctl's API. Device access: liquidctl udev
+  # rules in hosts/common/desktop/rgb.nix.
   krakenLcd = pkgs.writers.writePython3Bin "kraken-lcd" {
     libraries = with pkgs.python3Packages; [
       liquidctl

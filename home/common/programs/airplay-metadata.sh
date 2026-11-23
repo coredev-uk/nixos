@@ -1,22 +1,20 @@
 # airplay-metadata TITLE ARTIST ALBUM ART_URL POSITION_MS LENGTH_MS
-# Passes the playing track to OwnTone (airplay.nix) so AirPlay devices show it instead of the
-# pipe's file name. OwnTone reads Shairport-style metadata items from "<pipe>.metadata", but only
-# while it plays the pipe, so the bar calls this on every track change and every few seconds:
-# the full set (with artwork) goes out when the track changed or OwnTone just started reading,
-# otherwise only the progress. $fifo (the metadata pipe) is set by the Nix wrapper.
+# Feeds the track to OwnTone's "<pipe>.metadata" (Shairport items) so AirPlay devices show it.
+# OwnTone only reads while it plays the pipe; the bar calls this per track change and every few s:
+# full set (with artwork) on change or fresh reader, else progress only. $fifo is set by the Nix wrapper.
 # shellcheck disable=SC2154 # $fifo
 
 title=$1 artist=$2 album=$3 art_url=$4 position_ms=$5 length_ms=$6
 state=${XDG_RUNTIME_DIR:-/tmp}/airplay-metadata.state
 
 [[ -p $fifo ]] || exit 0
-# Opening a FIFO without blocking fails when nobody reads it: OwnTone isn't playing the pipe.
+# Non-blocking open fails when nobody reads: OwnTone isn't playing the pipe.
 if ! dd of="$fifo" oflag=nonblock count=0 status=none 2>/dev/null; then
 	rm -f "$state"
 	exit 0
 fi
 
-# One metadata item; OwnTone keys on the code alone.
+# One metadata item; OwnTone keys on the code only.
 item() {
 	local code=$1 file=$2
 	printf '<item><type>636f7265</type><code>%s</code><length>%d</length>\n<data encoding="base64">\n%s</data></item>\n' \
@@ -39,7 +37,7 @@ key=$(printf '%s\n' "$title" "$artist" "$album" "$art_url" | sha256sum | cut -c1
 		text_item 6d696e6d "$title"  # minm
 		text_item 61736172 "$artist" # asar
 		text_item 6173616c "$album"  # asal
-		# Artwork: a file or a URL, at most 1 MiB (OwnTone's limit).
+		# Artwork: file or URL, max 1 MiB (OwnTone's limit).
 		case $art_url in
 		file://*) cp "${art_url#file://}" "$tmp/art" 2>/dev/null || true ;;
 		http://* | https://*) curl -sfL --max-time 5 --max-filesize 1048576 -o "$tmp/art" "$art_url" || true ;;
@@ -55,7 +53,7 @@ key=$(printf '%s\n' "$title" "$artist" "$album" "$art_url" | sha256sum | cut -c1
 	fi
 } >"$tmp/items"
 
-# Artwork can exceed the pipe buffer, so this write may wait for OwnTone to read; never for long.
+# Artwork can exceed the pipe buffer, so the write may block until OwnTone reads.
 if timeout 5 cp "$tmp/items" "$fifo"; then
 	printf '%s' "$key" >"$state"
 fi

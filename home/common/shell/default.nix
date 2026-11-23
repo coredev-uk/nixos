@@ -35,10 +35,7 @@
     fzf = {
       enable = true;
       enableZshIntegration = false;
-      # fzf's own default scheme is fixed 256-colour values; the 16-colour one follows the
-      # terminal's palette. Its red pointer and bright-black cursor line are moved to yellow
-      # and black (ANSI 3 and 0), so red stays for errors. FZF_DEFAULT_OPTS, which fzf-tab
-      # reads too.
+      # 16-colour scheme follows the terminal palette; pointer/cursor line moved off red/bright-black.
       defaultOptions = [
         "--color=16,bg+:0,gutter:0,hl:3,hl+:3,pointer:3,marker:3,prompt:3,info:8,spinner:8,scrollbar:8"
       ];

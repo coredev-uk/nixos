@@ -3,12 +3,12 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Connected is the normal state, so it stays enamel; disconnected is the alert. Gilt while its
-// panel is open. A gilt dot on the glyph's corner says the VPN is on.
+// Connected is normal, so enamel; disconnected is alert; gilt while its panel is open.
+// A gilt corner dot means VPN on.
 Icon {
     id: root
 
-    // Opens the control panel on a section (the low-battery glyph opens Devices, its chips).
+    // Opens the control panel on a section.
     function openPanel(section: int) {
         panel.show(section);
     }

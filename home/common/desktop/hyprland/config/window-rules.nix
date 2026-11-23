@@ -1,6 +1,6 @@
 _: {
   window = [
-    # XWayland dialogs/menus without class or title: leave focus where it is
+    # XWayland dialogs/menus without class or title: don't take focus
     {
       match = {
         class = "^$";
@@ -10,7 +10,6 @@ _: {
       no_focus = true;
     }
 
-    # Miscellaneous
     {
       match.class = "^(zenity)$";
       float = true;
@@ -24,7 +23,7 @@ _: {
       center = true;
     }
 
-    # Screen casting (opened from the bar's Connections panel): a small picker, not a tiled window.
+    # Screen cast picker (from the bar's Connections panel): small floating window
     {
       match.class = "^(org\\.gnome\\.NetworkDisplays)$";
       float = true;
@@ -41,7 +40,7 @@ _: {
       center = true;
     }
 
-    # Picture-in-Picture: bottom-right corner, 50px in from the monitor edges
+    # Picture-in-Picture: bottom-right, 50px from the edges
     {
       match.title = "^(Picture-in-Picture)$";
       float = true;
@@ -56,7 +55,7 @@ _: {
       ];
     }
 
-    # Wine
+    # Collapse the Wine tray window
     {
       match.title = "^(Wine System Tray)$";
       move = [
@@ -72,8 +71,7 @@ _: {
       ];
     }
 
-    # --- Steam Client Rules ---
-    # Float everything that isn't the main Steam window
+    # Steam: float everything but the main window
     {
       match.class = "^(steam)$";
       float = true;
@@ -86,7 +84,6 @@ _: {
       tile = true;
     }
 
-    # Center specific Steam windows
     {
       match = {
         class = "^(steam)$";
@@ -102,7 +99,7 @@ _: {
       center = true;
     }
 
-    # Fix Steam menus/popups disappearing
+    # Menus/popups vanish otherwise
     {
       match = {
         title = "^()$";
@@ -121,40 +118,36 @@ _: {
       ];
     }
 
-    # --- Steam Game Rules ---
-    # Matches any window with class 'steam_app_NUMBER'
-
-    # Force games to be fullscreen
+    # Games: class steam_app_<id>
     {
       match.class = "^(steam_app_\\d+)$";
       fullscreen = true;
     }
 
-    # Prevent screen from turning off while playing
     {
       match.class = "^(steam_app_\\d+)$";
       idle_inhibit = "focus";
     }
 
-    # Allow tearing (low latency) for games
+    # Tearing for low latency
     {
       match.class = "^(steam_app_\\d+)$";
       immediate = true;
     }
 
-    # Keep the password manager out of screen shares and recordings
+    # Keep out of screen shares and recordings
     {
       match.class = "^(Proton Pass|proton-pass|proton-pass-desktop)$";
       no_screen_share = true;
     }
 
-    # Proton Mail runs in the background in its scratchpad (Super+M, config/keybindings.nix)
+    # Lives in the scratchpad (Super+M, keybindings.nix)
     {
       match.class = "^(proton-mail)$";
       workspace = "special:mail silent";
     }
 
-    # Keep Discord fully opaque when unfocused (general:inactive_opacity), e.g. while screensharing
+    # Stay opaque when unfocused (e.g. while screensharing)
     {
       match.class = "^(discord)$";
       opacity = "1.0 override 1.0 override";

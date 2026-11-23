@@ -9,8 +9,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// One notification, as a popup (`floating`) or a card in the centre's list. Clicking it runs the
-// default action (NotificationService.activate); the cross dismisses it everywhere.
+// One notification, as a popup (`floating`) or a card in the centre's list. Click runs the default
+// action (NotificationService.activate); the cross dismisses it everywhere.
 Plate {
     id: root
 
@@ -20,11 +20,10 @@ Plate {
     // For the relative time; the centre ticks it, popups are always recent.
     property double now: Date.now()
     property int bodyLines: 4
-    // How many more of the app's notifications sit collapsed behind this one in the centre: shown
-    // as a badge, and clicking the card asks to expand them instead of running its action.
+    // The app's other notifications collapsed behind this one in the centre: shown as a badge;
+    // clicking the card expands them instead of running its action.
     property int stacked: 0
-    // A popup's timeout (NotificationPopups): when it counts down, a thin track along the
-    // bottom shows the share of it still to run.
+    // A popup's timeout (NotificationPopups): while it counts down, a thin bottom track shows what remains.
     property bool countdown: false
     property real timeLeft: 1
 
@@ -35,15 +34,14 @@ Plate {
     readonly property bool critical: notification?.urgency === NotificationUrgency.Critical
     readonly property bool hasDefault: notification?.actions.some(action => action.identifier === "default") ?? false
     readonly property var buttons: notification?.actions.filter(action => action.identifier !== "default") ?? []
-    // A popup while the screen is shared (only critical ones show then): the app and that it's
-    // critical, nothing it says. The centre, opened deliberately, shows it all.
+    // Popup while the screen is shared (only critical ones show): the app and "critical", nothing it says.
+    // The centre, opened deliberately, shows everything.
     readonly property bool redacted: floating && Privacy.onAir
     // A picture sent with the notification wins over the app's icon.
     readonly property string imageSource: redacted ? "" : source(notification?.image ?? "")
     readonly property DesktopEntry desktopEntry: DesktopEntries.byId(notification?.desktopEntry ?? "")
     readonly property string iconSource: source(notification?.appIcon ?? "") || source(desktopEntry?.icon ?? "")
-    // Groups inside the card sit a tone step away from its background: inset on a popup's plate,
-    // plate on a centre card's inset.
+    // Inner groups sit a tone step from the background: inset on a popup's plate, plate on a centre card's inset.
     readonly property color inner: floating ? Theme.inset : Theme.plate
     readonly property color innerHover: floating ? Theme.rule : Theme.hover
 
@@ -247,7 +245,7 @@ Plate {
 
         RowLayout {
             Layout.fillWidth: true
-            // Their labels can say what the notification is about.
+            // Hidden when redacted: action labels can reveal content.
             visible: root.buttons.length > 0 && !root.redacted
             spacing: 6
 
@@ -361,7 +359,6 @@ Plate {
                 implicitHeight: 28
                 radius: Theme.radiusRow
                 color: sendArea.containsMouse ? root.innerHover : root.inner
-                // Nothing to send yet.
                 opacity: reply.text === "" ? 0.5 : 1
 
                 Behavior on color {

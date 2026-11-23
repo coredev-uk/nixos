@@ -26,7 +26,7 @@
       };
       combinePlugins = {
         enable = true;
-        # Ships its own queries/lua/highlights.scm, which collides with the treesitter queries.
+        # Ships its own queries/lua/highlights.scm, colliding with treesitter's: keep uncombined.
         standalonePlugins = [
           "snacks.nvim"
           "conform.nvim"

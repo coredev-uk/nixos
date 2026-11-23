@@ -4,11 +4,10 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Bottom-right, from the user session: a day view of what's left of today in the calendar
-// (services/Calendar) on a translucent plate, its foot level with the time's baseline; and in
-// the date line under it, what's playing. The power buttons (LockPower) take the music's place
-// while the password is up. While the screen is shared the events show only their times, and
-// the music stays hidden (also while the bar records the screen, services/RecordingStatus).
+// Bottom-right, from the user session: today's remaining calendar events (services/Calendar) on a
+// translucent plate, and what's playing in the date line. LockPower replaces the music while the
+// password is up. While the screen is shared or recorded (services/RecordingStatus) events show
+// only times and the music is hidden.
 Item {
     id: root
 
@@ -21,8 +20,7 @@ Item {
     readonly property bool onAir: captures.onAir || RecordingStatus.recording
     readonly property int maxEvents: 4
     readonly property real now: clock.date.getTime()
-    // Today's events that aren't over, all-day ones first as Calendar sorts them; done
-    // reminders are left out.
+    // Today's events not yet over, all-day first as Calendar sorts them; done reminders left out.
     readonly property var events: (Calendar.days[Calendar.dayKey(clock.date)] ?? []).filter(event => !event.done && (event.allDay || event.end > now))
     readonly property var shownEvents: events.slice(0, maxEvents)
     // The timed event on now or next; it says how long until it starts.
@@ -51,7 +49,7 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    // Its own, not Privacy's: that one brings AirPlay into this instance (services/Captures.qml).
+    // Own instance, not Privacy's: that one pulls AirPlay into this process (services/Captures.qml).
     Captures {
         id: captures
     }
@@ -59,13 +57,12 @@ Item {
     Plate {
         id: card
 
-        // Rows sit closer to the edge than the header so the next event's tint has room.
         readonly property real inset: Math.round(12 * root.s)
         readonly property real rowPadding: Math.round(16 * root.s)
 
         anchors.right: parent.right
         anchors.rightMargin: root.margin
-        // The foot level with the time's baseline, 40 above the date line (LockClock).
+        // Foot level with the time's baseline, 40 above the date line (LockClock).
         anchors.bottom: parent.bottom
         anchors.bottomMargin: root.margin + root.lineHeight + Math.round(40 * root.s)
         width: Math.round(500 * root.s)
@@ -129,13 +126,12 @@ Item {
             Repeater {
                 model: root.shownEvents
 
-                // One event: its calendar's colour as a bar down its left, as in a day view; the
-                // next one set in an inset slot, with how long until it starts.
+                // Calendar colour as a bar down the left; the next event sits in an inset slot with time to start.
                 Rectangle {
                     id: event
 
                     required property var modelData
-                    // By value: the model hands each row its own copy of the event.
+                    // By value: the model hands each row its own copy.
                     readonly property bool next: root.nextEvent !== null && !modelData.allDay && modelData.start === root.nextEvent.start && modelData.title === root.nextEvent.title
 
                     width: list.width

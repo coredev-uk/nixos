@@ -3,9 +3,8 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Night light slider: drag to pick a colour temperature for this session (further right is
-// warmer, like macOS's Night Shift); the icon turns the night light off, and back onto the
-// sunset schedule. "Auto" means following the schedule. The panel re-reads it on opening.
+// Drag picks a colour temperature for this session (further right is warmer); the icon turns night
+// light off and back onto the sunset schedule ("Auto"). Re-read on open.
 SliderRow {
     id: root
 

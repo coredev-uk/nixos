@@ -1,11 +1,9 @@
 name: "Flake Checks"
 
-# Fast checks on every push: evaluate every configuration (catches option, type and
-# module errors) and run the flake's own checks (formatting), without building any host.
-# The hosts build in hosts.yml.
+# Fast eval + flake checks (formatting) on every push, no host builds (those are hosts.yml).
 on:
   push:
-    # Nothing in these affects an evaluated output.
+    # Can't affect evaluated outputs.
     paths-ignore:
       - "**.md"
       - "LICENSE"
@@ -15,7 +13,7 @@ on:
 permissions:
   contents: read
 
-# A newer push to the same branch supersedes a running check; only the latest commit matters.
+# Newer push supersedes a running check.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -28,7 +26,7 @@ jobs:
         with:
           persist-credentials: false
 
-      # The caches hosts/default.nix configures but attic.hera.ac, which only holds builds.
+      # hosts/default.nix caches minus attic.hera.ac (builds only).
       - name: Install nix
         uses: DeterminateSystems/nix-installer-action@v23
         with:
@@ -36,23 +34,22 @@ jobs:
             extra-substituters = https://nix-citizen.cachix.org https://nix-community.cachix.org
             extra-trusted-public-keys = nix-citizen.cachix.org-1:lPMkWc2X8XD4/7YPEEwXKKBg+SVbYTVrAaLA2wQTKCo= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3Fs=
 
-      # NixOS configurations, devShells, formatter and overlays, for every system.
+      # NixOS configs, devShells, formatter, overlays, all systems.
       - name: Evaluate flake outputs (no build)
         run: nix flake check --no-build --all-systems
 
-      # Builds the checks of this runner's system (formatting); `--no-build` above only
-      # evaluates them. Other systems' checks cannot be built here.
+      # `--no-build` only evaluates checks; build this runner's system's (formatting).
       - name: Build flake checks
         run: nix flake check -L
 
-      # Not covered by `nix flake check`. poseidon has no IFD, so an x86_64-linux runner
-      # can evaluate it; building it needs macOS (hosts.yml, with the flake update and weekly).
+      # Not covered by `nix flake check`. poseidon has no IFD so x86_64-linux can evaluate it;
+      # building needs macOS (hosts.yml).
       - name: Evaluate home-manager and nix-darwin configurations
         run: |
           nix eval --raw '.#homeConfigurations."paul@atlas".activationPackage.drvPath'
           nix eval --raw .#darwinConfigurations.poseidon.system.drvPath
 
-  # Reads flake.lock only, no Nix needed.
+  # Reads flake.lock only.
   flake-checker:
     runs-on: ubuntu-26.04
     steps:

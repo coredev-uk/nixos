@@ -4,8 +4,8 @@ import Quickshell.Hyprland
 import qs.common
 import qs.widgets
 
-// Title of the focused window, shown on the focused monitor's bar (HyprlandToplevel.monitor isn't
-// populated until Hyprland reports the window's details, so match on the focused monitor instead).
+// Title of the focused window on the focused monitor's bar (HyprlandToplevel.monitor isn't populated
+// until Hyprland reports the window's details, so match on the focused monitor instead).
 BarText {
     id: root
 

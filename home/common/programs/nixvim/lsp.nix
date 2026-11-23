@@ -2,13 +2,11 @@
 {
   programs.nixvim = {
     plugins = {
-      # Treesitter
       treesitter = {
         enable = true;
         highlight.enable = true;
         indent.enable = true;
-        # Only the languages this config has servers, formatters or filetypes for; the
-        # default builds every grammar.
+        # Only languages with servers/formatters/filetypes here; default builds every grammar.
         grammarPackages = with config.programs.nixvim.plugins.treesitter.package.builtGrammars; [
           astro
           bash
@@ -39,50 +37,38 @@
         ];
       };
 
-      # LSP
       lsp = {
         enable = true;
 
         servers = {
-          # Web
           astro.enable = true;
           cssls.enable = true;
           html.enable = true;
           tailwindcss.enable = true;
 
-          # TypeScript / JavaScript
           vtsls.enable = true;
 
-          # Vue: nixvim wires vtsls to the @vue/typescript-plugin itself, so vue_ls only
-          # handles the .vue template/style side (hybrid mode is the server's only mode).
+          # nixvim wires vtsls to @vue/typescript-plugin itself; vue_ls only handles template/style (hybrid mode).
           vue_ls.enable = true;
 
-          # Shell
           bashls.enable = true;
 
-          # Just Files
           just.enable = true;
 
-          # Nix
           nil_ls.enable = true;
 
-          # Python
           pyright.enable = true;
 
-          # Rust
           rust_analyzer = {
             enable = true;
             installCargo = true;
             installRustc = true;
           };
 
-          # Helm
           helm_ls.enable = true;
 
-          # Mixed
           oxfmt.enable = true;
 
-          # YAML
           yamlls = {
             enable = true;
             settings = {
@@ -96,12 +82,10 @@
             };
           };
 
-          # Markdown
           marksman.enable = true;
         };
       };
 
-      # Render markdown nicely
       render-markdown = {
         enable = true;
         settings = {
@@ -109,7 +93,6 @@
         };
       };
 
-      # Linting
       lint = {
         enable = true;
         lintersByFt = {
@@ -123,13 +106,11 @@
         };
       };
 
-      # Code folding with nvim-ufo
       nvim-ufo = {
         enable = true;
       };
     };
 
-    # Diagnostics
     lsp.inlayHints.enable = true;
 
     diagnostic.settings = {
@@ -140,7 +121,6 @@
       float.border = "rounded";
     };
 
-    # Extra packages for LSP servers and tools
     extraPackages = with pkgs; [
       fd # Required by snacks.picker / snacks.explorer
       ripgrep # Required by snacks.picker grep (not in PATH on darwin)

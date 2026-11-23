@@ -28,7 +28,6 @@ PanelWindow {
         enabled: Caffeine.enabled
     }
 
-    // The 1px rule along the bar's inner edge.
     Rectangle {
         anchors.left: parent.left
         anchors.right: parent.right
@@ -56,8 +55,7 @@ PanelWindow {
         }
     }
 
-    // Centred, and never wider than the room left of the right cluster allows on both sides
-    // (16px clear of it, past the artwork and its 6px gap).
+    // Centred, capped to leave 16px clear of the right cluster (past the artwork and its 6px gap).
     Music {
         anchors.centerIn: parent
         maxWidth: Math.max(0, Math.min(600, 2 * (rightCluster.x - bar.width / 2 - 16) - 26))

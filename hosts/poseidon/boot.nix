@@ -6,16 +6,14 @@
 }:
 {
   system.primaryUser = meta.username;
-  # nix-darwin release of the first install; never bump it with upgrades.
+  # Never bump.
   system.stateVersion = 6;
 
-  # nix-darwin only sets the login shell (UserShell) of users it manages; without this the
-  # account keeps /bin/zsh while zellij panes run the nix zsh. Activation only rewrites
-  # PrimaryGroupID (gid, default 20 = staff) and UserShell here: uid matches the existing
-  # account, RealName is left alone without `description`, and nix-darwin refuses to delete
-  # the primary user.
+  # nix-darwin only sets UserShell for users it manages; else the account keeps /bin/zsh while
+  # zellij runs the nix zsh. Activation rewrites only PrimaryGroupID and UserShell here (uid
+  # matches, RealName untouched without `description`).
   users.knownUsers = [ meta.username ];
-  # /etc/shells, so chsh and anything else checking it accept the login shell.
+  # So chsh and others accept the login shell.
   environment.shells = [ pkgs.zsh ];
 
   users.users.${meta.username} = {

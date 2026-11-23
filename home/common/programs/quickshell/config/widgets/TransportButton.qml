@@ -1,10 +1,9 @@
 import QtQuick
 import qs.common
 
-// A 28px player control (previous, play/pause, next, the favourite heart) on a surface tinted by
-// the cover: transparent at rest with its glyph in text2, the light lifting under the pointer
-// rather than a hover fill (one more colour on the cover's); "on" (playing, a favourite) is gilt
-// on its 10% tint, 16% under the pointer. Half opacity while the player can't do it.
+// 28px player control on a cover-tinted surface: transparent at rest, glyph text2, light lifting
+// under the pointer instead of a hover fill; "on" (playing, favourite) is gilt on a 10% tint, 16%
+// on hover. Half opacity when the player can't do it.
 Rectangle {
     id: root
 
@@ -38,7 +37,6 @@ Rectangle {
         id: glyph
         anchors.centerIn: parent
         font.pixelSize: 16
-        // Outlines, so a glyph growing into place stays sharp.
         renderType: Text.QtRendering
         color: root.on ? Theme.gilt : area.containsMouse ? Theme.text : Theme.text2
     }

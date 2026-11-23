@@ -8,13 +8,10 @@
 let
   skills = import ./skills.nix { inherit pkgs lib inputs; };
 
-  # Settings as a read-only overlay layered over ~/.omp/agent/config.yml (PI_CONFIG_FILES; it
-  # beats the global and project layers), rather than programs.omp.settings: that copies
-  # config.yml over on every switch, dropping what omp writes there itself (setupVersion, so
-  # its setup flow would rerun, and settings changed in the UI). The keys set here win over it.
+  # Read-only overlay via PI_CONFIG_FILES instead of programs.omp.settings, which overwrites
+  # ~/.omp/agent/config.yml each switch and drops omp's own writes (setupVersion, UI settings).
   ompConfig = (pkgs.formats.yaml { }).generate "omp-config.yml" {
-    # Nerd Font glyphs (Symbols Nerd Font, installed with Ghostty). Also shows the
-    # subscription icon on spend rather than the `unicode` preset's literal "S".
+    # Nerd Font glyphs (Symbols Nerd Font, installed with Ghostty).
     symbolPreset = "nerd";
     composer.shape = "box";
     theme = {
@@ -42,14 +39,13 @@ let
         security-reviewer = "anthropic/claude-opus-5-5:high";
       };
     };
-    # Read in place from the store, beside omp's own ~/.omp/agent/skills.
+    # Read from the store.
     skills.customDirectories = [ "${skills}" ];
   };
 
-  # omp from its flake, prefixed so a PI_CONFIG_FILES from the environment still layers on top.
-  # Without LD_LIBRARY_PATH: a devenv shell's (sona-go's GTK and GLib, of a newer glibc than the
-  # system's) reaches every browser omp starts, and its WebKit host and Nix's Chromium then fail
-  # to load (`GLIBC_2.43' not found`). Projects' commands get it back from `devenv shell --`.
+  # Prefix PI_CONFIG_FILES so the environment's still layers on top. LD_LIBRARY_PATH unset: a
+  # devenv shell's newer-glibc libs break omp's WebKit host and Nix's Chromium (`GLIBC_2.43' not
+  # found`); `devenv shell --` restores it for project commands.
   package = inputs.omp.packages.${pkgs.stdenv.hostPlatform.system}.default;
   omp = pkgs.symlinkJoin {
     inherit (package) name;
@@ -63,16 +59,16 @@ in
 {
   imports = [ inputs.omp.homeManagerModules.default ];
 
-  # oh-my-pi coding agent (https://omp.sh)
+  # https://omp.sh
   programs.omp = {
     enable = true;
     package = omp;
   };
 
-  # Node runs taste-skill's scripts (direction draw, lint, browser inspector).
+  # Runs taste-skill's scripts.
   home.packages = [ pkgs.nodejs ];
 
-  # taste-skill's inspector drives Chrome over CDP and only looks in FHS paths otherwise.
+  # Taste-skill's inspector otherwise only looks in FHS paths.
   home.sessionVariables = lib.mkIf meta.isDesktop {
     CHROME_PATH = lib.getExe pkgs.chromium;
   };

@@ -2,10 +2,9 @@ import QtQuick
 import qs.common
 import qs.widgets
 
-// The song as a track along now playing's floor, drawn like the bar's day arc: the length in
-// rule, what has played lit in text at 42%, and a gilt dot at now. Under the pointer the dot
-// grows and a tooltip-style plate above the track names the time a press would go to; a press or
-// a drag seeks there, once per pause in the drag.
+// The song as a track along now playing's floor, drawn like the bar's day arc: length as a rule, played
+// part lit in text at 42%, gilt dot at now. Under the pointer the dot grows and a tooltip-style plate
+// above the track names the time a press would go to; a press or drag seeks there, once per drag pause.
 Item {
     id: root
 
@@ -17,7 +16,6 @@ Item {
     readonly property real dragSeconds: area.fraction * length
     // Whether the card is on screen. Opening it places the dot; only playing moves it on.
     property bool active: false
-    // The surface under the track, which rings the dot.
     property color ground: Theme.plate
 
     function clamp(v: real): real {
@@ -107,7 +105,6 @@ Item {
         }
     }
 
-    // The time a press would go to (or, dragging, is going to), on a tooltip's plate.
     Rectangle {
         visible: root.near && root.canSeek
         x: Math.max(0, Math.min(root.width - width, (area.pressed ? root.shown : area.hoverFraction) * track.width - width / 2))

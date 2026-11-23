@@ -1,7 +1,6 @@
 { inputs, meta, ... }:
 {
-  # NixOS-WSL under athena, atlas's Windows install (the Windows side: ./windows). WSL boots the
-  # kernel and hands over to systemd; there is no bootloader here.
+  # NixOS-WSL for athena (atlas's Windows install; Windows side: ./windows). No bootloader.
   imports = [
     inputs.nixos-wsl.nixosModules.default
 
@@ -14,7 +13,6 @@
     defaultUser = meta.username;
   };
 
-  # First-install release of this host. Never bump it with NixOS upgrades:
-  # it gates stateful migrations, see `man configuration.nix` (system.stateVersion).
+  # Never bump: gates stateful migrations.
   system.stateVersion = "26.05";
 }

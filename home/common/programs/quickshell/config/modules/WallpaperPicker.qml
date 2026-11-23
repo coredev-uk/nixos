@@ -8,11 +8,10 @@ import Quickshell.Wayland
 import qs.common
 import qs.widgets
 
-// Wallpaper picker (Super+Shift+P: `quickshell ipc -c bar call wallpapers toggle`). A carousel of
-// slanted cards on the focused monitor, each the picture as it looks right now, over the
-// highlighted one blurred full screen. Enter applies, Escape leaves the wallpaper as it was.
-// Pictures and previews come from wallpaper-previews, switching from set-wallpaper
-// (home/common/programs/hypr/paper.nix).
+// Wallpaper picker (Super+Shift+P: `quickshell ipc -c bar call wallpapers toggle`): a carousel of
+// slanted cards on the focused monitor over the highlighted one blurred full screen. Enter applies,
+// Escape keeps the wallpaper as it was. Pictures and previews come from wallpaper-previews, switching
+// from set-wallpaper (home/common/programs/hypr/paper.nix).
 Scope {
     id: root
 
@@ -182,7 +181,6 @@ Scope {
                     color: Theme.ground
                 }
 
-                // The highlighted picture full screen; the stack crossfades as the selection moves.
                 Item {
                     id: backdrop
 
@@ -228,7 +226,6 @@ Scope {
                     opacity: 0.4
                 }
 
-                // Clicking outside the cards leaves without changing anything.
                 MouseArea {
                     anchors.fill: parent
                     onClicked: root.close()
@@ -238,7 +235,6 @@ Scope {
                 Item {
                     id: carousel
 
-                    // Follows the selection smoothly; each card is laid out by its distance from it.
                     property real position: root.selected
 
                     readonly property real centerWidth: Math.round(600 * window.s)
@@ -312,7 +308,6 @@ Scope {
                                 maskSpreadAtMin: 1
                             }
 
-                            // Side cards sit back a little.
                             Parallelogram {
                                 anchors.fill: parent
                                 slant: card.slant
@@ -381,7 +376,6 @@ Scope {
                         }
                     }
 
-                    // Status while loading or switching, an empty note, else the keys.
                     BarText {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: {
@@ -403,8 +397,7 @@ Scope {
         }
     }
 
-    // A parallelogram leaning right by `slant` at the top: the cards' shape, as a mask, a tint
-    // or an outline.
+    // Parallelogram leaning right by `slant` at the top: the cards' shape, as a mask, tint or outline.
     component Parallelogram: Shape {
         id: shape
 

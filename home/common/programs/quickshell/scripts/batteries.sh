@@ -1,12 +1,9 @@
 # Prints one JSON array of peripheral batteries for the quickshell panel:
 #   [{"name": "...", "short": "...", "kind": "mouse|headset|keyboard|...",
 #     "level": 0-100 | null, "charging": bool}]
-# short = name without the leading brand word ("Razer Viper V3 Pro" -> "Viper V3 Pro").
-# level null = device present but not reporting (e.g. headset switched off).
-#
-# Sources, each optional so the script works on hosts without them:
-#   - OpenRazer daemon (session D-Bus, org.razer): every device with razer.device.power
-#   - HeadsetControl (headsetcontrol on PATH, installed per host)
+# short = name without the brand word ("Razer Viper V3 Pro" -> "Viper V3 Pro").
+# level null = present but not reporting (e.g. headset off).
+# Sources are optional: OpenRazer daemon (session D-Bus, org.razer), headsetcontrol (host PATH).
 
 razer() {
 	local serial path name kind level charging
@@ -36,7 +33,7 @@ headsets() {
     }' || true
 }
 
-# A missing source (no OpenRazer daemon, no headsetcontrol) must not drop the other.
+# A missing source must not drop the other.
 {
 	razer || true
 	headsets || true

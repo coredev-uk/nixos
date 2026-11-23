@@ -4,11 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// atlas's Nix state and the home-lab binary cache, from the quickshell-nix-status helper: one JSON
-// object (schema in scripts/nix-status.sh) with every source optional, so offline the local
-// fields still arrive and the cache's and the builds' are null. Read every 5 minutes in the background, again
-// when the control panel opens, and every minute while the Nix view is showing (acquire()/release(),
-// like Batteries); a read is never started on top of a running one.
+// atlas's Nix state and the home-lab binary cache via the quickshell-nix-status helper: one JSON object
+// (schema in scripts/nix-status.sh), every source optional, so offline the local fields still arrive and
+// the cache and build fields are null. Read every 5 min in the background, when the control panel opens,
+// and every minute while the Nix view shows (acquire()/release(), like Batteries); never overlapping.
 Singleton {
     id: root
 
@@ -16,26 +15,24 @@ Singleton {
     property var data: null
     // The helper printed nothing usable; the last good `data` stays.
     property bool failed: false
-    // When `data`'s remote parts were read: fetchedAt only moves when the cache and GitHub's builds
-    // were both read fresh, so "Checked HH:mm" tells how old a kept cache or build section is.
+    // When `data`'s remote parts were read: fetchedAt moves only when the cache and GitHub's builds
+    // were both read fresh, so "Checked HH:mm" tells how old a kept section is.
     property double fetchedAt: 0
-    // GitHub and the cache answer slowly at times, and one timed-out read would otherwise turn the
-    // view to "unreachable" until the next one. A miss keeps the last good section of each source
-    // this long, and retries soon; past it, offline, the view goes to unreachable.
+    // GitHub and the cache answer slowly at times; one timed-out read would turn the view to
+    // "unreachable". A miss keeps each source's last good section this long and retries soon; past
+    // it, offline, the view goes to unreachable.
     readonly property int staleFor: 15 * 60 * 1000
     property int users: 0
     readonly property bool active: users > 0
 
-    // The properties below are each derived from `data` alone; a view that combines several of
-    // them reads `data` through stateOf() instead, since they update one after another.
+    // Derived from `data` alone; a view combining several reads `data` through stateOf() instead, since
+    // they update one after another.
     //
-    // "loading" before the first read, "unreachable" while neither the cache nor GitHub's builds
-    // answer (offline), then, first match wins: "failed" (main's latest host build failed, atlas's or
-    // poseidon's, so a switch may build here), "update-failing" (the nightly lock update, every flake
-    // input in one pull request, has a failed check), "update-pending" (it is open, its checks still
-    // running or it merging),
-    // "running" (a host build of main is in progress), "ok", or "never" (no finished host build
-    // of main to go by, or GitHub didn't answer).
+    // "loading" before the first read, "unreachable" while neither the cache nor GitHub's builds answer,
+    // then first match wins: "failed" (main's latest host build failed, atlas's or poseidon's, so a switch
+    // may build here), "update-failing" (the nightly lock update, every flake input in one PR, has a failed
+    // check), "update-pending" (open, checks running or merging), "running" (a host build of main is in
+    // progress), "ok", or "never" (no finished host build of main to go by, or GitHub didn't answer).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
     readonly property bool rebootPending: data?.system?.reboot_pending ?? false
@@ -44,7 +41,6 @@ Singleton {
     // Failed systemd units, system and user ([{ scope, name, description }]); empty when none or
     // when neither manager answered (`data.failed_units` null), so a missing read stays calm.
     readonly property var failedUnits: data?.failed_units ?? []
-    // One line for the panel row.
     readonly property string summary: summaryOf(data)
 
     function stateOf(d: var): string {
@@ -84,7 +80,6 @@ Singleton {
         return times.length === 0 ? null : Math.min(...times);
     }
 
-    // The open lock update (every flake input in one pull request), or null.
     function updateOf(d: var): var {
         return (d?.updates ?? [])[0] ?? null;
     }

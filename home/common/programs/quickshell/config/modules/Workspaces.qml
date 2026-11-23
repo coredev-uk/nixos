@@ -4,10 +4,9 @@ import Quickshell.Hyprland
 import qs.common
 import qs.widgets
 
-// This monitor's workspaces as numerals. The active one is gilt over a 2px gilt rule while its
-// monitor has focus (you are here), and enamel over a muted rule on the other screen. The rule
-// is one index that glides to the new numeral as Hyprland slides the workspace in, in the same
-// time on the same curve (home/common/desktop/hyprland/config/animations.nix).
+// This monitor's workspaces as numerals. The active one is gilt over a 2px gilt rule while its monitor
+// has focus, enamel over a muted rule otherwise. The rule is one index gliding to the new numeral in
+// step with Hyprland's workspace slide (home/common/desktop/hyprland/config/animations.nix).
 Item {
     id: root
 

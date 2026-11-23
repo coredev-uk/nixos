@@ -6,10 +6,8 @@
   ...
 }:
 let
-  # ANSI colour numbers, so zellij draws with the terminal's palette (Ghostty's, from
-  # lib/theme) rather than fixed colours of its own; its built-in theme uses fixed 256-colour
-  # values. 0 black (a step above the background), 2 green, 3 yellow, 6 cyan, 7 white,
-  # 8 bright black, 15 bright white.
+  # ANSI colour numbers, so zellij follows the terminal palette (Ghostty's) instead of its fixed
+  # 256-colour theme. 0 black, 2 green, 3 yellow, 6 cyan, 7 white, 8 bright black, 15 bright white.
   component = base: background: emphasis: {
     inherit base background;
     emphasis_0 = builtins.elemAt emphasis 0;
@@ -17,8 +15,7 @@ let
     emphasis_2 = builtins.elemAt emphasis 2;
     emphasis_3 = builtins.elemAt emphasis 3;
   };
-  # Key hints and highlighted words in yellow; the secondary slot (also the new-tab button)
-  # in bright black so it doesn't compete, then green. No magenta.
+  # Key hints/highlights yellow; secondary slot (and new-tab button) bright black, then green.
   emphasis = [
     3
     8
@@ -26,15 +23,12 @@ let
     3
   ];
 
-  # Linux binds on Alt, the modifier Ghostty passes through. macOS binds on Cmd, its own
-  # modifier: Ghostty releases these keys (../programs/ghostty) and reports them with the
-  # kitty keyboard protocol, which zellij turns on. Option is left to type characters (# is
-  # Option+3 on a UK layout).
+  # Linux: Alt (passes through Ghostty). macOS: Cmd, which Ghostty releases (../programs/ghostty)
+  # and reports via the kitty keyboard protocol; Option stays free for typing (# is Option+3, UK).
   mod = if meta.isDarwin then "Super" else "Alt";
 
-  # Tab cycling and pane focus/resize can't share keys across platforms: macOS owns Cmd+Tab
-  # and Cmd+H, and Cmd+Q, so zellij's Quit is Linux-only. The Cmd set follows Ghostty's own
-  # tabs and splits; Ctrl+Tab cycles tabs as in browsers.
+  # Tab/pane keys differ per platform: macOS owns Cmd+Tab, Cmd+H, Cmd+Q (so Quit is Linux-only).
+  # The Cmd set mirrors Ghostty's tabs and splits.
   platformNormalBinds =
     if meta.isDarwin then
       ''
@@ -69,8 +63,7 @@ let
         bind "Ctrl Alt k" { Resize "Up"; }
       '';
 
-  # Scrollback paging on Alt+F/B and leaving with Alt+C; Cmd+C is copy on macOS, and Esc and
-  # the plain keys cover it there.
+  # Alt+F/B page, Alt+C leaves; macOS uses Esc and plain keys (Cmd+C is copy).
   scrollBinds = ''
     bind "j" "Down" { ScrollDown; }
     bind "k" "Up" { ScrollUp; }
@@ -95,11 +88,9 @@ in
   programs.zellij = {
     enable = true;
 
-    # New-style (0.42+) component theme.
     themes.terminal.themes.terminal = {
       text_unselected = component 7 0 emphasis;
       text_selected = component 15 0 emphasis;
-      # The selected tab and the active mode are "here": dark on yellow.
       ribbon_selected = component 0 3 [
         0
         0
@@ -112,7 +103,6 @@ in
       table_cell_unselected = component 7 0 emphasis;
       list_selected = component 15 0 emphasis;
       list_unselected = component 7 0 emphasis;
-      # The focused pane's frame is yellow; resting frames recede.
       frame_selected = component 3 0 emphasis;
       frame_unselected = component 8 0 emphasis;
       frame_highlight = component 6 0 emphasis;
@@ -138,12 +128,10 @@ in
       show_startup_tips = false;
       show_release_notes = false;
       ui.pane_frames.rounded_corners = true;
-      # Plain separators in the tab and status bars instead of powerline triangles.
       simplified_ui = true;
 
-      # omp in a pane sees Ghostty's environment and places images with Kitty Unicode
-      # placeholders (U=1), which zellij rejects (zellij-org/zellij#5530), so images never
-      # appear. Zellij handles ordinary Kitty placements, so have omp use those.
+      # Kitty Unicode placeholders (U=1) are rejected by zellij (zellij-org/zellij#5530), so omp
+      # images vanish; make omp use ordinary placements.
       env.PI_NO_KITTY_PLACEHOLDERS = "1";
     };
 
@@ -159,15 +147,13 @@ in
               bind "${mod} o" { SwitchToMode "Session"; }
               bind "${mod} s" { SwitchToMode "Scroll"; }
 
-              // tabs
               bind "${mod} t" { NewTab; }
               bind "${mod} Shift r" { SwitchToMode "RenameTab"; TabNameInput 0; }
               bind "${mod} w" { CloseFocus; }
               ${lib.concatMapStrings (
                 n: ''bind "${mod} ${toString n}" { GoToTab ${toString n}; }'' + "\n"
               ) (lib.range 1 9)}
-              // panes / splits
-              // ${mod}+D = vertical split (side by side), ${mod}+Shift+D = horizontal split (stacked)
+              // ${mod}+D side by side, ${mod}+Shift+D stacked
               bind "${mod} d" { NewPane "Right"; }
               bind "${mod} Shift d" { NewPane "Down"; }
 
@@ -179,7 +165,6 @@ in
               bind "Esc" { UndoRenameTab; SwitchToMode "Normal"; }
           }
 
-          // Keyboard scrollback (mouse wheel scrolling always works regardless of keybinds).
           scroll {
               bind "${mod} s" "Esc" { SwitchToMode "Normal"; }
               bind "s" { SwitchToMode "EnterSearch"; SearchInput 0; }
@@ -201,7 +186,6 @@ in
               bind "Enter" { SwitchToMode "Search"; }
           }
 
-          // Session mode: detach + the built-in plugin launchers.
           session {
               bind "${mod} o" { SwitchToMode "Normal"; }
               bind "${mod} s" { SwitchToMode "Scroll"; }
@@ -246,12 +230,9 @@ in
     '';
   };
 
-  # Start zellij in every interactive shell outside it, and close the shell when zellij exits.
-  # Inlined instead of HM's integration, which runs `zellij setup --generate-auto-start` in
-  # every shell (~35ms) to print this same check.
-  # Only for a shell on a terminal that isn't running a -c command: GUI apps read the login
-  # environment with `$SHELL -l -i -c printenv` (zellij 0.46's own desktop app does), and zellij
-  # started there, with no terminal, opens a window of its own and the probe gets nothing.
+  # Start zellij in every interactive terminal shell and exit with it. Inlined: HM's integration
+  # runs `zellij setup --generate-auto-start` per shell (~35ms). Skipped for `-c` commands: GUI
+  # apps probe `$SHELL -l -i -c printenv`, and zellij there opens its own window.
   programs.zsh.initContent = lib.mkOrder 200 ''
     if [[ "$TERM" != "dumb" && -z "$ZELLIJ" && -z "$ZSH_EXECUTION_STRING" && -t 0 && -t 1 ]]; then
       ${lib.getExe config.programs.zellij.package}
@@ -259,10 +240,8 @@ in
     fi
   '';
 
-  # Zellij 0.46 opens its "Welcome to Zellij" desktop-setup wizard in every new session until
-  # setup is approved or declined for good; dismissing it only records WizardDismissed. Record
-  # the wizard's own "never show" answer in its state file. Zellij rewrites that file, so it's
-  # patched in place rather than linked from the store.
+  # 0.46 shows the "Welcome" wizard every session until setup is approved/declined; record its
+  # "never show" answer. Patched in place because zellij rewrites the file.
   home.activation.zellijSkipSetup =
     let
       dataDir =

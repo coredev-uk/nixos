@@ -5,10 +5,9 @@ import qs.common
 import qs.widgets
 import "../common/sun.js" as Sun
 
-// "Wed 28 Oct ─●─ 13:23": the date, the day arc, the time. The arc is the day as a 24-hour
-// track: the daylight span between today's sunrise and sunset is lit, with a tick at each, and
-// a gilt dot marks now, so it reads at a glance how much light is left (the wallpaper follows
-// the same sun). Any of it opens the calendar.
+// "Wed 28 Oct ─●─ 13:23": date, day arc, time. The arc is a 24 h track with the daylight span
+// (sunrise to sunset, ticked) lit and a gilt dot at now; the wallpaper follows the same sun.
+// Any of it opens the calendar.
 Item {
     id: root
 
@@ -30,7 +29,7 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    // Under the row, so the arc's hover (its tooltip) still reaches it; clicks fall through to here.
+    // Under the row so the arc's tooltip hover still reaches it; clicks fall through.
     MouseArea {
         id: area
         anchors.fill: parent

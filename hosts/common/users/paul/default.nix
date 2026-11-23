@@ -20,14 +20,13 @@ in
       "plugdev"
       "render"
       "lxd"
-      "gamemode" # polkit only lets this group change the governor, GPU and procsys
-      "i2c" # For RGB
+      "gamemode" # polkit lets only this group change governor/GPU/procsys
+      "i2c" # RGB
     ];
 
     linger = true;
 
-    # The Atlas key in Proton Pass (Development vault), served by its SSH agent
-    # (home/common/shell/ssh.nix); only for logging in here, separate from the GitHub key.
+    # Atlas key in Proton Pass (Development vault, via its SSH agent); login only, not the GitHub key.
     openssh.authorizedKeys.keys = [
       "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIFkaCsF9IeeIU3ScdvVlUMfWw6Km4i6uImVoUfZWB2vq paul@atlas"
     ];
@@ -35,7 +34,7 @@ in
     packages = [ pkgs.home-manager ];
   };
 
-  # This is a workaround for not seemingly being able to set $EDITOR in home-manager
+  # $EDITOR can't be set via home-manager here
   environment.sessionVariables = {
     EDITOR = "vim";
   };

@@ -2,15 +2,13 @@ import QtQuick
 import qs.common
 import qs.widgets
 
-// The password, in the line under the time: a slate field with a dot per typed character and a
-// gilt submit on its right, and beside it why the last attempt failed or that Caps
-// Lock is on. Shown while the context is active. A hidden TextInput takes the keys and keeps
-// focus while idle, so the first key typed lands.
+// Password line under the time: slate field with a dot per character, gilt submit, and why the
+// last attempt failed or Caps Lock. A hidden TextInput takes the keys and keeps focus while idle
+// so the first key lands.
 Item {
     id: root
 
     required property AuthContext context
-    // Layout scale from the surface (1 at 1080p).
     property real s: 1
 
     readonly property bool shown: context.active || context.unlocking
@@ -105,9 +103,8 @@ Item {
         width: Math.round(460 * root.s)
         height: parent.height
         radius: Math.round(Theme.radiusInset * root.s)
-        // Plate-toned, a little translucent so the softened picture reads through. The hidden
-        // input holds focus while the field is up, so its edge is gilt; alert after a wrong
-        // password, ok once accepted.
+        // Plate-toned, a little translucent so the softened picture shows through. Edge: gilt while
+        // focused, alert after a wrong password, ok once accepted.
         color: Theme.tint(Theme.plate, 0.85)
         border.width: 1
         border.color: root.context.unlocking ? Theme.ok : root.failed ? Theme.alert : input.activeFocus ? Theme.gilt : Theme.rule
@@ -162,9 +159,7 @@ Item {
             }
         }
 
-        // A fixed row of slots that fill and empty in place: an integer Repeater model sized to
-        // the text would rebuild every dot on each keystroke. Each slot's width animates, so the
-        // row grows and shrinks smoothly.
+        // Fixed row of slots filled in place: an integer-sized Repeater model would rebuild every dot per keystroke.
         Item {
             id: dotArea
 
@@ -185,7 +180,6 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
 
                 Repeater {
-                    // Longer passwords just keep the field full.
                     model: Math.max(1, Math.floor(Math.max(0, dotArea.width) / dotArea.step))
 
                     Item {
@@ -208,7 +202,6 @@ Item {
                             width: dotArea.dotSize
                             height: width
                             radius: width / 2
-                            // Ok once accepted, for the moment before everything sinks away.
                             color: root.context.unlocking ? Theme.ok : Theme.text
                             opacity: slot.filled ? 1 : 0
                             scale: slot.filled ? 1 : 0.4
@@ -236,8 +229,7 @@ Item {
                     }
                 }
 
-                // Breathes while the password is checked: slow and shallow, so a long PAM check
-                // reads as waiting, not as something blinking for attention.
+                // Slow, shallow breathing while checking, so a long PAM check reads as waiting.
                 SequentialAnimation on opacity {
                     running: root.context.checking
                     loops: Animation.Infinite
@@ -257,7 +249,6 @@ Item {
             }
         }
 
-        // Submits, for the mouse; Enter does the same.
         Rectangle {
             id: submit
 
@@ -306,7 +297,6 @@ Item {
         }
     }
 
-    // Why the last attempt failed, Caps Lock, or what PAM says.
     Text {
         anchors.left: field.right
         anchors.leftMargin: Math.round(28 * root.s)

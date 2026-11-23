@@ -1,14 +1,8 @@
-# Applies athena's Windows configuration, the Windows half of `nixos-rebuild switch`:
-#   1. the home files the flake renders (./default.nix), each overwritten with the repository's
-#      (Home Manager's role); the theme's fonts, installed for the user;
-#   2. with -Debloat (once, on a fresh install): Chris Titus Tech's WinUtil, pinned, applying
-#      winutil.json's tweaks and removing its Store apps;
-#   3. gaming.winget, then dev.winget unless -GamingOnly (winget configure: installs what's missing).
-#
-# From an elevated PowerShell, run from the flake's checkout in NixOS-WSL (it builds the rendered
-# files there):
+# Windows half of `nixos-rebuild switch`: copies the flake's rendered home files (./default.nix)
+# and theme fonts into place, optionally debloats (-Debloat, once, fresh install), then runs
+# gaming.winget and dev.winget (-GamingOnly skips dev). -Test only reports drift.
+# Run from an elevated PowerShell, from the flake's checkout in NixOS-WSL (it builds there):
 #   powershell -ExecutionPolicy Bypass -File \\wsl.localhost\NixOS\home\paul\.dotfiles\hosts\athena\windows\apply.ps1
-# `-Test` only reports drift (winget configure test) and changes nothing.
 param(
   [switch]$GamingOnly,
   [switch]$Debloat,
@@ -16,7 +10,7 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 
-# The checkout this script runs from: \\wsl.localhost\<distro>\<path>\hosts\athena\windows.
+# Checkout this script runs from: \\wsl.localhost\<distro>\<path>\hosts\athena\windows.
 if ($PSScriptRoot -notmatch '^\\\\wsl(?:\.localhost|\$)\\([^\\]+)(\\.*)\\hosts\\athena\\windows$') {
   throw "Run apply.ps1 from the flake's checkout in WSL (\\wsl.localhost\<distro>\...), not $PSScriptRoot"
 }
@@ -26,7 +20,7 @@ $out = wsl.exe -d $distro --cd $flake -- nix build --no-link --print-out-paths '
 if ($LASTEXITCODE) { throw "nix build of the Windows files failed ($LASTEXITCODE)" }
 $rendered = "\\wsl.localhost\$distro" + ($out.Trim() -replace '/', '\')
 
-# Each rendered <folder>\<path> goes to <path> under that known folder (./default.nix).
+# Rendered <folder>\<path> goes to <path> under that known folder (./default.nix).
 $folders = [ordered]@{
   USERPROFILE  = $env:USERPROFILE
   APPDATA      = $env:APPDATA
@@ -37,30 +31,28 @@ $files = [ordered]@{}
 foreach ($folder in $folders.Keys) {
   $root = Join-Path $rendered $folder
   if (-not (Test-Path -LiteralPath $root)) { continue }
-  # -Force: the dotfiles (.ssh, .config, …) can carry the hidden attribute.
+  # -Force: dotfiles can carry the hidden attribute.
   foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File -Force) {
     $files[$file.FullName] = Join-Path $folders[$folder] $file.FullName.Substring($root.Length + 1)
   }
 }
-# Vicinae layers home-manager.json over its own settings.json (as on Linux). It splits
-# VICINAE_OVERRIDES on ':' (a Unix path list) and reads "C:\…" as two paths, so the path goes
-# without its drive: Vicinae resolves "\Users\…" on the current drive.
+# Vicinae layers home-manager.json over settings.json. It splits VICINAE_OVERRIDES on ':' and
+# reads "C:\…" as two paths, so drop the drive: "\Users\…" resolves on the current drive.
 $vicinaeOverrides = ($env:LOCALAPPDATA -replace '^[A-Za-z]:', '') + '\vicinae\config\home-manager.json'
 if ([Environment]::GetEnvironmentVariable('VICINAE_OVERRIDES', 'User') -ne $vicinaeOverrides) {
   if ($Test) { Write-Host 'differs: VICINAE_OVERRIDES' }
   else { [Environment]::SetEnvironmentVariable('VICINAE_OVERRIDES', $vicinaeOverrides, 'User') }
 }
-# Fonts for this user: the file in the user's font folder, and its name in the registry.
+# Fonts: file in the user's font folder, name in the registry.
 $fontDir = "$env:LOCALAPPDATA\Microsoft\Windows\Fonts"
 $fontKey = 'HKCU:\Software\Microsoft\Windows NT\CurrentVersion\Fonts'
 foreach ($font in Get-ChildItem "$rendered\fonts") {
   $files[$font.FullName] = Join-Path $fontDir $font.Name
 }
 
-# Zen: atlas's setup (home/common/programs/zen.nix). The policies go in the install; user.js and
-# containers.json in the profile Zen starts (installs.ini's Default=), which Zen must have made on
-# a first run, and only while Zen is closed: it rewrites containers.json, and the module's
-# spaces/pins writer (run in WSL, below) edits its session file.
+# Zen (home/common/programs/zen.nix): policies go in the install; user.js and containers.json in
+# the profile (installs.ini's Default=), which needs a prior first run. Only while Zen is closed:
+# it rewrites containers.json and the activation (below) edits its session file.
 $zenInstall = "$env:ProgramFiles\Zen Browser"
 $zenInstalls = "$env:APPDATA\zen\installs.ini"
 $zenProfile = $null
@@ -80,7 +72,7 @@ if (Test-Path "$zenInstall\zen.exe") {
 
 foreach ($src in $files.Keys) {
   $dest = $files[$src]
-  # Literal paths: a variable font's name ("…[wght].ttf") is a wildcard to -Path.
+  # Literal paths: "…[wght].ttf" is a wildcard to -Path.
   $same = (Test-Path -LiteralPath $dest) -and
     ((Get-FileHash -LiteralPath $src).Hash -eq (Get-FileHash -LiteralPath $dest).Hash)
   if (-not $same) {
@@ -97,22 +89,20 @@ foreach ($src in $files.Keys) {
   }
 }
 
-# The Zen module's activation (spaces, pins, extension buttons), pointed at the Windows profile
-# through the link its paths go by (./zen.nix). -e runs it without a shell, so the profile's
-# path (which has spaces) stays one argument.
+# Zen module's activation (spaces, pins, extension buttons) on the Windows profile via the link
+# from ./zen.nix. -e skips the shell so the profile path (spaces) stays one argument.
 if ($zenProfile -and -not $Test) {
   $linuxProfile = (wsl.exe -d $distro -e wslpath -u $zenProfile).Trim()
   wsl.exe -d $distro -e "$($out.Trim())/zen/activate" $linuxProfile
   if ($LASTEXITCODE) { throw "Zen's activation failed ($LASTEXITCODE)" }
 }
 
-# WinUtil's own headless mode (-Config: the list its Export writes), from the release pinned here
-# and checked against its hash. To move to a newer release, change both and check winutil.json's
-# names still exist in its config/tweaks.json and config/appx.json.
+# WinUtil headless (-Config) from the pinned, hash-checked release. To bump: change both and check
+# winutil.json's names still exist in its config/tweaks.json and config/appx.json.
 if ($Debloat -and -not $Test) {
   $winutilVersion = '26.11.13'
   $winutilSha256 = 'e9d05a59d564b4fbb61fcfa1a594504a0f81e8d27c787119e72a99b57ddbe66d'
-  # In WinUtil's own folder: its "Delete temp files" tweak empties %TEMP% while it runs.
+  # Its "Delete temp files" tweak empties %TEMP% mid-run, so use its own folder.
   $dir = "$env:LOCALAPPDATA\winutil"
   New-Item -ItemType Directory -Force $dir | Out-Null
   $script = "$dir\winutil-$winutilVersion.ps1"
@@ -121,20 +111,19 @@ if ($Debloat -and -not $Test) {
   if ((Get-FileHash $script -Algorithm SHA256).Hash -ne $winutilSha256) { throw "winutil.ps1 $winutilVersion does not match its pinned SHA-256" }
   Copy-Item "$PSScriptRoot\winutil.json" $config -Force
   powershell.exe -NoProfile -ExecutionPolicy Bypass -File $script -Config $config
-  # Its tweaks aren't idempotent (a second run of Explorer's folder discovery finds the keys the
-  # first deleted and counts an error), so an error is reported and the apply carries on.
+  # Tweaks aren't idempotent (second Explorer folder discovery counts an error): warn, carry on.
   if ($LASTEXITCODE) { Write-Warning "WinUtil reported errors ($LASTEXITCODE): see $dir\logs" }
   Remove-Item $script, $config
 }
 
-# Configuration files need winget's extended features (the DSC processor), off by default.
+# winget configure files need the extended features (DSC), off by default.
 winget configure --enable | Out-Null
 
 $configs = @('gaming.winget') + $(if ($GamingOnly) { @() } else { @('dev.winget') })
 foreach ($c in $configs) {
   $path = Join-Path $PSScriptRoot $c
   if ($Test) {
-    # Non-zero when the system has drifted: reported, not an error.
+    # Non-zero on drift: reported, not an error.
     winget configure test -f $path --accept-configuration-agreements --disable-interactivity
     continue
   }

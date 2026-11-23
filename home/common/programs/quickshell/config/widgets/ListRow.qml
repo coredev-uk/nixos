@@ -2,11 +2,8 @@ import QtQuick
 import QtQuick.Layouts
 import qs.common
 
-// Selectable row in the panel sub-views (wifi networks, VPN countries, bluetooth devices, power
-// actions, lighting looks). Transparent at rest, hover on hover; active or armed rows tint in
-// their accent (gilt: connected, selected) and take it on the glyph and label. A swatch (the
-// colours a lighting look puts on, blended left to right) takes the glyph's place and keeps its
-// own colours.
+// Selectable row in panel sub-views. Active/armed rows tint in their accent (gilt: connected,
+// selected) on glyph and label. A swatch (a lighting look's colours) replaces the glyph.
 Rectangle {
     id: root
 
@@ -49,7 +46,7 @@ Rectangle {
         Text {
             Layout.preferredWidth: 20
             text: root.swatches.length > 0 ? "" : root.icon
-            // Muted only on a clear row; it sinks into the hover fill, so it lifts to text2 there.
+            // Muted sinks into the hover fill, so it lifts to text2 there.
             color: root.active ? root.accent : area.containsMouse ? Theme.text2 : Theme.muted
             font.family: root.emoji ? Theme.emojiFont : Theme.iconFont
             font.pixelSize: 14
@@ -62,7 +59,7 @@ Rectangle {
                 }
             }
 
-            // A rule ring keeps a dark colour apart from the row under it.
+            // Rule ring keeps a dark colour apart from the row.
             Rectangle {
                 anchors.centerIn: parent
                 visible: root.swatches.length > 0

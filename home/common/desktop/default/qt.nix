@@ -9,8 +9,8 @@ let
   theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
 
-  # A qtct colour scheme: one QPalette per state, colours in QPalette::ColorRole order. The
-  # 22nd role (Accent) is only read by Qt 6.6+; qt5ct stops after the first 21.
+  # qtct colour scheme: one QPalette per state in QPalette::ColorRole order. The 22nd role (Accent)
+  # is Qt 6.6+ only; qt5ct stops at 21.
   palette =
     overrides:
     lib.concatStringsSep ", " (
@@ -42,7 +42,7 @@ let
   base = {
     windowText = m.text;
     button = m.plate;
-    # Fusion bevels buttons and frames with light/midlight/dark/mid/shadow.
+    # Fusion bevels with light/midlight/dark/mid/shadow.
     light = m.hover;
     midlight = m.hover;
     dark = m.ground;
@@ -89,7 +89,7 @@ let
   };
 in
 {
-  # Fusion drawn from a Meridian palette through qtct; the Papirus icons come from gtk.nix.
+  # Papirus icons come from gtk.nix.
   qt = {
     enable = true;
     platformTheme.name = "qtct";

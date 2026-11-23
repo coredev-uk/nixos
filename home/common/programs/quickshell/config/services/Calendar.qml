@@ -5,11 +5,10 @@ import Quickshell
 import Quickshell.Io
 import qs.common
 
-// iCloud events and Sonarr/Radarr releases via the quickshell-calendar helper
-// (scripts/calendar-events.py). The month the popup shows and the ones either side stay loaded:
-// fetched at startup, again when the popup moves past them, and refreshed once they're older
-// than maxAge, so changing month never waits. Secrets come from Proton Pass through the session
-// pass-cli keeps in the keyring, so fetching in the background never prompts.
+// iCloud events and Sonarr/Radarr releases via the quickshell-calendar helper (scripts/calendar-events.py).
+// The shown month and its neighbours stay loaded: fetched at startup, again when the popup moves past
+// them, refreshed once older than maxAge, so changing month never waits. Secrets come from Proton Pass
+// through the session pass-cli keeps in the keyring, so background fetches never prompt.
 Singleton {
     id: root
 
@@ -73,7 +72,6 @@ Singleton {
         ensure();
     }
 
-    // Fetches the shown month and its neighbours in one go when any of them is missing or stale.
     function ensure() {
         const months = [-1, 0, 1].map(delta => monthKey(year, month + delta));
         const now = Date.now();
@@ -91,7 +89,6 @@ Singleton {
         proc.running = true;
     }
 
-    // Replaces the days in first..last (end exclusive) with the result's events.
     function apply(first: date, last: date, result: var) {
         const firstKey = dayKey(first);
         const lastKey = dayKey(last);
@@ -140,7 +137,6 @@ Singleton {
                 day = next;
             } while (day < end)
         }
-        // All-day ones first, then by start.
         for (const key of touched)
             grouped[key].sort((a, b) => (b.allDay - a.allDay) || (a.start - b.start) || a.title.localeCompare(b.title));
         days = grouped;
@@ -165,7 +161,6 @@ Singleton {
         }
     }
 
-    // Keeps the loaded months fresh while the bar runs; ensure() does nothing if they are.
     Timer {
         running: true
         repeat: true
@@ -201,7 +196,6 @@ Singleton {
                     root.fetched = fetched;
                 }
             } catch (e) {
-                // Whatever was loaded before stays shown.
                 root.errors = [
                     {
                         source: "calendar",

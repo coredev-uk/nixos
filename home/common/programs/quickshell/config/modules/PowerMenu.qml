@@ -5,10 +5,9 @@ import Quickshell.Io
 import qs.common
 import qs.widgets
 
-// Session actions, then Windows in a section of its own. Log out, reboot, shut down and both
-// Windows ones need a second click to confirm. The Windows ones come from the VFIO module
-// (hosts/common/services/vfio.nix): a reboot into Windows, or the same install in a VM with the
-// GPU passed through while Linux keeps running underneath; each shown when its command is on PATH.
+// Session actions, then a Windows section. Log out, reboot, shut down and both Windows items need a
+// second click. The Windows items come from hosts/common/services/vfio.nix (reboot into Windows, or
+// the install in a VM with the GPU passed through); each shows when its command is on PATH.
 BarPopup {
     id: root
 
@@ -128,7 +127,6 @@ BarPopup {
                 ActionRow {}
             }
 
-            // The Windows section, under a rule and its own heading.
             Rectangle {
                 visible: root.windowsActions.length > 0
                 Layout.fillWidth: true

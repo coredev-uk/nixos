@@ -15,14 +15,12 @@
       options nvidia NVreg_RegistryDwords="RMUseSwI2c=0x01; RMI2cSpeed=100"
     '';
 
-    # 3. Auto-Attach Service
     systemd.services.ddcci-nvidia-attach = {
       description = "Attach ddcci driver to all Nvidia I2C buses";
       after = [ "greetd.service" ];
       requires = [ "greetd.service" ];
       wantedBy = [ "graphical.target" ];
-      # Without this, graphical.target gets an implicit After= on this ~13s oneshot (5s
-      # sleep, then one slow DDC/CI probe per bus). Ordering is already After=greetd.
+      # Else graphical.target waits on this ~13s oneshot; ordering is already After=greetd.
       unitConfig.DefaultDependencies = false;
       serviceConfig = {
         Type = "oneshot";

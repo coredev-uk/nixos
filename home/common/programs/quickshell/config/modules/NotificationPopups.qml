@@ -8,10 +8,9 @@ import Quickshell.Wayland
 import qs.common
 import qs.services
 
-// Notification popups in the corner under the bar on the focused monitor, newest next to the
-// bar. Each leaves after its timeout (paused while hovered) but stays in the centre. Cards slide
-// in from the screen edge and back out to it, and the rest of the stack closes up behind them;
-// Hyprland leaves this layer alone (no_anim) so the motion is only this.
+// Popups in the corner under the bar on the focused monitor, newest next to the bar. Each leaves
+// after its timeout (paused on hover) but stays in the centre. Cards slide in from the screen edge
+// and back out, the stack closing up behind; Hyprland leaves this layer alone (no_anim).
 PanelWindow {
     id: root
 
@@ -30,7 +29,7 @@ PanelWindow {
     }
 
     screen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
-    // Mapped until the last card has finished leaving.
+    // Mapped until the last card has left.
     visible: NotificationService.popups.length > 0 || leave.running
     // The full height of the screen, so the stack never clips as cards come and go; only the
     // cards take input.
@@ -53,7 +52,7 @@ PanelWindow {
     color: "transparent"
     WlrLayershell.namespace: "notifications"
     WlrLayershell.layer: WlrLayer.Overlay
-    // Only an inline reply needs the keyboard, and then only once clicked.
+    // Only an inline reply needs the keyboard, once clicked.
     WlrLayershell.keyboardFocus: NotificationService.popups.some(entry => entry.notification.hasInlineReply) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
     ListView {
@@ -143,7 +142,7 @@ PanelWindow {
             floating: true
             width: list.width
             countdown: expiry.interval > 0
-            // Full again while hovered: leaving starts the timeout over.
+            // Full again while hovered; leaving restarts the timeout.
             onHoveredChanged: {
                 if (hovered)
                     refill.restart();
@@ -167,7 +166,7 @@ PanelWindow {
                 onTriggered: NotificationService.hidePopup(card.entry)
             }
 
-            // The card's countdown track, in step with the timer: both start and stop together.
+            // Countdown track, in step with the timer.
             NumberAnimation {
                 id: drain
 
@@ -184,7 +183,6 @@ PanelWindow {
                 target: card.entry
 
                 function onTimeChanged() {
-                    // Paused while hovered; it starts over on leaving anyway.
                     if (expiry.running) {
                         expiry.restart();
                         drain.restart();

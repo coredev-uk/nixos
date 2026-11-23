@@ -1,8 +1,7 @@
 import QtQuick
 import qs.common
 
-// Rises into place and fades in when `shown` turns on, after `delay`; sinks and fades, without
-// the delay, when it turns off (the unlock outro).
+// Rises and fades in when `shown` turns on, after `delay`; sinks and fades out with no delay (unlock outro).
 Item {
     id: reveal
 

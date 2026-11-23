@@ -3,22 +3,19 @@ import Quickshell
 import Quickshell.Io
 import Quickshell.Wayland
 
-// The desktop wallpaper, one background layer per screen: its own instance (quickshell-wallpaper,
-// home/common/programs/quickshell/default.nix) so a bar restart never blanks the desktop.
-// set-wallpaper (home/common/programs/hypr/paper.nix) points current.jpg at the new image and
-// calls `change` with it; each screen keeps the old picture until the new one has decoded, then
-// crossfades.
+// Desktop wallpaper, one background layer per screen, in its own instance (quickshell-wallpaper)
+// so bar restarts never blank it. set-wallpaper (hypr/paper.nix) calls `change`; each screen keeps
+// the old picture until the new one has decoded, then crossfades.
 ShellRoot {
     id: root
 
-    // Starts on whatever current.jpg points at; `change` replaces it with the image's own path,
-    // which is unique per picture, so the image cache never serves a stale one.
+    // `change` sets the image's own unique path so the image cache never serves a stale one.
     property string source: Quickshell.env("QS_WALLPAPER") ?? ""
 
     IpcHandler {
         target: "wallpaper"
 
-        // Not `show`: the ipc CLI takes that word as its own subcommand.
+        // Not `show`: the ipc CLI treats it as a subcommand.
         function change(path: string): void {
             root.source = path;
         }
@@ -72,14 +69,14 @@ ShellRoot {
 
                     anchors.fill: parent
                     fillMode: Image.PreserveAspectCrop
-                    // Decoded at the screen's size, not the picture's (5K and up).
+                    // Decode at screen size (pictures are 5K+).
                     sourceSize.width: window.width
                     sourceSize.height: window.height
                     asynchronous: true
                     cache: false
                     z: index === window.front ? 1 : 0
                     opacity: index === 0 ? 1 : 0
-                    // Set once: later pictures arrive through window.load, alternating images.
+                    // Later pictures arrive via window.load.
                     Component.onCompleted: {
                         if (index === 0 && root.source !== "")
                             source = "file://" + root.source;

@@ -4,12 +4,10 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Whether the song playing in Sona is one of its Apple Music favourites, for the heart on what's
-// playing (modules/MediaPanel.qml): `sona like status --json` asks, `sona like toggle --json`
-// switches it ({ track: { id, … }, liked }, docs/cli.md in sona-go). Only Sona has favourites, and
-// it is asked only while what's playing is on screen (watch()), again on a new song, so nothing is
-// spawned otherwise. A switch shows at once and goes back if Sona refuses it (signed out of Apple
-// Music, or not running).
+// Whether Sona's current song is an Apple Music favourite, for the heart in modules/MediaPanel.qml:
+// `sona like status --json` asks, `sona like toggle --json` switches ({ track: { id, … }, liked },
+// docs/cli.md in sona-go). Asked only while the player is on screen (watch()) and on a new song. A
+// switch shows at once and reverts if Sona refuses (signed out of Apple Music, or not running).
 Singleton {
     id: root
 

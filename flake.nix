@@ -2,9 +2,8 @@
   description = "coredev-uk flake";
 
   inputs = {
-    # ADE, the terminal dashboard over GitHub/GitLab with zellij work tabs, worktrees and agent
-    # runs (home/common/dev/ade.nix). Follows ADE's main. No nixpkgs follows on purpose: its
-    # flake pins the Go toolchain its vendorHash is computed with.
+    # ADE dashboard (home/common/dev/ade.nix). No nixpkgs follows: its flake pins the Go toolchain
+    # its vendorHash uses.
     ade.url = "github:coredev-uk/ade";
 
     disko.url = "github:nix-community/disko";
@@ -23,9 +22,8 @@
     macos-wallpapers.inputs.nixpkgs.follows = "unstable";
 
     nix-citizen.url = "github:LovingMelody/nix-citizen";
-    # No nixpkgs follows on purpose: wine-astral, dxvk and the mingw cross toolchain are
-    # only in nix-citizen.cachix.org when built against nix-citizen's own nixpkgs pin.
-    # Following ours rebuilt them from source on every CI run and switch.
+    # No nixpkgs follows: wine-astral, dxvk and mingw are only in nix-citizen.cachix.org when
+    # built against its own nixpkgs pin.
     nix-citizen.inputs.treefmt-nix.follows = "treefmt-nix";
 
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-26.05";
@@ -38,14 +36,13 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "unstable";
 
-    # athena's Linux side runs as a NixOS distribution under WSL (hosts/athena).
+    # athena's NixOS-WSL side (hosts/athena).
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
 
     nixcord.url = "github:FlameFlag/nixcord";
     nixcord.inputs.nixpkgs.follows = "unstable";
-    # Only used by nixcord's own tests/formatter/CI shell. `nixpkgs-packages` is
-    # left pinned on purpose: its packages assert an exact Node.js version.
+    # Only nixcord's own tests/CI shell. `nixpkgs-packages` stays pinned: it asserts an exact Node.js.
     nixcord.inputs.home-manager.follows = "home-manager";
     nixcord.inputs.nix-darwin.follows = "nix-darwin";
     nixcord.inputs.treefmt-nix.follows = "treefmt-nix";
@@ -54,17 +51,15 @@
     nixvim.url = "github:nix-community/nixvim";
     nixvim.inputs.nixpkgs.follows = "unstable";
 
-    # oh-my-pi (home/common/shell/omp). Built from source with no upstream binary cache, so it
-    # follows our nixpkgs and CI builds it into Attic with the hosts. The darwin-x64 pair is
-    # only for Intel Macs, which no host is.
+    # Built from source, no upstream cache; CI builds it into Attic. darwin-x64 pair is for Intel
+    # Macs only (unused).
     omp.url = "github:can1357/oh-my-pi";
     omp.inputs.nixpkgs.follows = "unstable";
     omp.inputs.nixpkgs-darwin-x64.follows = "unstable";
     omp.inputs.bun2nix-darwin-x64.follows = "omp/bun2nix";
 
-    # Sona, the Apple Music client (home/common/programs/sona.nix). Its `nix` branch carries the
-    # published builds CI pins after each release and nightly rc. No nixpkgs follows on
-    # purpose: its flake pins the nixpkgs Sona is developed against (Go, GTK3, GStreamer).
+    # Sona (home/common/programs/sona.nix); `nix` branch carries CI-pinned builds. No nixpkgs
+    # follows: its flake pins the nixpkgs it's developed against.
     sona.url = "github:coredev-uk/sona-go/nix";
 
     taste-skill.url = "github:Leonxlnx/taste-skill";
@@ -104,22 +99,21 @@
           ;
       };
 
-      # Same formatter versions as the editor's (home-manager uses unstable).
+      # Match the editor's formatter versions (home-manager uses unstable).
       treefmtFor =
         system:
         inputs.treefmt-nix.lib.evalModule inputs.unstable.legacyPackages.${system}
           ./home/common/dev/treefmt.nix;
     in
     {
-      # Home Manager configurations
-      # stateVersion = HM release of the first activation; never bump it on upgrades.
+      # stateVersion = HM release of first activation; never bump.
       homeConfigurations = {
         "${username}@atlas" = libx.mkHome {
           hostname = "atlas";
           desktop = "hyprland";
           stateVersion = "26.05";
         };
-        # NixOS-WSL under athena (atlas's Windows install, on its other drive).
+        # NixOS-WSL on athena (atlas's Windows install).
         "${username}@athena" = libx.mkHome {
           hostname = "athena";
           type = "wsl";
@@ -127,7 +121,6 @@
         };
       };
 
-      # NixOS configurations
       nixosConfigurations = {
         atlas = libx.mkHost {
           hostname = "atlas";
@@ -139,7 +132,6 @@
         };
       };
 
-      # Nix Darwin configurations
       darwinConfigurations = {
         poseidon = libx.mkDarwin {
           hostname = "poseidon";
@@ -147,7 +139,7 @@
         };
       };
 
-      # Custom packages; acessible via 'nix build', 'nix shell', etc
+      # Custom packages ('nix build .#<pkg>')
       packages = libx.forAllSystems (
         system:
         let
@@ -156,11 +148,10 @@
         import ./pkgs { inherit pkgs; }
       );
 
-      # Custom overlays
+      # Overlays
       overlays = import ./overlays { inherit inputs; };
 
-      # Devshell for bootstrapping
-      # Accessible via 'nix develop'
+      # Bootstrap shell ('nix develop')
       devShells = libx.forAllSystems (
         system:
         let

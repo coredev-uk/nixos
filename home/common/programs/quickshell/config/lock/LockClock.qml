@@ -3,11 +3,9 @@ import Quickshell
 import qs.common
 import "../common/sun.js" as Sun
 
-// Bottom-left: the time, large, over the date, the day arc and the next sunrise or sunset (the
-// wallpaper follows the sun, so that's when the picture changes next). The arc is the bar
-// clock's, at this size: the day as a 24-hour track with the daylight between today's sunrise
-// and sunset lit, a tick and the time at each, and a gilt dot at now. The date line gives way to
-// the password (LockPrompt) while it's up.
+// Bottom-left: time over the date, the day arc and the next sunrise/sunset (the wallpaper follows
+// the sun). The arc is the bar clock's at this size. The date line gives way to the password
+// (LockPrompt) while it's up.
 Item {
     id: root
 
@@ -19,12 +17,11 @@ Item {
     readonly property real clockSize: Math.round(300 * s)
     readonly property bool engaged: context.active && !context.unlocking
 
-    // wlsunset's location, set by the quickshell-lock and quickshell-greeter wrappers.
+    // wlsunset's location, set by the lock and greeter wrappers.
     readonly property real latitude: parseFloat(Quickshell.env("QS_LATITUDE") ?? "")
     readonly property real longitude: parseFloat(Quickshell.env("QS_LONGITUDE") ?? "")
     readonly property bool located: !isNaN(latitude) && !isNaN(longitude)
     readonly property var sun: located ? Sun.next(clock.date, latitude, longitude) : null
-    // Today's sunrise and sunset, for the arc.
     readonly property var day: located ? Sun.events(clock.date, latitude, longitude) : null
 
     function dayFraction(date: date): real {
@@ -37,8 +34,7 @@ Item {
         precision: SystemClock.Minutes
     }
 
-    // The first digit's ink, measured rather than assumed, so the time lines up with the date
-    // line on the margin whatever the hour's leading digit and its side bearing.
+    // The first digit's ink is measured so the time aligns with the date line whatever the leading digit's side bearing.
     TextMetrics {
         id: ink
 
@@ -49,7 +45,6 @@ Item {
     Text {
         id: time
 
-        // The baseline sits a fixed gap above the date line.
         x: root.margin - Math.round(ink.tightBoundingRect.x)
         y: parent.height - root.margin - root.lineHeight - Math.round(40 * root.s) - baselineOffset
         text: Qt.formatTime(clock.date, "HH:mm")
@@ -58,7 +53,6 @@ Item {
         font.pixelSize: root.clockSize
         font.weight: Font.Light
         font.letterSpacing: -0.03 * root.clockSize
-        // Tabular figures, so the colon holds still as the minutes turn.
         font.features: Theme.fontFeatures
     }
 
@@ -123,8 +117,7 @@ Item {
                 color: Theme.tint(Theme.text, 0.42)
             }
 
-            // Sunrise and sunset: a tick across the track, its time under it (outside the
-            // arc's height, so the line stays centred on the date).
+            // Tick across the track with its time under it (outside the arc's height so the line stays centred on the date).
             Repeater {
                 model: root.day ? [root.day.rise, root.day.set] : []
 

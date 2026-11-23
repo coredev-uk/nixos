@@ -20,7 +20,6 @@ in
 
   programs.zen-browser =
     let
-      # Browser Extensions
       extensions =
         let
           mkExtensionSettings = builtins.mapAttrs (
@@ -31,7 +30,7 @@ in
           );
         in
         {
-          # Anything not listed here is blocked, and removed if already installed
+          # Allowlist: anything else is blocked and removed.
           "*".installation_mode = "blocked";
         }
         // mkExtensionSettings {
@@ -44,8 +43,6 @@ in
           # Proton
           "78272b6fa58f4a1abaac99321d503a20@proton.me" = "proton-pass";
           "vpn@proton.ch" = "proton-vpn-firefox-extension";
-          # Refined GitHub: off, it made GitHub's pages noticeably slower. Uncomment to try again.
-          # "{a4c4eda4-fb84-4a84-b4a1-f7c1cbf2a1ad}" = "refined-github";
           # Wappalyzer
           "wappalyzer@crunchlabz.com" = "wappalyzer";
           # AdBlocker
@@ -56,7 +53,6 @@ in
           "@testpilot-containers" = "multi-account-containers";
         };
 
-      # Containers
       containers = {
         Personal = {
           color = "blue";
@@ -90,7 +86,6 @@ in
         };
       };
 
-      # User Spaces
       spaces = {
         Universal = {
           id = "01ec42f0-1bae-4c03-9ba4-9494b5ccd9f8";
@@ -402,9 +397,9 @@ in
         };
       };
 
-      # Essential pins, shown in every space that uses their container; space pins live in spaces.*.pins
+      # Essential pins: shown in every space using their container (space pins: spaces.*.pins).
       pins = {
-        # Personal (Universal and Programming spaces)
+        # Universal and Programming spaces
         Google = {
           id = "8e566870-19b6-42d2-81d1-12a2880f313b";
           container = containers.Personal.id;
@@ -448,7 +443,7 @@ in
           position = 106;
         };
 
-        # Work (Work space)
+        # Work space
         "Google (Work)" = {
           id = "79abdada-cc50-4a99-b2cc-c9bf96b4bdb0";
           container = containers.Work.id;
@@ -466,7 +461,6 @@ in
       ];
 
       policies = {
-        # Standard Policies
         AutofillAddressEnabled = true;
         AutofillCreditCardEnabled = false;
         DisableAppUpdate = true;
@@ -475,7 +469,7 @@ in
         DisableTelemetry = true;
         DontCheckDefaultBrowser = true;
         NoDefaultBookmarks = true;
-        # Proton Pass is the password manager, so the built-in one is off
+        # Proton Pass replaces the built-in manager.
         PasswordManagerEnabled = false;
         TranslateEnabled = false;
         EnableTrackingProtection = {
@@ -484,7 +478,6 @@ in
           Cryptomining = true;
           Fingerprinting = true;
         };
-        # Extensions
         ExtensionSettings = extensions;
       };
 

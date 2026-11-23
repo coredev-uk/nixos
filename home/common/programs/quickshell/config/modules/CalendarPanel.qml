@@ -10,7 +10,6 @@ BarPopup {
 
     property int month: new Date().getMonth()
     property int year: new Date().getFullYear()
-    // Local midnight of the day whose events are listed.
     property date selected: today()
     readonly property string selectedKey: Calendar.dayKey(selected)
     readonly property var selectedEvents: Calendar.days[selectedKey] ?? []
@@ -27,7 +26,7 @@ BarPopup {
         Calendar.show(year, month);
     }
 
-    // Today when it's in the new month, else the 1st.
+    // Today if it's in the new month, else the 1st.
     function shiftMonth(delta: int) {
         const date = new Date(year, month + delta, 1);
         month = date.getMonth();
@@ -131,7 +130,7 @@ BarPopup {
                 Layout.fillWidth: true
                 month: root.month
                 year: root.year
-                // The new month arrives from the side it lies on; a transform leaves the layout alone.
+                // The new month slides in from its side; a transform leaves the layout alone.
                 transform: Translate {
                     id: shift
                 }
@@ -165,7 +164,6 @@ BarPopup {
                     readonly property date local: new Date(model.year, model.month, model.day)
                     readonly property string key: Calendar.dayKey(local)
                     readonly property bool selected: key === root.selectedKey
-                    // One dot per calendar colour, at most three.
                     readonly property var dots: {
                         const colors = [];
                         for (const event of Calendar.days[key] ?? []) {
@@ -179,10 +177,8 @@ BarPopup {
                     implicitWidth: 40
                     implicitHeight: 32
                     radius: Theme.radiusRow
-                    // Today is told by its gilt numeral, the selected day by a gilt ring.
                     color: area.containsMouse ? Theme.hover : "transparent"
-                    // Always 1 wide so the ring can ease in; clear gilt draws nothing and fades
-                    // without passing through black.
+                    // Always 1 wide so the ring can ease in; clear gilt fades without passing through black.
                     border.width: 1
                     border.color: selected ? Theme.gilt : Theme.tint(Theme.gilt, 0)
 
@@ -200,12 +196,12 @@ BarPopup {
                         }
                     }
 
-                    // Raised the same on every day, dots or not, so the numbers sit on one line.
+                    // Same raise with or without dots so the numbers sit on one line.
                     BarText {
                         anchors.centerIn: parent
                         anchors.verticalCenterOffset: -3
                         text: day.model.day
-                        // Days outside the month are muted, but never on the hover fill, where muted sinks.
+                        // Muted outside the month, but not on the hover fill (muted sinks there).
                         color: day.model.today ? Theme.gilt : day.model.month === grid.month ? Theme.text : area.containsMouse ? Theme.text2 : Theme.muted
                         font.pixelSize: 12
                         font.bold: day.model.today
@@ -268,7 +264,7 @@ BarPopup {
                 }
 
                 BarText {
-                    // Only before the first answer: later fetches refresh what's already shown.
+                    // Only before the first answer; later fetches refresh in place.
                     visible: Calendar.loading && !Calendar.loaded
                     text: "Loading…"
                     color: Theme.text2
@@ -361,8 +357,7 @@ BarPopup {
                 }
             }
 
-            // One line for a signed-out Proton Pass instead of the same error per source, with the
-            // way back in. The browser opens for the sign-in (PassQuickAccess handles the page).
+            // One line for a signed-out Proton Pass instead of an error per source. Sign-in opens the browser (PassQuickAccess handles the page).
             RowLayout {
                 visible: Calendar.passSignedOut
                 Layout.fillWidth: true

@@ -11,19 +11,16 @@ import qs.services
 import qs.widgets
 
 // Proton Pass quick access (`quickshell ipc -c bar call pass toggle`), laid out like 1Password's:
-// search every vault but the hidden ones (QUICKSHELL_PASS_HIDDEN_VAULTS in default.nix) from the
-// focused monitor, Enter opens the item's actions (copy username, password, OTP or API
-// keys, open the login's website in the browser). The copy and open keys also work straight from
-// the list on the highlighted item. There is no "Open in Proton Pass": the desktop app's
-// protonpass:// links only cover sign-in, and the web app signs in every time; Ctrl+Alt+Space
-// (hyprland/config/keybindings.nix) brings up the desktop app instead.
-// Secrets go from pass-cli to the clipboard inside the quickshell-pass helper (scripts/pass.sh),
-// which clears them again after 45s; services/Pass.qml holds only titles and non-secret details.
-// The layer is no_screen_share (hyprland/default.nix), so screen shares show a black box the
-// card's size instead. The shell's own recording captures KMS, past that rule: while it records,
-// the list shows titles only, without usernames, vaults or the account; an item shows its
-// details once opened.
-// Logins show their website's icon (services/Pass.qml fetches them), other items their type.
+// search every vault but the hidden ones (QUICKSHELL_PASS_HIDDEN_VAULTS in default.nix); Enter opens
+// the item's actions (copy username, password, OTP or API keys, open the website); the copy and open
+// keys also work from the list. No "Open in Proton Pass": protonpass:// links only cover sign-in and
+// the web app signs in every time; Ctrl+Alt+Space (hyprland/config/keybindings.nix) opens the desktop app.
+// Secrets go pass-cli -> clipboard inside the quickshell-pass helper (scripts/pass.sh), which clears
+// them after 45s; services/Pass.qml holds only titles and non-secret details.
+// The layer is no_screen_share (hyprland/default.nix): shares show a card-sized black box. The shell's
+// own recording captures KMS, past that rule, so while it records the list shows titles only (no
+// usernames, vaults or account); an item shows its details once opened.
+// Logins show their site icon (fetched by services/Pass.qml), other items their type.
 Scope {
     id: root
 
@@ -35,7 +32,6 @@ Scope {
     property string query: ""
     // The selection follows the item, not its position, while results re-rank.
     property string selectedKey: ""
-    // Confirmation or failure under the list.
     property string notice: ""
     property bool noticeIsError: false
     // Closed for a web sign-in it started; shown again once signed in.
@@ -44,10 +40,8 @@ Scope {
     readonly property var results: search(Pass.items, query, Pass.details)
     readonly property int selected: Math.max(0, results.findIndex(item => Pass.key(item) === selectedKey))
     readonly property var current: results[selected] ?? null
-    // The item whose actions are showing (Enter on a result), else null for the list.
     property var openedItem: null
     property int actionIndex: 0
-    // What the copy and open keys act on: the open item, else the highlighted result.
     readonly property var target: openedItem ?? current
     readonly property var actions: actionsOf(openedItem, Pass.details)
 
@@ -346,7 +340,6 @@ Scope {
         event.accepted = true;
     }
 
-    // Typing again goes back to the results, as in 1Password.
     onQueryChanged: {
         selectedKey = "";
         openedItem = null;
@@ -438,7 +431,6 @@ Scope {
             WlrLayershell.layer: WlrLayer.Overlay
             WlrLayershell.keyboardFocus: WlrKeyboardFocus.Exclusive
 
-            // A click outside the card, on any surface, closes it.
             HyprlandFocusGrab {
                 active: window.visible
                 windows: [window]
@@ -462,8 +454,7 @@ Scope {
                     y: window.shadowPadding
                     width: 560
                     height: body.implicitHeight + 24
-                    // Hyprland fades the layer in and out (animations.nix); the card settles
-                    // the last few pixels on top of that.
+                    // Hyprland fades the layer (animations.nix); the card settles the last few pixels on top.
                     transform: Translate {
                         id: slide
                         y: -8
@@ -525,7 +516,6 @@ Scope {
                             }
                         }
 
-                        // Signed in: search, results, the selection's details.
                         Rectangle {
                             Layout.fillWidth: true
                             visible: Pass.signedIn
@@ -690,7 +680,6 @@ Scope {
                             onAction: Pass.refresh()
                         }
 
-                        // The open item: what it is, then its actions. Escape or the cross goes back.
                         RowLayout {
                             Layout.fillWidth: true
                             Layout.leftMargin: 4
@@ -784,7 +773,6 @@ Scope {
                             }
                         }
 
-                        // Signed out, signing in, or not known yet.
                         Message {
                             visible: !Pass.signedIn
                             icon: Icons.shieldLockOutline
@@ -822,8 +810,7 @@ Scope {
                             onSecondary: Pass.cancelSignIn()
                         }
 
-                        // The last copy's confirmation; otherwise where the open item lives, or the
-                        // copy keys and the account in the list; Enter to open goes without saying.
+                        // Last copy's confirmation; else where the open item lives, or the copy keys and account in the list.
                         RowLayout {
                             Layout.fillWidth: true
                             Layout.leftMargin: 4
@@ -853,7 +840,6 @@ Scope {
                                         return `Located in ${root.openedItem.vault}`;
                                     if (list.count === 0)
                                         return "";
-                                    // The OTP key only for a highlighted item known to have one.
                                     return "Ctrl+C username  ·  Ctrl+Shift+C password" + (root.detailsOf(root.current)?.hasTotp ? "  ·  Ctrl+Alt+C OTP" : "");
                                 }
                                 color: {
@@ -902,7 +888,6 @@ Scope {
         property int size: 20
         property int iconSize: 16
         property color glyphColor: Theme.muted
-        // Behind the glyph; the icon always has its light tile.
         property color glyphTile: "transparent"
 
         readonly property bool hasIcon: favicon.status === Image.Ready
@@ -937,8 +922,6 @@ Scope {
         }
     }
 
-    // One entry of the open item's menu: icon, label (and what it opens), and its key. Highlighted
-    // by the keyboard or the pointer, like 1Password's menu.
     component ActionRow: Rectangle {
         id: action
 
@@ -1002,7 +985,6 @@ Scope {
         }
     }
 
-    // A centred state: optional icon, title, detail and up to two buttons.
     component Message: ColumnLayout {
         id: message
 

@@ -1,9 +1,8 @@
 # yaml-language-server: $schema=https://aka.ms/configuration-dsc-schema/0.2
 #
-# athena's Windows development tools, kept apart from gaming.winget so the gaming install can
-# go without them. Mainly Sona's Windows build: what .github/actions/setup-windows gives CI
-# (Go, MinGW-w64 gcc, pkg-config, GStreamer at the pin, the MSVC-built CDM shim), with the same
-# environment variables. The Linux side is NixOS-WSL (nixosConfigurations.athena).
+# athena's Windows dev tools, apart from gaming.winget. Mirrors Sona's CI Windows build
+# (.github/actions/setup-windows): Go, MinGW-w64 gcc, pkg-config, GStreamer at the pin, the
+# MSVC-built CDM shim, same env vars.
 properties:
   configurationVersion: 0.2.0
   resources:
@@ -35,8 +34,7 @@ properties:
       id: golangci-lint
       directives: { description: golangci-lint, allowPrerelease: true }
       settings: { id: GolangCI.golangci-lint, source: winget }
-    # Sona's developer commands (the justfile: `just dev`, `just check`, …). A portable package,
-    # which winget won't install for the user from an elevated process: installed machine-wide.
+    # Sona's `just` commands. Portable package: winget refuses user scope from elevated, so machine-wide.
     - resource: PSDscResources/Script
       id: just
       directives: { description: just, securityContext: elevated, allowPrerelease: true }
@@ -60,7 +58,7 @@ properties:
       id: vs-buildtools
       directives: { description: Visual Studio 2022 Build Tools, securityContext: elevated, allowPrerelease: true }
       settings: { id: Microsoft.VisualStudio.2022.BuildTools, source: winget }
-    # The C++ x64 tools build/windows/build-shim.sh finds with vswhere.
+    # C++ x64 tools for build/windows/build-shim.sh (found via vswhere).
     - resource: Microsoft.VisualStudio.DSC/VSComponents
       id: vs-cpp
       dependsOn: [vs-buildtools]
@@ -90,7 +88,7 @@ properties:
           $want = 'golang.go', 'ms-vscode-remote.remote-wsl', 'jnoortheen.nix-ide', 'mkhl.direnv', 'timonwong.shellcheck'
           foreach ($e in $want) { & $code --install-extension $e }
 
-    # The editor's Go tools, as the Go extension would install them.
+    # Go extension's tools.
     - resource: PSDscResources/Script
       id: go-tools
       dependsOn: [go]
@@ -107,10 +105,9 @@ properties:
             if ($LASTEXITCODE) { throw "go install $p failed" }
           }
 
-    # The checkout (%USERPROFILE%\Projects\sona-go), GStreamer at build/windows/gstreamer.sha256's
-    # version (the repo's own install-gstreamer.sh) and sona_cdm_shim.dll (build-shim.sh), in
-    # %LOCALAPPDATA%\sona-dev. A new pin in the checkout reinstalls GStreamer on the next apply.
-    # git clones over SSH (~/.config/git/config, from apply.ps1), so Proton Pass must be unlocked.
+    # Checkout (%USERPROFILE%\Projects\sona-go), GStreamer at build/windows/gstreamer.sha256's
+    # version, and sona_cdm_shim.dll, in %LOCALAPPDATA%\sona-dev. A new pin reinstalls GStreamer.
+    # Clones over SSH, so Proton Pass must be unlocked.
     - resource: PSDscResources/Script
       id: sona-dev
       dependsOn: [git, vs-cpp]
@@ -131,8 +128,7 @@ properties:
           $d = ("$env:LOCALAPPDATA\sona-dev") -replace '\\', '/'
           $repo = "$env:USERPROFILE\Projects\sona-go"
           $git = "$env:ProgramFiles\Git\cmd\git.exe"
-          # git and the scripts report progress on stderr, which the Script resource takes for a
-          # failure: each runs with stderr in a log, and only its exit code counts.
+          # Stderr progress counts as failure to the Script resource: log it, trust only exit codes.
           $log = "$env:LOCALAPPDATA\sona-dev\setup.log"
           New-Item -ItemType Directory -Force (Split-Path $log) | Out-Null
           function Run($file, $arguments, $what) {
@@ -142,15 +138,14 @@ properties:
           if (-not (Test-Path "$repo\.git")) {
             New-Item -ItemType Directory -Force (Split-Path $repo) | Out-Null
             Run $git @('clone', 'https://github.com/coredev-uk/sona-go', "`"$repo`"") 'git clone'
-            # devenv's enterShell does this on Linux: hooks that refuse commits on main.
+            # Linux devenv's enterShell equivalent: hooks refusing commits on main.
             Run $git @('-C', "`"$repo`"", 'config', 'core.hooksPath', '.githooks') 'git config'
           }
           $r = $repo -replace '\\', '/'
           Run "$env:ProgramFiles\Git\bin\bash.exe" @('-lc', "`"cd '$r' && GSTREAMER_PKG_CACHE='$d/gstreamer-pkg' build/windows/install-gstreamer.sh '$d/gstreamer' && build/windows/build-shim.sh '$d/shim'`"") 'install-gstreamer.sh or build-shim.sh'
           Remove-Item $log
 
-    # install-gstreamer.sh's install registers as winget's gstreamerproject.gstreamer: pinned, so
-    # `winget upgrade --all` leaves it at the repository's version.
+    # Pinned so `winget upgrade --all` keeps GStreamer at the repo's version.
     - resource: PSDscResources/Script
       id: gstreamer-pin
       dependsOn: [sona-dev]
@@ -163,8 +158,7 @@ properties:
         SetScript: |
           winget pin add --id gstreamerproject.gstreamer --blocking --disable-interactivity
 
-    # What .github/actions/setup-windows exports for cgo and the CDM tests, for every new
-    # terminal. Git Bash's /etc/profile overrides PKG_CONFIG_PATH; ~/.bashrc (apply.ps1) sets it back.
+    # Env for cgo and CDM tests. Git Bash's /etc/profile overrides PKG_CONFIG_PATH; ~/.bashrc resets it.
     - resource: PSDscResources/Script
       id: sona-env
       dependsOn: [sona-dev, pkg-config]

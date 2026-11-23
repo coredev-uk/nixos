@@ -8,9 +8,9 @@ import Quickshell.Wayland
 import qs.common
 import qs.widgets
 
-// The session's polkit agent (replaces hyprpolkitagent): asks for a password when an app needs
-// elevated rights (pkexec, systemctl, udisks, ...), on the monitor that was focused at the time.
-// Enter authenticates, Escape cancels. A wrong password keeps the dialog open for another try.
+// Session polkit agent: asks for a password when an app needs elevated rights (pkexec, systemctl,
+// udisks, ...), on the monitor focused at the time. Enter authenticates, Escape cancels; a wrong
+// password keeps the dialog open.
 Scope {
     id: root
 
@@ -57,7 +57,6 @@ Scope {
             root.wrongPassword = false;
             root.open = true;
         }
-        // Completed, cancelled here or withdrawn by the requesting app.
         onIsActiveChanged: {
             if (!isActive)
                 root.open = false;
@@ -114,7 +113,6 @@ Scope {
 
                 Component.onCompleted: input.forceActiveFocus()
 
-                // Escape from the field or anywhere else in the dialog.
                 Keys.onEscapePressed: root.cancel()
 
                 Connections {
@@ -248,7 +246,6 @@ Scope {
                             }
                         }
 
-                        // Whose password to give, when polkit accepts more than one admin.
                         Rectangle {
                             visible: identities.count > 1
                             Layout.fillWidth: true
@@ -319,8 +316,6 @@ Scope {
                                     anchors.leftMargin: 12
                                     anchors.verticalCenter: parent.verticalCenter
                                     text: root.awaitingKey ? Icons.key : Icons.lock
-                                    // Lifts out of idle while PAM checks or waits for the key, with the
-                                    // words beside it.
                                     color: root.wrongPassword ? Theme.alert : root.checking || root.awaitingKey ? Theme.text2 : Theme.muted
                                 }
 

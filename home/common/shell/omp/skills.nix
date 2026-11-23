@@ -1,18 +1,14 @@
-# omp's skills as one store directory, read through `skills.customDirectories` (default.nix).
-# Each entry is a directory holding a SKILL.md, named after its frontmatter `name`. Adding one
-# is an input (`flake = false`) in flake.nix and a line below; `nix flake update <input>`
-# moves it.
+# omp skills as one store dir (skills.customDirectories in default.nix); each entry holds a SKILL.md
+# named after its frontmatter `name`. Add one as a `flake = false` input plus a line below.
 {
   pkgs,
   lib,
   inputs,
 }:
 let
-  # Impeccable (https://impeccable.style), the build upstream generates for omp. Its launcher
-  # (scripts/impeccable) runs the engine at scripts/bin/<os>-<arch>/impeccable before trying
-  # to download one, so the engine release scripts/VERSION pins goes there, checked against
-  # upstream's engine-checksums.txt. The wrapper keeps telemetry off whatever the environment
-  # or ~/.impeccable/config.json say.
+  # Impeccable's launcher runs scripts/bin/<os>-<arch>/impeccable before trying to download, so
+  # install the pinned engine (scripts/VERSION, checked against engine-checksums.txt) there.
+  # Telemetry forced off.
   impeccable =
     let
       src = "${inputs.impeccable}/.omp/skills/impeccable";
@@ -26,7 +22,6 @@ let
         }
         .${pkgs.stdenv.hostPlatform.system};
       asset = "impeccable-${platform}";
-      # engine-checksums.txt lines are "<version> <asset> <sha256>".
       checksums = builtins.readFile "${src}/scripts/engine-checksums.txt";
       prefix = lib.escapeRegex "${version} ${asset}";
       engine = pkgs.fetchurl {
@@ -44,7 +39,6 @@ let
 in
 pkgs.linkFarm "omp-skills" {
   inherit impeccable;
-  # Taste Skill (https://tasteskill.dev). Its scripts need node and, for the browser
-  # inspector, CHROME_PATH (default.nix).
+  # Scripts need node and CHROME_PATH (default.nix).
   design-taste-frontend = "${inputs.taste-skill}/skills/taste-skill";
 }

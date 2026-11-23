@@ -3,18 +3,16 @@ import QtQuick.Layouts
 import Quickshell.Widgets
 import qs.common
 
-// Panel row: icon (glyph or app icon), optional label, a full-width slider, and its value (percent
-// unless valueText says otherwise). An optional sublabel sits under the track (the output a
-// volume sets).
+// Panel row: icon (glyph or app icon), optional label, slider, value (percent unless valueText
+// says otherwise), optional sublabel under the track.
 Item {
     id: root
 
     property string icon
-    // App icon path; replaces the glyph when set.
     property string iconSource: ""
     property string label: ""
     property string sublabel: ""
-    // The fill; muted when the thing it sets is off (a muted output).
+    // Muted when the thing it sets is off.
     property color color: Theme.fill
     property color iconColor: Theme.text2
     property real value: 0 // 0-100
@@ -58,7 +56,6 @@ Item {
                     implicitSize: 18
                 }
 
-                // At least 24px tall, whatever the glyph's own height.
                 MouseArea {
                     anchors.centerIn: parent
                     width: parent.width
@@ -92,7 +89,6 @@ Item {
             }
         }
 
-        // Starts under the track and ends under the value.
         BarText {
             visible: root.sublabel !== ""
             Layout.fillWidth: true

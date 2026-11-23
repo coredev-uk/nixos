@@ -12,10 +12,9 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// On-screen display for the volume, microphone, brightness and media keys, driven over IPC
-// (`quickshell ipc -c bar call osd <function> <arg>`, see keybindings.nix) so it only appears for
-// key presses, not when the panel or an app changes a value. A card above the bottom edge of the
-// focused monitor that hides shortly after the last press.
+// OSD for volume, microphone, brightness and media keys, driven over IPC (`quickshell ipc -c bar
+// call osd <function> <arg>`, keybindings.nix) so it appears only for key presses. A card above
+// the bottom edge of the focused monitor, hidden shortly after the last press.
 Scope {
     id: root
 
@@ -25,7 +24,6 @@ Scope {
     // Keeps the window around while it fades out.
     property bool loaded: false
     property string screenName: ""
-    // The player the last media key went to.
     property MprisPlayer player: null
 
     readonly property PwNode sink: Pipewire.defaultAudioSink
@@ -76,7 +74,6 @@ Scope {
             root.show("mic");
         }
 
-        // Steps the monitors by `step` percent ("+10", "-10").
         function brightness(step: string): void {
             const delta = parseFloat(step);
             if (isNaN(delta))
@@ -109,7 +106,6 @@ Scope {
         onTriggered: root.shown = false
     }
 
-    // Unloads once the fade-out has finished.
     Timer {
         running: !root.shown && root.loaded
         interval: 250
@@ -141,7 +137,6 @@ Scope {
             Plate {
                 id: card
 
-                // Rises into place as it fades in, sinks as it fades out.
                 property real drop: 8
 
                 width: 300
@@ -208,7 +203,6 @@ Scope {
         }
     }
 
-    // Icon, then a bar and percentage (volume, brightness) or a label (microphone).
     component LevelRow: RowLayout {
         id: level
 
@@ -276,7 +270,6 @@ Scope {
         }
     }
 
-    // Artwork (or a music glyph), title and artist, and whether it's now playing or paused.
     component MediaRow: RowLayout {
         spacing: 10
 

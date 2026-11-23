@@ -10,23 +10,16 @@ let
   shared = import ./shared.nix { inherit lib theme; };
 in
 {
-  # Fira Code and the Nerd Font symbols come from hosts/common/desktop on NixOS; darwin
-  # hosts have no desktop module, so install them here (HM copies them into ~/Library/Fonts).
+  # Fonts come from hosts/common/desktop on NixOS; darwin has no desktop module, so install here.
   home.packages = lib.optionals meta.isDarwin [
     theme.fonts.monospace.package
     theme.fonts.iconFont.package
   ];
 
-  # Each Ghostty surface runs in a transient systemd scope; this prefix drop-in applies to
-  # all of them. Interactive zsh (e.g. zellij panes, whose pty zellij keeps open) ignores
-  # SIGTERM, so stopping the scope at shutdown/logout hung until the 90s timeout. SIGHUP
-  # makes the shells exit; the shorter timeout bounds anything else that ignores both.
-  # OOMPolicy=continue: when the kernel OOM-kills one process in a tab (a `go test` binary,
-  # a linker), the scope's default OOMPolicy=stop tore down the whole tab, shell and agent
-  # included; now only the killed process goes.
-  # MemoryHigh/MemoryMax: one tab (an agent running several test suites at once) may use at
-  # most 40% of RAM. Past 35% the kernel reclaims and throttles it; at 40% the OOM kill happens
-  # inside that tab, not system-wide, where it took Proton Pass (the SSH agent) instead.
+  # Drop-in for every Ghostty surface scope. zsh in zellij panes ignores SIGTERM and hung shutdown
+  # until the 90 s timeout; SIGHUP makes shells exit, the timeout bounds the rest.
+  # OOMPolicy=continue: an OOM kill of one process (linker, test binary) must not take down the whole tab.
+  # MemoryHigh/Max 35%/40%: a runaway tab is OOM-killed itself, not system-wide (which hit Proton Pass, the SSH agent).
   xdg.configFile."systemd/user/app-ghostty-surface-transient-.scope.d/stop.conf" =
     lib.mkIf (!meta.isDarwin)
       {
@@ -51,15 +44,11 @@ in
 
     settings = shared.settings // {
       theme = "meridian";
-      # Close windows without asking, even with a running process (zellij keeps sessions).
       confirm-close-surface = false;
-      # Option as Alt on macOS, so zellij's Alt chords work.
+      # Alt chords for zellij.
       macos-option-as-alt = lib.mkIf meta.isDarwin true;
 
-      # Tabs and splits are zellij's job (see ../../shell/zellij.nix), so release the keys it
-      # binds. Linux: Ghostty's Alt+digit tab switching and its new-tab shortcut. macOS: the
-      # Cmd keys for Ghostty's tabs, splits and search, and Ctrl+Tab tab cycling, which zellij
-      # binds the same way.
+      # Tabs/splits are zellij's (../../shell/zellij.nix): release the keys it binds.
       keybind = map (key: "${key}=unbind") (
         if meta.isDarwin then
           [

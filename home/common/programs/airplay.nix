@@ -5,18 +5,15 @@
   ...
 }:
 
-# AirPlay 2 audio out (the outputs under the panel's volume row, quickshell/config/services/AirPlay.qml).
-# PipeWire's own AirPlay sender only speaks AirPlay 1, which the HomePod and the TV refuse
-# (403 Forbidden), so OwnTone does the AirPlay 2 side: a PipeWire sink writes into a named pipe
-# in OwnTone's library, OwnTone starts playing as soon as data arrives and streams it to the
-# speakers selected through its JSON API (localhost:3689). Speakers play about a second behind
-# the computer, so this is for music rather than for watching video. The firewall side (UDP
-# 6001-6002 for the speakers' timing and control packets) is in hosts/common/desktop/casting.nix.
+# AirPlay 2 out via OwnTone (PipeWire's own sender is AirPlay 1 only; HomePod/TV refuse it with 403).
+# A PipeWire sink writes into a pipe in OwnTone's library; speakers are picked via its JSON API
+# (localhost:3689). ~1 s latency: music only. Firewall (UDP 6001-6002) is in hosts/common/desktop/casting.nix.
+# UI: quickshell/config/services/AirPlay.qml.
 let
   stateDir = "${config.xdg.stateHome}/owntone";
   fifo = "${stateDir}/music/system.fifo";
 
-  # Feeds the playing track's MPRIS metadata to OwnTone (called by the bar's AirPlay service).
+  # Called by the bar's AirPlay service.
   airplayMetadata = pkgs.writeShellApplication {
     name = "airplay-metadata";
     runtimeInputs = with pkgs; [
@@ -37,11 +34,10 @@ let
       logfile = "${stateDir}/owntone.log"
       loglevel = log
       ipv6 = false
-      # Only the bar talks to it; the ports aren't open in the firewall either.
+      # Bar only; ports aren't in the firewall either.
       trusted_networks = { "localhost" }
-      # How far ahead of the speakers OwnTone streams, which is how late play, pause and the
-      # sound itself reach them. The 2250 ms default is for first-generation AirPlay devices;
-      # OwnTone's own docs suggest current ones cope with 500. Raise it if speakers drop out.
+      # How far ahead of the speakers OwnTone streams (= play/pause/audio delay). Default 2250 is for
+      # AirPlay 1 devices; 500+ suffices for current ones. Raise if speakers drop out.
       start_buffer_ms = 750
     }
     library {
@@ -49,7 +45,7 @@ let
       directories = { "${stateDir}/music" }
       pipe_autostart = true
     }
-    # Nothing plays locally: the pipe's audio already came from this computer.
+    # Audio already came from this machine.
     audio {
       type = "disabled"
     }
@@ -84,8 +80,7 @@ in
 
   home.packages = [ airplayMetadata ];
 
-  # The sink the shell switches to for AirPlay. PipeWire reads this at startup: after changing it,
-  # `systemctl --user restart pipewire` (or log in again).
+  # Sink the shell switches to for AirPlay. Read at PipeWire start: restart it after changes.
   xdg.configFile."pipewire/pipewire.conf.d/60-airplay-sink.conf".text = builtins.toJSON {
     "context.modules" = [
       {

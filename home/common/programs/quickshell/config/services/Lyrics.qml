@@ -4,10 +4,9 @@ import QtQuick
 import Quickshell
 import Quickshell.Io
 
-// Sona's lyrics for now playing's popup (modules/MediaPopup.qml). `sona lyrics --follow --json`
-// prints one JSON object each time the line, the song or the playback state changes, from Sona's
-// own lyrics sources and cache (docs/cli.md in sona-go); `sona lyrics --json` gives the whole
-// song once. They run only while the popup is open on Sona, so nothing is spawned otherwise.
+// Sona's lyrics for the now-playing popup (modules/MediaPopup.qml): `sona lyrics --follow --json` prints
+// an object whenever the line, song or playback state changes; `sona lyrics --json` gives the whole song
+// once (docs/cli.md in sona-go). Run only while the popup is open on Sona.
 Singleton {
     id: root
 

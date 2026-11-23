@@ -1,14 +1,9 @@
-# The NZXT Kraken Elite's screen (1e71:300c) as a temperature gauge: CPU,
-# GPU and coolant, drawn here and pushed through liquidctl's API whenever a
-# reading changes (at most every UPDATE seconds, and every REFRESH seconds
-# regardless). NZXT CAM doesn't run on Linux, and liquidctl only uploads
-# still pictures; this streams frames the way CAM does (see MAGIC below).
-#
-# Readings: the CPU's Tctl (k10temp) and the coolant (the kernel's
-# kraken2023elite hwmon driver) from sysfs, the GPU from nvidia-smi. A source
-# that doesn't answer shows a dash.
-#
-# Stopped, it puts the cooler's own liquid-temperature screen back.
+# NZXT Kraken Elite screen (1e71:300c) as a CPU/GPU/coolant gauge via
+# liquidctl's API, pushed when a reading changes (at most every UPDATE s;
+# every REFRESH s regardless). liquidctl only uploads stills, so frames are
+# streamed the way NZXT CAM does (see MAGIC).
+# CPU Tctl (k10temp) and coolant (kraken2023elite hwmon) from sysfs, GPU from
+# nvidia-smi; a missing source shows a dash. On stop the liquid screen returns.
 
 import glob
 import os
@@ -138,13 +133,10 @@ def shown(r):
             None if r["liquid"] is None else round(r["liquid"], 1))
 
 
-# NZXT CAM's live mode, as captured from it on this cooler (1e71:300c) by
-# github.com/KhalloufHassan/kraken-elite-screen-manager: after one handshake,
-# every frame is 640x640 raw BGR streamed behind a short header, with no
-# per-frame bucket setup. liquidctl's static upload instead writes a picture
-# into one of the screen's 16 memory buckets and switches to it, clearing all
-# of them (and showing the liquid screen) once they're used: that flickers
-# and cycles on a gauge.
+# CAM's live mode (from github.com/KhalloufHassan/kraken-elite-screen-manager):
+# one handshake, then 640x640 raw BGR frames behind a short header.
+# liquidctl's static upload cycles 16 memory buckets and falls back to the
+# liquid screen once used up, which flickers on a gauge.
 MAGIC = [0x12, 0xFA, 0x01, 0xE8, 0xAB, 0xCD, 0xEF, 0x98, 0x76, 0x54, 0x32,
          0x10]
 URB = 245760  # CAM's bulk transfer size
@@ -190,9 +182,8 @@ def start_streaming(device):
     drain(device)
 
 
-# Streamed frames ignore the orientation the panel keeps for its own liquid
-# screen; mounted as atlas's is, the panel shows them a quarter turn
-# clockwise, so they're sent a quarter turn the other way.
+# Streamed frames ignore the panel's stored orientation; as mounted in atlas
+# they appear turned 90° clockwise, so send them turned back.
 TURN = 90
 
 
@@ -244,7 +235,7 @@ def main():
                 if shown(r) != last or now - last_at > REFRESH:
                     upload(device, render(r))
                     last, last_at = shown(r), now
-            # USB gone (unplugged, the VM took it), or a reply that never came
+            # USB gone (unplugged, taken by the VM) or no reply
             except Exception as error:
                 print(f"kraken-lcd: {error}", file=sys.stderr, flush=True)
                 try:

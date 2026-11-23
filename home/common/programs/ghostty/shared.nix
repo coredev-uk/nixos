@@ -1,5 +1,4 @@
-# Ghostty's Meridian theme and the settings every terminal shares: Ghostty (./default.nix) and
-# Wintty, Ghostty's core on Windows, on athena (hosts/athena/windows).
+# Meridian theme and settings shared by Ghostty (./default.nix) and Wintty on athena (hosts/athena/windows).
 { lib, theme }:
 let
   term = theme.meridian.terminal;
@@ -18,7 +17,7 @@ in
   meridian = {
     inherit (term) background foreground;
     cursor-color = term.cursor;
-    # The cell under the gilt block cursor reads in ground, like text on any gilt fill.
+    # Text under the gilt block cursor is ground.
     cursor-text = term.background;
     selection-background = term.selectionBackground;
     selection-foreground = term.selectionForeground;
@@ -28,16 +27,13 @@ in
   };
 
   settings = {
-    # Nerd Font glyphs (omp's `nerd` symbols, see ../../shell/omp) from the symbols font
-    # rather than Ghostty's built-in copy, so they track nixpkgs.
+    # Nerd symbols (omp's `nerd`) from the symbols font, not Ghostty's built-in copy.
     font-family = [
       theme.fonts.monospace.name
       theme.fonts.iconFont.name
     ];
-    # window-decoration = false;
     clipboard-paste-protection = false;
-    # Wrap ssh to install xterm-ghostty terminfo on remotes, falling back to
-    # TERM=xterm-256color where that fails.
+    # ssh installs xterm-ghostty terminfo on remotes, else falls back to xterm-256color.
     shell-integration-features = "ssh-env,ssh-terminfo";
   };
 }
