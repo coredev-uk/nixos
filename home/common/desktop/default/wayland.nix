@@ -5,7 +5,7 @@
   imports = [
     ../../programs/quickshell
     ../../programs/airplay.nix
-    ../../programs/vicinae.nix
+    ../../programs/vicinae
   ];
 
   home.packages = with pkgs; [

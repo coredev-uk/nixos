@@ -27,7 +27,7 @@ let
   ];
 
   # Linux binds on Alt, the modifier Ghostty passes through. macOS binds on Cmd, its own
-  # modifier: Ghostty releases these keys (../programs/ghostty.nix) and reports them with the
+  # modifier: Ghostty releases these keys (../programs/ghostty) and reports them with the
   # kitty keyboard protocol, which zellij turns on. Option is left to type characters (# is
   # Option+3 on a UK layout).
   mod = if meta.isDarwin then "Super" else "Alt";

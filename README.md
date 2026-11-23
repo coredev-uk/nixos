@@ -30,6 +30,23 @@ Core's Nix flake for NixOS and macOS: one configuration for every machine, from 
 
 </details>
 
+<details>
+<summary>Where things live</summary>
+
+| Path | Holds |
+| :--- | :--- |
+| `flake.nix`, `lib/` | Inputs, and the `mkHost`/`mkHome`/`mkDarwin` helpers every machine is built with |
+| `hosts/<host>/` | One machine's system: `boot.nix`, `hardware.nix`, `extra.nix` |
+| `hosts/common/` | System modules the hosts share (base, desktop, hardware, services, users) |
+| `home/` | Home Manager: `common/shell` everywhere, `common/dev`, `common/desktop` and `common/programs` by host type |
+| `overlays/default.nix` | Every patched or rebuilt nixpkgs package, each with why and when it can go |
+| `pkgs/` | Packages nixpkgs doesn't have |
+
+A fix to a nixpkgs package goes in `overlays/default.nix`, never inline in a module, so the list
+of what's patched stays in one place.
+
+</details>
+
 ## Bootstrap
 
 Clone the repo, run `nix develop` then `./install-with-disk`.
@@ -86,10 +103,16 @@ sudo sbctl setup --migrate
 <summary>Setting up athena (Windows and NixOS-WSL)</summary>
 
 athena is atlas's Windows install, on the other drive: a gaming machine first, with Sona's
-Windows build tools beside it. Windows is described by WinGet configurations in
-`hosts/athena/windows` (`gaming.winget`, `dev.winget`), the WinUtil debloat it was set up with
-(`winutil.json`), and the home files next to them, some rendered by the flake (Wintty's and
-Vicinae's config, fonts). Linux is `nixosConfigurations.athena` and `paul@athena` under NixOS-WSL.
+Windows build tools beside it. Linux is `nixosConfigurations.athena` and `paul@athena` under
+NixOS-WSL. Windows lives in `hosts/athena/windows`:
+
+| File | What it describes |
+| :--- | :--- |
+| `gaming.winget`, `dev.winget` | Apps, registry settings and Sona's build tools (WinGet configurations) |
+| `winutil.json` | The WinUtil debloat, run once with `-Debloat` |
+| `default.nix` | The home files, rendered from the Linux modules (git, ssh and the shell from `paul@athena`; Wintty, Vicinae, VS Code, fonts) and laid out by Windows folder |
+| `shell.nix`, `zen.nix` | PowerShell's profile from zsh's settings; atlas's Zen for Windows |
+| `apply.ps1` | Builds the above in WSL and puts it all in place |
 
 On a fresh install of Windows 11 (stock ISO), sign in, install Proton Pass and turn on its SSH
 agent (Settings → SSH agent), and install the Wintty sponsor build from wintty.io. Then, from any

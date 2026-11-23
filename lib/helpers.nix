@@ -23,9 +23,14 @@ let
         outputs
         ;
       # Imported rather than legacyPackages, which has no config, so unfree packages evaluate.
+      # With the flake's overlays, like every other nixpkgs here (overlays/default.nix).
       unstable = import inputs.unstable {
         inherit system;
         config.allowUnfree = true;
+        overlays = [
+          outputs.overlays.additions
+          outputs.overlays.modifications
+        ];
       };
       meta = {
         inherit

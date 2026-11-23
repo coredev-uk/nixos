@@ -1,4 +1,4 @@
-# Vicinae's Meridian theme and the settings every host shares: Linux and macOS (./vicinae.nix)
+# Vicinae's Meridian theme and the settings every host shares: Linux and macOS (./default.nix)
 # and athena's Windows (hosts/athena/windows).
 { theme }:
 let

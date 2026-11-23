@@ -1,6 +1,6 @@
 { lib, ... }:
 {
-  # Vicinae (home/common/programs/vicinae.nix) takes Cmd+Space, so Spotlight's two
+  # Vicinae (home/common/programs/vicinae) takes Cmd+Space, so Spotlight's two
   # hotkeys are off: 64 "Show Spotlight search" (Cmd+Space), 65 "Show Finder search window"
   # (Cmd+Option+Space). Added to the dict rather than set through targets.darwin.defaults,
   # which would replace AppleSymbolicHotKeys whole and re-enable every other one turned off in

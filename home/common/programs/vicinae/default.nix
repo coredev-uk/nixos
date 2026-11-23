@@ -8,7 +8,7 @@
 }:
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
-  shared = import ./vicinae-shared.nix { inherit theme; };
+  shared = import ./shared.nix { inherit theme; };
   cfg = config.programs.vicinae;
   # Home Manager's copy of the app (copyApps): a path that survives updates, so macOS keeps its
   # Accessibility grant, which TCC ties to the bundle's path.

@@ -14,11 +14,11 @@
   ++ lib.optional meta.isWSL ./common/wsl.nix
   ++ lib.optionals meta.isDarwin [
     ./common/programs/zen.nix
-    ./common/programs/ghostty.nix
+    ./common/programs/ghostty
     ./common/programs/discord.nix
     ./common/programs/t3code.nix
     ./common/programs/darwin-apps.nix
-    ./common/programs/vicinae.nix
+    ./common/programs/vicinae
   ];
   home = {
     inherit (meta) username;

@@ -1,4 +1,4 @@
-# Ghostty's Meridian theme and the settings every terminal shares: Ghostty (./ghostty.nix) and
+# Ghostty's Meridian theme and the settings every terminal shares: Ghostty (./default.nix) and
 # Wintty, Ghostty's core on Windows, on athena (hosts/athena/windows).
 { lib, theme }:
 let
@@ -28,7 +28,7 @@ in
   };
 
   settings = {
-    # Nerd Font glyphs (omp's `nerd` symbols, see ../shell/omp) from the symbols font
+    # Nerd Font glyphs (omp's `nerd` symbols, see ../../shell/omp) from the symbols font
     # rather than Ghostty's built-in copy, so they track nixpkgs.
     font-family = [
       theme.fonts.monospace.name

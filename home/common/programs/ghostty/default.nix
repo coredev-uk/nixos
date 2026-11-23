@@ -7,7 +7,7 @@
 }:
 let
   theme = import "${self}/lib/theme" { inherit pkgs; };
-  shared = import ./ghostty-shared.nix { inherit lib theme; };
+  shared = import ./shared.nix { inherit lib theme; };
 in
 {
   # Fira Code and the Nerd Font symbols come from hosts/common/desktop on NixOS; darwin
@@ -56,7 +56,7 @@ in
       # Option as Alt on macOS, so zellij's Alt chords work.
       macos-option-as-alt = lib.mkIf meta.isDarwin true;
 
-      # Tabs and splits are zellij's job (see ../shell/zellij.nix), so release the keys it
+      # Tabs and splits are zellij's job (see ../../shell/zellij.nix), so release the keys it
       # binds. Linux: Ghostty's Alt+digit tab switching and its new-tab shortcut. macOS: the
       # Cmd keys for Ghostty's tabs, splits and search, and Ctrl+Tab tab cycling, which zellij
       # binds the same way.
