@@ -1,4 +1,5 @@
 {
+  config,
   lib,
   outputs,
   meta,
@@ -27,15 +28,42 @@
     inherit (meta) homeDirectory;
   };
 
-  # Standalone (atlas) follows main like system.autoUpgrade; not with useFlake (local checkout).
-  services.home-manager.autoUpgrade = lib.mkIf (osConfig == null) {
-    enable = true;
-    frequency = "05:30";
-    flags = [
-      "--refresh"
-      "--flake"
-      "github:coredev-uk/nixos#${meta.username}@${meta.hostname}"
-    ];
+  # Standalone configs (atlas, athena) follow main like system.autoUpgrade. Not
+  # services.home-manager.autoUpgrade: without useFlake (a local checkout) it runs
+  # `nix-channel --update` first, which recreates ~/.nix-defexpr/channels.
+  systemd.user = lib.mkIf (osConfig == null) {
+    timers.home-manager-auto-upgrade = {
+      Unit.Description = "Home Manager upgrade timer";
+      Timer = {
+        OnCalendar = "05:30";
+        Persistent = true;
+      };
+      Install.WantedBy = [ "timers.target" ];
+    };
+    services.home-manager-auto-upgrade = {
+      Unit = {
+        Description = "Home Manager upgrade";
+        # The switch it runs mustn't restart it.
+        X-SwitchMethod = "keep-old";
+        StartLimitIntervalSec = "1h";
+        StartLimitBurst = 6;
+      };
+      Service = {
+        ExecStart = lib.getExe (
+          pkgs.writeShellApplication {
+            name = "home-manager-auto-upgrade";
+            runtimeInputs = [
+              config.programs.home-manager.package
+              pkgs.nix
+            ];
+            text = "home-manager switch --refresh --flake github:coredev-uk/nixos#${meta.username}@${meta.hostname}";
+          }
+        );
+        # A catch-up run at login can start before the network is up.
+        Restart = "on-failure";
+        RestartSec = "5min";
+      };
+    };
   };
 
   # Standalone home-manager only; under nix-darwin, useGlobalPkgs hands HM the system's pkgs.
