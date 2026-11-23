@@ -5,11 +5,11 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1795433205,
-        "narHash": "sha256-p/v9YDetxXFcUn69DGOLN7xqoWdszBxSjF60dL9Pvyk=",
+        "lastModified": 1795433743,
+        "narHash": "sha256-kY6Nb37gapzIQyRVtAEf+gRlVdqsxcNiyU5i3Ia8tzo=",
         "owner": "coredev-uk",
         "repo": "ade",
-        "rev": "3b57ddb57557a7e8d4fafb280d72a51f7e84b186",
+        "rev": "1b04ccdd75bd712d49062dd4102840e1a196927d",
         "type": "github"
       },
       "original": {
