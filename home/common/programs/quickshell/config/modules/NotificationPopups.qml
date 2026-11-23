@@ -29,13 +29,16 @@ PanelWindow {
     }
 
     screen: Quickshell.screens.find(screen => screen.name === Hyprland.focusedMonitor?.name) ?? Quickshell.screens[0]
-    // Mapped until the last card has left.
-    visible: NotificationService.popups.length > 0 || leave.running
-    // The full height of the screen, so the stack never clips as cards come and go; only the
-    // cards take input.
+    // Only as tall as the stack: Hyprland blacks out the whole surface in screen shares
+    // (no_screen_share), so a full-height window showed as a black strip down the screen. It grows
+    // with a new card at once, and shrinks (or unmaps, after the last) once a leaving card and the
+    // stack closing up behind it are done. Not on the remove Transition's `running`: it starts after
+    // the height drops and can stay true for good, which kept the window mapped.
+    property real stackHeight: 0
+    visible: NotificationService.popups.length > 0 || stackHeight > 0
     anchors {
-        top: true
-        bottom: true
+        top: Theme.barAtTop
+        bottom: !Theme.barAtTop
         right: true
     }
     margins {
@@ -46,6 +49,7 @@ PanelWindow {
     // Below the bar's exclusive zone, without reserving space of its own.
     exclusiveZone: 0
     implicitWidth: 420
+    implicitHeight: Math.max(1, stackHeight)
     mask: Region {
         item: list.contentItem
     }
@@ -55,8 +59,26 @@ PanelWindow {
     // Only an inline reply needs the keyboard, once clicked.
     WlrLayershell.keyboardFocus: NotificationService.popups.some(entry => entry.notification.hasInlineReply) ? WlrKeyboardFocus.OnDemand : WlrKeyboardFocus.None
 
+    Timer {
+        id: shrink
+
+        interval: Theme.durationExit * 2 + Theme.durationState
+        onTriggered: root.stackHeight = list.contentHeight
+    }
+
     ListView {
         id: list
+
+        // Every card exists however short the window is, so contentHeight is the whole stack's.
+        cacheBuffer: 4000
+        onContentHeightChanged: {
+            if (contentHeight >= root.stackHeight) {
+                root.stackHeight = contentHeight;
+                shrink.stop();
+            } else {
+                shrink.restart();
+            }
+        }
 
         anchors.fill: parent
         spacing: 8
@@ -98,8 +120,6 @@ PanelWindow {
             }
         }
         remove: Transition {
-            id: leave
-
             NumberAnimation {
                 property: "opacity"
                 to: 0
