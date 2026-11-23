@@ -41,6 +41,9 @@ Singleton {
     // Failed systemd units, system and user ([{ scope, name, description }]); empty when none or
     // when neither manager answered (`data.failed_units` null), so a missing read stays calm.
     readonly property var failedUnits: data?.failed_units ?? []
+    // The last auto-upgrade's report (home/common/auto-upgrade/report.sh has the schema): what
+    // changed, what to do about it, or that it failed. null before the first.
+    property var upgrade: null
     readonly property string summary: summaryOf(data)
 
     function stateOf(d: var): string {
@@ -192,6 +195,7 @@ Singleton {
 
     // `soon`: skip when the last read is that recent (ms), for the panel opening on every screen.
     function refresh(soon = 0) {
+        upgradeFile.reload();
         if (proc.running || (soon > 0 && Date.now() - fetchedAt < soon))
             return;
         proc.running = true;
@@ -279,5 +283,18 @@ Singleton {
         repeat: true
         running: true
         onTriggered: root.refresh()
+    }
+
+    FileView {
+        id: upgradeFile
+        path: `${Quickshell.env("XDG_STATE_HOME") || `${Quickshell.env("HOME")}/.local/state`}/upgrade-report/last.json`
+        watchChanges: true
+        printErrors: false
+        onFileChanged: reload()
+        onLoaded: {
+            try {
+                root.upgrade = JSON.parse(text());
+            } catch (e) {}
+        }
     }
 }

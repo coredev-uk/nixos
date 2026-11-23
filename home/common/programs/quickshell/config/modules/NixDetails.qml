@@ -5,11 +5,12 @@ import qs.common
 import qs.services
 import qs.widgets
 
-// Control panel's Nix view: the pending lock update (nightly PR bumping every flake input; checks,
-// failing duration), main's host builds, the cache, this computer against them
-// (services/NixStatus.qml), and failed systemd units by name. Clicks copy a unit's journalctl
-// command or open the update's PR / main's latest run. Offline only failed units and the last
-// section remain. Reads every minute while showing.
+// Control panel's Nix view: the last auto-upgrade (what changed, expandable per package; what to
+// do), the pending lock update (nightly PR bumping every flake input; checks, failing duration),
+// main's host builds, the cache, this computer against them (services/NixStatus.qml), and failed
+// systemd units by name. Clicks copy a unit's journalctl command or open the update's PR / main's
+// latest run. Offline only the upgrade, failed units and the last section remain. Reads every
+// minute while showing.
 ColumnLayout {
     id: root
 
@@ -82,11 +83,18 @@ ColumnLayout {
         }
     }
 
-    // [{ title, lines: [{ key, value, tone?, fraction?, copy?, url? }] }]; `fraction` draws a fill
-    // bar under the line, `copy` copies on click, `url` opens on click.
+    // [{ title, lines: [{ key, value, tone?, fraction?, copy?, url?, packages? }] }]; `fraction`
+    // draws a fill bar under the line, `copy` copies on click, `url` opens on click, `packages`
+    // expands on click into one row per package.
     readonly property var sections: {
         const out = [];
         const d = NixStatus.data;
+        const u = NixStatus.upgrade;
+        if (u?.time || u?.failure)
+            out.push({
+                title: "Last upgrade",
+                lines: upgradeLines(u)
+            });
         if ((d?.updates ?? []).length > 0)
             out.push({
                 title: "Lock update",
@@ -116,6 +124,56 @@ ColumnLayout {
     }
 
     property string copiedValue: ""
+    // Expanded lines by "section/key": the sections are rebuilt on every read.
+    property var expanded: []
+
+    function toggle(id: string) {
+        expanded = expanded.includes(id) ? expanded.filter(e => e !== id) : expanded.concat([id]);
+    }
+
+    // The auto-upgrade's report: a failure (click copies its journal command), each scope's
+    // changes (click lists them), what to do about them, and when.
+    function upgradeLines(u: var): var {
+        const lines = [];
+        const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+        if (u.failure)
+            lines.push({
+                key: "Failed",
+                value: `${cap(u.failure.scope)} upgrade, ${NixStatus.ago(u.failure.time)}`,
+                tone: Theme.alert,
+                copy: u.failure.scope === "home" ? "journalctl --user -u home-manager-auto-upgrade" : "journalctl -u nixos-upgrade"
+            });
+        for (const s of u.scopes ?? []) {
+            const shown = s.installed.slice(0, 3).join(", ");
+            const more = s.installed.length > 3 ? ` +${s.installed.length - 3}` : "";
+            lines.push({
+                key: cap(s.name),
+                value: `${s.count} changed${shown === "" ? "" : ` (${shown}${more})`}`,
+                packages: s.packages
+            });
+        }
+        for (const action of u.actions ?? [])
+            lines.push({
+                key: "To do",
+                value: action,
+                tone: Theme.caution
+            });
+        if (u.time)
+            lines.push({
+                key: "When",
+                value: `Changes ${NixStatus.ago(u.time)}${u.checked > u.time ? `, checked ${NixStatus.ago(u.checked)}` : ""}`
+            });
+        return lines;
+    }
+
+    // "old → new", "added v", "removed v".
+    function versions(p: var): string {
+        if (p.kind === "A")
+            return `added ${p.to}`.trim();
+        if (p.kind === "R")
+            return `removed ${p.from}`.trim();
+        return `${p.from} → ${p.to}`;
+    }
 
     signal linkOpened
 
@@ -326,12 +384,15 @@ ColumnLayout {
                         required property var modelData
                         readonly property bool copyable: modelData.copy !== undefined
                         readonly property bool linked: modelData.url !== undefined
+                        readonly property bool expandable: modelData.packages !== undefined
+                        readonly property string lineId: `${section.modelData.title}/${modelData.key}`
+                        readonly property bool open: expandable && root.expanded.includes(lineId)
                         readonly property bool copied: copyable && root.copiedValue === modelData.copy
 
                         Layout.fillWidth: true
                         implicitHeight: lineColumn.implicitHeight
                         radius: Theme.radiusRow
-                        color: (copyable || linked) && lineArea.containsMouse ? Theme.rule : "transparent"
+                        color: (copyable || linked || expandable) && lineArea.containsMouse ? Theme.rule : "transparent"
 
                         Behavior on color {
                             ColorAnimation {
@@ -371,6 +432,14 @@ ColumnLayout {
                                     font.pixelSize: 12
                                     wrapMode: Text.WrapAtWordBoundaryOrAnywhere
                                 }
+
+                                Icon {
+                                    visible: line.expandable
+                                    Layout.alignment: Qt.AlignTop
+                                    text: line.open ? Icons.chevronUp : Icons.chevronDown
+                                    color: Theme.text2
+                                    font.pixelSize: 14
+                                }
                             }
 
                             // A fill bar, on plate so it shows on the inset section.
@@ -389,16 +458,47 @@ ColumnLayout {
                                     color: line.modelData.tone ?? Theme.fill
                                 }
                             }
+
+                            // The expanded scope: installed packages first, in text; dependencies in text2.
+                            Repeater {
+                                model: line.open ? line.modelData.packages : []
+
+                                RowLayout {
+                                    required property var modelData
+
+                                    Layout.fillWidth: true
+                                    Layout.bottomMargin: 2
+                                    spacing: 8
+
+                                    BarText {
+                                        Layout.fillWidth: true
+                                        text: modelData.name
+                                        color: modelData.installed ? Theme.text : Theme.text2
+                                        font.pixelSize: 11
+                                        elide: Text.ElideRight
+                                    }
+
+                                    BarText {
+                                        Layout.maximumWidth: line.width * 0.55
+                                        text: root.versions(modelData)
+                                        color: Theme.text2
+                                        font.pixelSize: 11
+                                        elide: Text.ElideMiddle
+                                    }
+                                }
+                            }
                         }
 
                         MouseArea {
                             id: lineArea
                             anchors.fill: parent
-                            enabled: line.copyable || line.linked
+                            enabled: line.copyable || line.linked || line.expandable
                             hoverEnabled: true
                             cursorShape: Qt.PointingHandCursor
                             onClicked: {
-                                if (line.linked) {
+                                if (line.expandable) {
+                                    root.toggle(line.lineId);
+                                } else if (line.linked) {
                                     Quickshell.execDetached(["xdg-open", line.modelData.url]);
                                     root.linkOpened();
                                 } else {

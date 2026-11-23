@@ -1,4 +1,9 @@
-{ unstable, ... }:
+{
+  pkgs,
+  meta,
+  unstable,
+  ...
+}:
 {
   imports = [
     ../common/services/networkmanager.nix
@@ -28,6 +33,14 @@
     dates = "05:00";
     randomizedDelaySec = "30min";
   };
+
+  # Notify the user what changed (home/common/auto-upgrade); fails quietly if they're logged out,
+  # and the next home upgrade reports it instead.
+  systemd.services.nixos-upgrade.serviceConfig.ExecStopPost =
+    "-${pkgs.writeShellScript "nixos-upgrade-report" ''
+      ${pkgs.systemd}/bin/systemctl --user -M ${meta.username}@ --no-block \
+        start "upgrade-report@system-$SERVICE_RESULT.service"
+    ''}";
 
   # Headset battery for the quickshell panel; udev rules give the user hidraw access.
   environment.systemPackages = [ unstable.headsetcontrol ];
