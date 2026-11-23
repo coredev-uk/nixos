@@ -1,31 +1,71 @@
-# The Windows files athena's flake renders, for apply.ps1 (beside this file) to put in place:
-#   wintty/config.wintty   Wintty (Ghostty's core on Windows): Ghostty's Meridian theme and shared
-#                          settings (home/common/programs/ghostty-shared.nix)
-#   vicinae/               Vicinae's Meridian theme and declarative settings
-#                          (home/common/programs/vicinae-shared.nix)
-#   fonts/                 the theme's monospace, icon and shell fonts, installed for the user
-#   vscode/settings.json   VS Code's user settings
-#   shell/                 PowerShell 7's profile and the prompt theme and atuin config it uses,
-#                          from home/common/shell (Linux's zsh)
-#   zen/                   atlas's Zen (home/common/programs/zen.nix): policies.json for the
-#                          install, user.js and containers.json for the profile, and `activate`,
-#                          the Home Manager module's own spaces/pins writer, run in WSL
-# Built with `nix build .#nixosConfigurations.athena.config.system.build.windows`. Every file is
-# a copy, not a link: Windows can't follow a symlink into /nix/store over \\wsl.localhost.
+# athena's Windows home: every file apply.ps1 (beside this file) puts in place, rendered from the
+# same modules as the Linux side so the two can't drift.
+#
+#   nix build .#nixosConfigurations.athena.config.system.build.windows
+#
+# The output is laid out by destination: <folder>/<path> goes to <path> under that Windows known
+# folder (USERPROFILE, APPDATA, LOCALAPPDATA, Documents), overwritten on every apply (Home
+# Manager's role). Two directories need apply.ps1's own handling:
+#   fonts/  the theme's monospace, icon and shell fonts, installed for the user
+#   zen/    atlas's Zen (./zen.nix), for the install and the profile Zen made on its first run
+# Every file is a copy, not a link: Windows can't follow a symlink into /nix/store over
+# \\wsl.localhost.
 {
   self,
   inputs,
+  outputs,
   lib,
   pkgs,
+  meta,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-  ghostty = import "${self}/home/common/programs/ghostty-shared.nix" { inherit lib theme; };
-  vicinae = import "${self}/home/common/programs/vicinae-shared.nix" { inherit theme; };
+  # paul@athena, the home configuration in NixOS-WSL: git, ssh and the shell come from it.
+  home = outputs.homeConfigurations."${meta.username}@${meta.hostname}".config;
 
-  # The format Home Manager writes Ghostty's config in: `key = value`, a list as repeated keys.
-  # Wintty starts PowerShell 7, which has the shell below.
+  theme = import "${self}/lib/theme" { inherit pkgs; };
+  ghostty = import "${self}/home/common/programs/ghostty/shared.nix" { inherit lib theme; };
+  vicinae = import "${self}/home/common/programs/vicinae/shared.nix" { inherit theme; };
+  shell = import ./shell.nix { inherit lib pkgs home; };
+  zen = import ./zen.nix {
+    inherit
+      self
+      inputs
+      lib
+      pkgs
+      ;
+  };
+
+  json = (pkgs.formats.json { }).generate;
+  toml = (pkgs.formats.toml { }).generate;
+  # The first line of each file written here as text, for whoever finds it on Windows.
+  managed = "# Managed by apply.ps1 (hosts/athena/windows in coredev-uk/nixos).";
+
+  # Git for Windows' user config: home/common/shell/git.nix's settings, with Windows' OpenSSH
+  # (which reaches Proton Pass's agent, \\.\pipe\openssh-ssh-agent; Git's bundled one doesn't)
+  # for transport and signing, and LF kept (Sona's scripts run in Git Bash and it has no
+  # .gitattributes). No editor: nvim is Linux's. ~/.gitconfig is left to tools (gh).
+  git = home.programs.git.settings;
+  gitConfig = pkgs.writeText "gitconfig" (
+    managed
+    + "\n"
+    + lib.generators.toGitINI (
+      git
+      // {
+        core = removeAttrs git.core [ "editor" ] // {
+          sshCommand = "C:/Windows/System32/OpenSSH/ssh.exe";
+          autocrlf = false;
+        };
+        gpg = lib.recursiveUpdate git.gpg {
+          ssh.program = "C:/Windows/System32/OpenSSH/ssh-keygen.exe";
+        };
+      }
+    )
+  );
+
+  # Wintty (Ghostty's core on Windows): Ghostty's theme and shared settings, in the format Home
+  # Manager writes Ghostty's config in (`key = value`, a list as repeated keys), starting
+  # PowerShell 7.
   winttyConfig = pkgs.writeText "config.wintty" (
     lib.generators.toKeyValue {
       listsAsDuplicateKeys = true;
@@ -33,147 +73,91 @@ let
     } (ghostty.meridian // ghostty.settings // { command = "pwsh.exe -NoLogo"; })
   );
 
-  # Linux's shell (home/common/shell), read from its modules: the prompt theme, the aliases that
-  # mean the same on Windows, eza's flags, fzf's colours, bat's theme and atuin's settings.
-  hmPkgs = inputs.unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-  shellMeta = {
-    isDesktop = false;
-    isDarwin = false;
-  };
-  zsh = import "${self}/home/common/shell/zsh.nix" {
-    inherit lib;
-    pkgs = hmPkgs;
-    meta = shellMeta;
-  };
-  shellModule = import "${self}/home/common/shell/default.nix" {
-    inherit lib;
-    meta = shellMeta;
-  };
-  atuin = (import "${self}/home/common/shell/atuin.nix" { }).programs.atuin;
-  bat = (import "${self}/home/common/shell/bat.nix" { }).programs.bat;
-  promptTheme = "${hmPkgs.oh-my-posh}/share/oh-my-posh/themes/${zsh.programs.oh-my-posh.useTheme}.omp.json";
-  # zsh's aliases (zsh.nix) and Home Manager's eza ones (ll, lt). The rest are Linux's own.
-  aliases = lib.getAttrs [ "ls" "la" "tree" "cat" "gac" "gst" ] zsh.programs.zsh.shellAliases // {
-    ll = "eza -l";
-    lt = "eza --tree";
-  };
-  # PowerShell's aliases take no arguments, so each is a function; its own aliases of the same
-  # names (ls, cat) would win over a function, so they go first. `&&` needs PowerShell 7.
-  powershellProfile = pkgs.writeText "profile.ps1" ''
-    # Managed by apply.ps1 (hosts/athena/windows/default.nix), from home/common/shell.
-    $env:BAT_THEME = '${bat.config.theme}'
-    $env:FZF_DEFAULT_OPTS = '${lib.concatStringsSep " " shellModule.programs.fzf.defaultOptions}'
-
-    oh-my-posh init pwsh --config "$HOME\.config\oh-my-posh\theme.omp.json" | Invoke-Expression
-    Invoke-Expression (& { (zoxide init ${lib.concatStringsSep " " zsh.programs.zoxide.options} powershell | Out-String) })
-    atuin init powershell | Out-String | Invoke-Expression
-
-    function eza { eza.exe ${lib.concatStringsSep " " shellModule.programs.eza.extraOptions} @args }
-    ${lib.concatStrings (
-      lib.mapAttrsToList (name: command: ''
-        Remove-Alias -Name ${name} -Force -ErrorAction SilentlyContinue
-        function ${name} { ${command} @args }
-      '') aliases
-    )}
-  '';
-  # atuin's settings without the daemon, which is a systemd socket on Linux.
-  atuinConfig = (pkgs.formats.toml { }).generate "config.toml" atuin.settings;
-
-  vicinaeTheme = (pkgs.formats.toml { }).generate "meridian.toml" vicinae.meridian;
-  # Layered over the app's own (writable) settings.json through VICINAE_OVERRIDES, as Home
-  # Manager does on Linux. Win+Space is Windows' input switcher, so the launcher takes Alt+Space,
-  # PowerToys Run's key.
-  vicinaeOverrides = (pkgs.formats.json { }).generate "home-manager.json" (
-    lib.recursiveUpdate vicinae.settings { global_shortcuts.toggle = "alt+space"; }
-  );
-
-  fonts = with theme.fonts; [
-    monospace
-    iconFont
-    shell
-  ];
-
   fontFamily = lib.concatMapStringsSep ", " (f: "'${f.name}'") [
     theme.fonts.monospace
     theme.fonts.iconFont
   ];
-  vscodeSettings = (pkgs.formats.json { }).generate "settings.json" {
-    # Sona's style: gofumpt (`check` fails otherwise) and golangci-lint.
-    gopls."formatting.gofumpt" = true;
-    "go.lintTool" = "golangci-lint";
-    "go.toolsManagement.autoUpdate" = false;
-    "files.eol" = "\n";
-    "editor.fontFamily" = fontFamily;
-    "terminal.integrated.fontFamily" = fontFamily;
+
+  files = {
+    "USERPROFILE/.config/git/config" = gitConfig;
+    "USERPROFILE/.config/git/allowed_signers" = home.home.file.".config/git/allowed_signers".source;
+    # Windows' OpenSSH; keys come from Proton Pass's agent.
+    "USERPROFILE/.ssh/config" = pkgs.writeText "ssh_config" ''
+      ${managed}
+      Host *
+        UserKnownHostsFile ~/.ssh/common_hosts ~/.ssh/known_hosts
+
+      Host github.com
+        User git
+    '';
+    "USERPROFILE/.ssh/common_hosts" = home.home.file.".ssh/common_hosts".source;
+
+    # Git Bash. Its /etc/profile replaces PKG_CONFIG_PATH with MSYS2's own: take back the user
+    # variable (Sona's GStreamer .pc files, dev.winget's sona-env) so cgo finds them.
+    "USERPROFILE/.bashrc" = pkgs.writeText "bashrc" ''
+      ${managed}
+      export PKG_CONFIG_PATH="$(cygpath -m "$LOCALAPPDATA")/sona-dev/gstreamer/sona-pkgconfig"
+    '';
+    "USERPROFILE/.bash_profile" = pkgs.writeText "bash_profile" ''
+      ${managed}
+      [ -f ~/.bashrc ] && . ~/.bashrc
+    '';
+
+    # WSL's VM. Nothing runs VMs inside NixOS-WSL. With nested virtualisation on, every VM start
+    # probed for it and logged (and notified) "Failed to detect nested virtualization support,
+    # error: ERROR_INVALID_DATA".
+    "USERPROFILE/.wslconfig" = pkgs.writeText "wslconfig" ''
+      ${managed}
+      [wsl2]
+      nestedVirtualization=false
+    '';
+
+    # PowerShell 7's profile for every host (Wintty, VS Code's terminal), and what it reads.
+    "Documents/PowerShell/profile.ps1" = shell.profile;
+    "USERPROFILE/.config/oh-my-posh/theme.omp.json" = shell.promptTheme;
+    "USERPROFILE/.atuin/config.toml" = shell.atuinConfig;
+
+    # The one file Wintty reads (its docs' ~/.config/wintty isn't).
+    "APPDATA/wintty/config.wintty" = winttyConfig;
+
+    # Vicinae: the theme, and the declarative settings layered over the app's own (writable)
+    # settings.json through VICINAE_OVERRIDES (apply.ps1 sets it), as Home Manager does on Linux.
+    # Win+Space is Windows' input switcher, so the launcher takes Alt+Space, PowerToys Run's key.
+    "LOCALAPPDATA/vicinae/data/themes/meridian.toml" = toml "meridian.toml" vicinae.meridian;
+    "LOCALAPPDATA/vicinae/config/home-manager.json" = json "home-manager.json" (
+      lib.recursiveUpdate vicinae.settings { global_shortcuts.toggle = "alt+space"; }
+    );
+
+    "APPDATA/Code/User/settings.json" = json "settings.json" {
+      # Sona's style: gofumpt (`check` fails otherwise) and golangci-lint.
+      gopls."formatting.gofumpt" = true;
+      "go.lintTool" = "golangci-lint";
+      "go.toolsManagement.autoUpdate" = false;
+      "files.eol" = "\n";
+      "editor.fontFamily" = fontFamily;
+      "terminal.integrated.fontFamily" = fontFamily;
+    };
+
+    "zen/policies.json" = zen.policies;
+    "zen/user.js" = zen.userJs;
+    "zen/containers.json" = zen.containers;
   };
 
-  # zen.nix through the Zen flake's Home Manager module, as on atlas, with the profile at
-  # /tmp/athena-zen/zen/default: apply.ps1 links that to the Windows profile before running the
-  # module's activation there. Nothing of it is installed in WSL.
-  zen =
-    (inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = inputs.unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
-      extraSpecialArgs = {
-        inherit self inputs;
-        meta = {
-          inherit (pkgs.stdenv.hostPlatform) system;
-          isDarwin = false;
-        };
-      };
-      modules = [
-        "${self}/home/common/programs/zen.nix"
-        {
-          home = {
-            username = "paul";
-            homeDirectory = "/home/paul";
-            stateVersion = "26.05";
-          };
-          xdg.configHome = "/tmp/athena-zen";
-          # Nix updates Zen on Linux; on Windows it updates itself.
-          programs.zen-browser.policies.DisableAppUpdate = lib.mkForce false;
-        }
-      ];
-    }).config;
-  zenProfile = "${zen.programs.zen-browser.profilesPath}/default";
-  zenPolicies = (pkgs.formats.json { }).generate "policies.json" {
-    inherit (zen.programs.zen-browser) policies;
-  };
-  # `activate <profile>`: links the Windows profile (its WSL path) where the module's scripts look
-  # for it, then runs the module's activation for it.
-  zenActivate = pkgs.writeShellScript "zen-activate" ''
-    # The tools Home Manager's activation puts on PATH, which the module's scripts expect.
-    export PATH=${
-      lib.makeBinPath (
-        with pkgs;
-        [
-          coreutils
-          findutils
-          gnugrep
-          gnused
-          jq
-        ]
-        ++ zen.home.extraActivationPath
-      )
-    }:$PATH
-    mkdir -p ${dirOf zenProfile}
-    ln -sfn "$1" ${zenProfile}
-    VERBOSE_ECHO=echo
-    ${zen.home.activation.zen-browser-default.data}
-  '';
+  fonts = [
+    theme.fonts.monospace
+    theme.fonts.iconFont
+    theme.fonts.shell
+  ];
 in
 {
   system.build.windows = pkgs.runCommand "athena-windows" { } ''
-    install -Dm644 ${winttyConfig} $out/wintty/config.wintty
-    install -Dm644 ${vicinaeTheme} $out/vicinae/meridian.toml
-    install -Dm644 ${vicinaeOverrides} $out/vicinae/home-manager.json
-    install -Dm644 ${vscodeSettings} $out/vscode/settings.json
-    install -Dm644 ${powershellProfile} $out/shell/profile.ps1
-    install -Dm644 ${promptTheme} $out/shell/theme.omp.json
-    install -Dm644 ${atuinConfig} $out/shell/atuin.toml
-    install -Dm644 ${zenPolicies} $out/zen/policies.json
-    install -Dm644 ${zen.home.file."${zenProfile}/user.js".source} $out/zen/user.js
-    install -Dm644 ${zen.home.file."${zenProfile}/containers.json".source} $out/zen/containers.json
-    install -Dm755 ${zenActivate} $out/zen/activate
+    ${lib.concatStrings (
+      lib.mapAttrsToList (dest: src: ''
+        install -Dm644 ${src} ${lib.escapeShellArg "${placeholder "out"}/${dest}"}
+      '') files
+    )}
+    install -Dm755 ${zen.activate} $out/zen/activate
+
     # One build of each face: Windows lists a family twice when it has both the .ttf and the
     # .otf, or a variable font beside its static cuts. Variable fonts first, then TrueType.
     mkdir -p $out/fonts

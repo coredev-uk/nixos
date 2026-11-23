@@ -1,7 +1,6 @@
 # Applies athena's Windows configuration, the Windows half of `nixos-rebuild switch`:
-#   1. the home files: files/ beside this script, and those the flake renders (./default.nix:
-#      Wintty's and Vicinae's config, VS Code's settings), each overwritten with the
-#      repository's (Home Manager's role); the theme's fonts, installed for the user;
+#   1. the home files the flake renders (./default.nix), each overwritten with the repository's
+#      (Home Manager's role); the theme's fonts, installed for the user;
 #   2. with -Debloat (once, on a fresh install): Chris Titus Tech's WinUtil, pinned, applying
 #      winutil.json's tweaks and removing its Store apps;
 #   3. gaming.winget, then dev.winget unless -GamingOnly (winget configure: installs what's missing).
@@ -27,24 +26,21 @@ $out = wsl.exe -d $distro --cd $flake -- nix build --no-link --print-out-paths '
 if ($LASTEXITCODE) { throw "nix build of the Windows files failed ($LASTEXITCODE)" }
 $rendered = "\\wsl.localhost\$distro" + ($out.Trim() -replace '/', '\')
 
-$home_ = $env:USERPROFILE
-$files = [ordered]@{
-  "$PSScriptRoot\files\gitconfig"       = "$home_\.config\git\config"
-  "$PSScriptRoot\files\allowed_signers" = "$home_\.config\git\allowed_signers"
-  "$PSScriptRoot\files\ssh_config"      = "$home_\.ssh\config"
-  "$PSScriptRoot\files\common_hosts"    = "$home_\.ssh\common_hosts"
-  "$PSScriptRoot\files\bashrc"          = "$home_\.bashrc"
-  "$PSScriptRoot\files\bash_profile"    = "$home_\.bash_profile"
-  "$PSScriptRoot\files\wslconfig"       = "$home_\.wslconfig"
-  # The one file Wintty reads (its docs' ~/.config/wintty isn't).
-  "$rendered\wintty\config.wintty"      = "$env:APPDATA\wintty\config.wintty"
-  "$rendered\vicinae\meridian.toml"     = "$env:LOCALAPPDATA\vicinae\data\themes\meridian.toml"
-  "$rendered\vicinae\home-manager.json" = "$env:LOCALAPPDATA\vicinae\config\home-manager.json"
-  "$rendered\vscode\settings.json"      = "$env:APPDATA\Code\User\settings.json"
-  # PowerShell 7's profile for every host (Wintty, VS Code's terminal), and what it reads.
-  "$rendered\shell\profile.ps1"         = "$([Environment]::GetFolderPath('MyDocuments'))\PowerShell\profile.ps1"
-  "$rendered\shell\theme.omp.json"      = "$home_\.config\oh-my-posh\theme.omp.json"
-  "$rendered\shell\atuin.toml"          = "$home_\.atuin\config.toml"
+# Each rendered <folder>\<path> goes to <path> under that known folder (./default.nix).
+$folders = [ordered]@{
+  USERPROFILE  = $env:USERPROFILE
+  APPDATA      = $env:APPDATA
+  LOCALAPPDATA = $env:LOCALAPPDATA
+  Documents    = [Environment]::GetFolderPath('MyDocuments')
+}
+$files = [ordered]@{}
+foreach ($folder in $folders.Keys) {
+  $root = Join-Path $rendered $folder
+  if (-not (Test-Path -LiteralPath $root)) { continue }
+  # -Force: the dotfiles (.ssh, .config, …) can carry the hidden attribute.
+  foreach ($file in Get-ChildItem -LiteralPath $root -Recurse -File -Force) {
+    $files[$file.FullName] = Join-Path $folders[$folder] $file.FullName.Substring($root.Length + 1)
+  }
 }
 # Vicinae layers home-manager.json over its own settings.json (as on Linux). It splits
 # VICINAE_OVERRIDES on ':' (a Unix path list) and reads "C:\…" as two paths, so the path goes
@@ -102,7 +98,7 @@ foreach ($src in $files.Keys) {
 }
 
 # The Zen module's activation (spaces, pins, extension buttons), pointed at the Windows profile
-# through the link its paths go by (./default.nix). -e runs it without a shell, so the profile's
+# through the link its paths go by (./zen.nix). -e runs it without a shell, so the profile's
 # path (which has spaces) stays one argument.
 if ($zenProfile -and -not $Test) {
   $linuxProfile = (wsl.exe -d $distro -e wslpath -u $zenProfile).Trim()

@@ -1,5 +1,0 @@
-# WSL's VM (~/.wslconfig). Managed by apply.ps1.
-[wsl2]
-# Nothing runs VMs inside NixOS-WSL. With it on, every VM start probed for it and logged (and
-# notified) "Failed to detect nested virtualization support, error: ERROR_INVALID_DATA".
-nestedVirtualization=false

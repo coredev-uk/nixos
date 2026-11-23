@@ -10,7 +10,7 @@
 #   NVIDIA graphics driver   through the NVIDIA App
 #   AMD Chipset Software     amd.com
 #   Wintty                   the sponsor build from wintty.io (it updates itself); its config,
-#                            from ghostty-shared.nix, is apply.ps1's
+#                            from home/common/programs/ghostty/shared.nix, is apply.ps1's
 #   Audeze HQ, MOZA Pit House, the games and their anti-cheats (Steam and Ubisoft Connect
 #   libraries: Battlefield 6, BeamNG.drive, Counter-Strike 2, Le Mans Ultimate, Rainbow Six
 #   Siege, WARDOGS)
@@ -178,7 +178,7 @@ properties:
       id: proton-vpn
       directives: { description: Proton VPN, securityContext: elevated, allowPrerelease: true }
       settings: { id: Proton.ProtonVPN, source: winget }
-    # Theme and settings from home/common/programs/vicinae-shared.nix, through apply.ps1.
+    # Theme and settings from home/common/programs/vicinae/shared.nix, through apply.ps1.
     - resource: Microsoft.WinGet.DSC/WinGetPackage
       id: vicinae
       directives: { description: Vicinae, allowPrerelease: true }
