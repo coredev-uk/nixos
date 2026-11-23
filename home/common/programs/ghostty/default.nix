@@ -1,12 +1,11 @@
 {
-  self,
   lib,
   pkgs,
   meta,
+  theme,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   shared = import ./shared.nix { inherit lib theme; };
 in
 {

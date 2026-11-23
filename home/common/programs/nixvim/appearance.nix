@@ -1,6 +1,5 @@
-{ self, pkgs, ... }:
+{ theme, ... }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
   syn = m.syntax;
 in

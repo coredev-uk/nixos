@@ -35,14 +35,17 @@ Core's Nix flake for NixOS and macOS: one configuration per machine, from disk l
 
 | Path | Holds |
 | :--- | :--- |
-| `flake.nix`, `lib/` | Inputs, and the `mkHost`/`mkHome`/`mkDarwin` helpers every machine is built with |
+| `flake.nix`, `lib/helpers.nix` | Inputs, and the `mkHost`/`mkHome`/`mkDarwin` helpers every machine is built with |
+| `lib/` | Data both sides read: `theme` (the `theme` module argument), `monitors.nix` (`meta.monitors`), `location.nix` |
 | `hosts/<host>/` | One machine's system: `boot.nix`, `hardware.nix`, `extra.nix` |
 | `hosts/common/` | System modules the hosts share (base, desktop, hardware, services, users) |
-| `home/` | Home Manager: `common/shell` everywhere, `common/dev`, `common/desktop` and `common/programs` by host type |
+| `home/common/` | Home Manager: `shell` and `dev` everywhere, `desktop` on NixOS desktops, `programs/apps.nix` on every graphical host |
+| `home/hosts/<host>.nix` | One machine's home extras (atlas: Kraken screen, workspace layout) |
 | `overlays/default.nix` | Every patched or rebuilt nixpkgs package, each with why and when it can go |
 | `pkgs/` | Packages nixpkgs doesn't have |
 
-Nixpkgs fixes go in `overlays/default.nix`, never inline in a module.
+Nixpkgs fixes go in `overlays/default.nix`, never inline in a module. Host-specific settings go in
+the host's files, never behind a `meta.hostname` check in a shared module.
 
 </details>
 

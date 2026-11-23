@@ -1,11 +1,11 @@
 {
   inputs,
   pkgs,
-  self,
+  theme,
   ...
 }:
 let
-  m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
+  m = theme.meridian;
 
   # Sona needs text at 4.5:1 on all its surfaces. System `muted` (3.6:1 on ground) and `alert` (3.96:1
   # on a selected row) miss that and `selection` is too light for text, so Sona gets its own values:

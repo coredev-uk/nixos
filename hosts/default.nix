@@ -4,6 +4,7 @@
   inputs,
   lib,
   outputs,
+  pkgs,
   ...
 }:
 let
@@ -31,6 +32,8 @@ in
   )) ./${meta.hostname}/extra.nix
   # Desktop config
   ++ lib.optional meta.isDesktop ./common/desktop;
+
+  _module.args.theme = import ../lib/theme { inherit pkgs; };
 
   nixpkgs = {
     overlays = [

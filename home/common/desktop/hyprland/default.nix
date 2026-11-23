@@ -2,12 +2,9 @@
   lib,
   pkgs,
   meta,
-  self,
+  theme,
   ...
 }:
-let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-in
 {
   imports = [
     ../default/wayland.nix
@@ -41,7 +38,7 @@ in
         color = name: "rgb(${lib.removePrefix "#" theme.meridian.${name}})";
       in
       {
-        monitor = (import ./config/monitors.nix { })."${meta.hostname}";
+        monitor = meta.monitors;
 
         on = {
           _args = [
@@ -188,15 +185,6 @@ in
             no_anim = true;
           }
         ];
-
-        # DP-1 takes workspaces 1-5, DP-2 6-10.
-        workspace_rule = lib.optionals (meta.hostname == "atlas") (
-          lib.genList (i: {
-            workspace = toString (i + 1);
-            monitor = if i < 5 then "DP-1" else "DP-2";
-            default = i == 0 || i == 5;
-          }) 10
-        );
 
         inherit (animations) curve animation;
 

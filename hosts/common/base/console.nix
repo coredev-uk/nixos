@@ -1,11 +1,11 @@
 {
   lib,
   pkgs,
-  self,
+  theme,
   ...
 }:
 let
-  term = (import "${self}/lib/theme" { inherit pkgs; }).meridian.terminal;
+  term = theme.meridian.terminal;
   order = [
     "black"
     "red"

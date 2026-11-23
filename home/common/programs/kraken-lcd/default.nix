@@ -1,13 +1,10 @@
 {
   lib,
-  meta,
   pkgs,
-  self,
+  theme,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-
   # Kraken Elite screen as a CPU/GPU/coolant gauge via liquidctl's API. Device access: liquidctl udev
   # rules in hosts/common/desktop/rgb.nix.
   krakenLcd = pkgs.writers.writePython3Bin "kraken-lcd" {
@@ -17,7 +14,7 @@ let
     ];
   } (builtins.readFile ./lcd.py);
 in
-lib.mkIf (meta.hostname == "atlas") {
+{
   systemd.user.services.kraken-lcd = {
     Unit = {
       Description = "NZXT Kraken screen: CPU, GPU and coolant temperatures";

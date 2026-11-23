@@ -2,13 +2,12 @@
   config,
   lib,
   pkgs,
-  self,
   meta,
+  theme,
   unstable,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   hyprland = config.programs.hyprland.package;
   toLua = lib.generators.toLua { };
 
@@ -23,15 +22,8 @@ let
   # greeter's quickshell and its patched Qt.
   video = import ../../../home/common/programs/quickshell/video.nix { pkgs = unstable; };
 
-  monitors =
-    let
-      all = import ../../../home/common/desktop/hyprland/config/monitors.nix { };
-    in
-    all.${meta.hostname} or all.default;
-
-  # wlsunset location (hypr/sunset.nix) for the next sunrise/sunset; the greeter can't see the
-  # home-manager config, so the module is read directly.
-  location = (import ../../../home/common/programs/hypr/sunset.nix { }).services.wlsunset;
+  inherit (meta) monitors;
+  location = import ../../../lib/location.nix;
 
   # greetd's launch line, from the package's hyprland-uwsm.desktop; uwsm exports the session
   # environment (incl. ~/.config/uwsm/env) into the systemd user manager.

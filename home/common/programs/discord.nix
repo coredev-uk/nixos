@@ -1,11 +1,9 @@
 {
   inputs,
-  pkgs,
-  self,
+  theme,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
 
   # Meridian as Vencord Quick CSS (nixcord only writes theme files for Vesktop/Equibop). Sets colour/font

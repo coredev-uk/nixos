@@ -1,12 +1,11 @@
 {
   lib,
   pkgs,
-  self,
+  theme,
   config,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
 
   # libadwaita named colours in Meridian: adw-gtk3 (GTK 3) reads @define-color; libadwaita 1.6+

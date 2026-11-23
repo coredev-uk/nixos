@@ -4,6 +4,7 @@
   lib,
   modulesPath,
   meta,
+  inputs,
   ...
 }:
 let
@@ -16,6 +17,7 @@ in
 {
   imports = [
     (modulesPath + "/installer/scan/not-detected.nix")
+    inputs.lanzaboote.nixosModules.lanzaboote
 
     ../common/base
     ../common/users/${meta.username}

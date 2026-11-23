@@ -1,12 +1,10 @@
 {
   config,
   lib,
-  pkgs,
-  self,
+  theme,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   m = theme.meridian;
 
   # qtct colour scheme: one QPalette per state in QPalette::ColorRole order. The 22nd role (Accent)

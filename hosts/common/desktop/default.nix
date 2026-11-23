@@ -1,13 +1,10 @@
 {
   pkgs,
-  self,
   lib,
   meta,
+  theme,
   ...
 }:
-let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-in
 {
   imports = [
     ../hardware/yubikey.nix

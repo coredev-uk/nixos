@@ -2,11 +2,11 @@
   config,
   lib,
   pkgs,
-  self,
+  theme,
   ...
 }:
 let
-  m = (import "${self}/lib/theme" { inherit pkgs; }).meridian;
+  m = theme.meridian;
   stripHash = str: builtins.substring 1 (-1) str;
 in
 {

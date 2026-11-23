@@ -2,19 +2,18 @@
   config,
   lib,
   pkgs,
-  self,
+  meta,
+  theme,
   ...
 }:
 
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-
   scripts = import ./scripts { inherit config lib pkgs; };
 
-  # Replay buffer lives in RAM at 20 Mbit/s (record.sh): 300 s ≈ 750 MB.
-  # DP-1 is the 165 Hz VRR gaming monitor.
+  # Replay buffer lives in RAM at 20 Mbit/s (record.sh): 300 s ≈ 750 MB. Records the primary
+  # (gaming) screen.
   replaySeconds = 300;
-  replayMonitor = "DP-1";
+  replayMonitor = (builtins.head meta.monitors).output;
 in
 {
   programs.quickshell = {

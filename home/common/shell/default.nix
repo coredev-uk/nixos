@@ -16,11 +16,9 @@
     ./zellij.nix
     ./zsh.nix
     ../programs/nixvim
+    ./git.nix
   ]
-  ++ lib.optional (!meta.isHeadless) ./git.nix
-  ++ lib.optionals meta.isDesktop [
-    ./xdg.nix
-  ];
+  ++ lib.optional meta.isDesktop ./xdg.nix;
 
   programs = {
     eza = {

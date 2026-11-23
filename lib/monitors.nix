@@ -1,4 +1,5 @@
-_: {
+# Hyprland monitors per host (meta.monitors, lib/helpers.nix); the greeter uses the same layout.
+{
   atlas = [
     {
       output = "DP-1";

@@ -2,12 +2,11 @@
   config,
   lib,
   pkgs,
-  self,
   meta,
+  theme,
   ...
 }:
 let
-  theme = import "${self}/lib/theme" { inherit pkgs; };
   shared = import ./shared.nix { inherit theme; };
   cfg = config.programs.vicinae;
   # HM's copy of the app: stable path, so macOS keeps the Accessibility (TCC) grant across updates.

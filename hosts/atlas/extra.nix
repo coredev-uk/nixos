@@ -1,19 +1,15 @@
-{
-  self,
-  unstable,
-  ...
-}:
+{ unstable, ... }:
 {
   imports = [
-    "${self}/hosts/common/services/networkmanager.nix"
-    "${self}/hosts/common/services/printing.nix"
-    "${self}/hosts/common/services/vfio.nix"
-    "${self}/hosts/common/desktop/gaming.nix"
-    "${self}/hosts/common/desktop/rgb.nix"
-    "${self}/hosts/common/desktop/qmk.nix"
-    "${self}/hosts/common/desktop/ddcci-driver.nix"
-    "${self}/hosts/common/desktop/dev.nix"
-    "${self}/hosts/common/base/nix-ld.nix"
+    ../common/services/networkmanager.nix
+    ../common/services/printing.nix
+    ../common/services/vfio.nix
+    ../common/desktop/gaming.nix
+    ../common/desktop/rgb.nix
+    ../common/desktop/qmk.nix
+    ../common/desktop/ddcci-driver.nix
+    ../common/desktop/dev.nix
+    ../common/base/nix-ld.nix
   ];
 
   boot.kernelParams = [

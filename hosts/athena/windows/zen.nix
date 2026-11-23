@@ -2,28 +2,27 @@
 # evaluation (not paul@athena): profile at /tmp/athena-zen/zen/default, which apply.ps1 links to
 # the Windows profile before running the activation.
 {
-  self,
   inputs,
   lib,
   pkgs,
+  meta,
 }:
 let
   zen =
     (inputs.home-manager.lib.homeManagerConfiguration {
       pkgs = inputs.unstable.legacyPackages.${pkgs.stdenv.hostPlatform.system};
       extraSpecialArgs = {
-        inherit self inputs;
+        inherit inputs;
         meta = {
           inherit (pkgs.stdenv.hostPlatform) system;
           isDarwin = false;
         };
       };
       modules = [
-        "${self}/home/common/programs/zen.nix"
+        ../../../home/common/programs/zen.nix
         {
           home = {
-            username = "paul";
-            homeDirectory = "/home/paul";
+            inherit (meta) username homeDirectory;
             stateVersion = "26.05";
           };
           xdg.configHome = "/tmp/athena-zen";

@@ -6,6 +6,9 @@
   ...
 }:
 let
+  monitors = import ./monitors.nix;
+
+  # Extra arguments (stateVersion, pkgs, …) are the callers'.
   mkSpecialArgs =
     {
       hostname,
@@ -13,8 +16,11 @@ let
       desktop ? null,
       type ? "desktop",
       system ? "x86_64-linux",
-      flakePath ? "/home/${user}/.dotfiles",
+      ...
     }:
+    let
+      homeDirectory = if type == "darwin" then "/Users/${user}" else "/home/${user}";
+    in
     {
       inherit
         self
@@ -34,117 +40,70 @@ let
         inherit
           hostname
           desktop
-          flakePath
           system
+          homeDirectory
           ;
-        homeDirectory = if type == "darwin" then "/Users/${user}" else "/home/${user}";
         username = user;
+        flakePath = "${homeDirectory}/.dotfiles";
+        # Hyprland's layout; the first is the primary (gaming) screen.
+        monitors = monitors.${hostname} or monitors.default;
         isDesktop = builtins.isString desktop;
         isDarwin = type == "darwin";
         # Home Manager on a WSL distro (not NixOS): workstation without a desktop.
         isWSL = type == "wsl";
-        isHeadless =
-          !builtins.elem type [
-            "darwin"
-            "desktop"
-            "wsl"
-          ];
       };
     };
 
   # home.stateVersion is pinned per config in flake.nix; never bump.
-  mkHomeManager =
-    { flakeInputs, stateVersion }:
-    {
-      imports = [
-        flakeInputs.nixvim.homeModules.nixvim
-        ../home
-      ];
-      home.stateVersion = stateVersion;
-    };
+  mkHomeManager = stateVersion: {
+    imports = [
+      inputs.nixvim.homeModules.nixvim
+      ../home
+    ];
+    home.stateVersion = stateVersion;
+  };
 in
 {
   mkHome =
     {
-      hostname,
-      user ? username,
-      desktop ? null,
-      type ? "desktop",
-      pkgs ? inputs.unstable,
-      system ? "x86_64-linux",
-      flakePath ? "/home/${user}/.dotfiles",
       stateVersion,
-    }:
+      pkgs ? inputs.unstable,
+      ...
+    }@args:
+    let
+      specialArgs = mkSpecialArgs args;
+    in
     inputs.home-manager.lib.homeManagerConfiguration {
-      pkgs = pkgs.legacyPackages.${system};
-      extraSpecialArgs = mkSpecialArgs {
-        inherit
-          hostname
-          user
-          desktop
-          type
-          system
-          flakePath
-          ;
-      };
-      modules = [
-        (mkHomeManager {
-          flakeInputs = inputs;
-          inherit stateVersion;
-        })
-      ];
+      pkgs = pkgs.legacyPackages.${specialArgs.meta.system};
+      extraSpecialArgs = specialArgs;
+      modules = [ (mkHomeManager stateVersion) ];
     };
 
   mkHost =
     {
-      hostname,
-      user ? username,
-      desktop ? null,
-      type ? "desktop",
       pkgs ? inputs.nixpkgs,
-      system ? "x86_64-linux",
-      flakePath ? "/home/${user}/.dotfiles",
-    }:
+      ...
+    }@args:
     pkgs.lib.nixosSystem {
-      specialArgs = mkSpecialArgs {
-        inherit
-          hostname
-          user
-          desktop
-          type
-          system
-          flakePath
-          ;
-      };
-      modules = [
-        inputs.lanzaboote.nixosModules.lanzaboote
-        ../hosts
-      ];
+      specialArgs = mkSpecialArgs args;
+      modules = [ ../hosts ];
     };
 
+  # No `system`/`pkgs` args: a passed `pkgs` is mkForce'd over the nixpkgs module, discarding
+  # overlays/config. hosts/<host>/hardware.nix sets hostPlatform; nix-darwin's nixpkgs follows `unstable`.
   mkDarwin =
-    {
-      hostname,
-      user ? username,
-      system ? "aarch64-darwin",
-      desktop ? null,
-      type ? "darwin",
-      flakePath ? "/Users/${user}/.dotfiles",
-      homeStateVersion,
-    }:
-    # No `system`/`pkgs` args: a passed `pkgs` is mkForce'd over the nixpkgs module, discarding
-    # overlays/config. hosts/<host>/hardware.nix sets hostPlatform; nix-darwin's nixpkgs follows `unstable`.
+    { homeStateVersion, ... }@args:
+    let
+      specialArgs = mkSpecialArgs (
+        {
+          type = "darwin";
+          system = "aarch64-darwin";
+        }
+        // args
+      );
+    in
     inputs.nix-darwin.lib.darwinSystem {
-      specialArgs = mkSpecialArgs {
-        inherit
-          hostname
-          user
-          system
-          desktop
-          type
-          flakePath
-          ;
-      };
+      inherit specialArgs;
       modules = [
         inputs.home-manager.darwinModules.home-manager
         inputs.nix-homebrew.darwinModules.nix-homebrew
@@ -154,21 +113,9 @@ in
             # Same pkgs as the system (hosts/default.nix: same overlays/config), no second nixpkgs.
             useGlobalPkgs = true;
             useUserPackages = true;
-            users."${user}" = mkHomeManager {
-              flakeInputs = inputs;
-              stateVersion = homeStateVersion;
-            };
+            users.${specialArgs.meta.username} = mkHomeManager homeStateVersion;
             backupFileExtension = "backup";
-            extraSpecialArgs = mkSpecialArgs {
-              inherit
-                hostname
-                user
-                system
-                desktop
-                type
-                flakePath
-                ;
-            };
+            extraSpecialArgs = specialArgs;
           };
         }
       ];

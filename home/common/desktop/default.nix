@@ -13,13 +13,9 @@
 
     ../scripts
 
-    ../programs/discord.nix
+    ../programs/apps.nix
     ../programs/gaming.nix
-    ../programs/kraken-lcd
-    ../programs/ghostty
     ../programs/sona.nix
-    ../programs/t3code.nix
-    ../programs/zen.nix
   ];
 
   home.packages = with pkgs; [

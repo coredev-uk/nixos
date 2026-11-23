@@ -8,28 +8,27 @@
 #   zen/    Zen (./zen.nix): install policies and the profile
 # Files are copies: Windows can't follow /nix/store symlinks over \\wsl.localhost.
 {
-  self,
   inputs,
   outputs,
   lib,
   pkgs,
   meta,
+  theme,
   ...
 }:
 let
   # paul@athena (NixOS-WSL home config): git, ssh, shell come from it.
   home = outputs.homeConfigurations."${meta.username}@${meta.hostname}".config;
 
-  theme = import "${self}/lib/theme" { inherit pkgs; };
-  ghostty = import "${self}/home/common/programs/ghostty/shared.nix" { inherit lib theme; };
-  vicinae = import "${self}/home/common/programs/vicinae/shared.nix" { inherit theme; };
+  ghostty = import ../../../home/common/programs/ghostty/shared.nix { inherit lib theme; };
+  vicinae = import ../../../home/common/programs/vicinae/shared.nix { inherit theme; };
   shell = import ./shell.nix { inherit lib pkgs home; };
   zen = import ./zen.nix {
     inherit
-      self
       inputs
       lib
       pkgs
+      meta
       ;
   };
 
