@@ -2,6 +2,11 @@
   description = "coredev-uk flake";
 
   inputs = {
+    # ADE, the terminal dashboard over GitHub/GitLab with zellij work tabs, worktrees and agent
+    # runs (home/common/dev/ade.nix). Follows ADE's main. No nixpkgs follows on purpose: its
+    # flake pins the Go toolchain its vendorHash is computed with.
+    ade.url = "github:coredev-uk/ade";
+
     disko.url = "github:nix-community/disko";
     disko.inputs.nixpkgs.follows = "unstable";
 
