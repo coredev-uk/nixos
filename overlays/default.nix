@@ -39,7 +39,10 @@ _: {
     # BeamMP's launcher spawns the native BinLinux/BeamNG.drive.x64 itself, which needs a full FHS
     # library set; steam-run's lacks what the game's CEF UI (libcef.so) links against, hence the
     # extra libraries. It writes Launcher.cfg, Launcher.log and its mod cache (./Resources) to the
-    # directory it runs from, so it always runs from its own in XDG_DATA_HOME.
+    # directory it runs from, so it always runs from its own in XDG_DATA_HOME. It runs under
+    # GameMode and MangoHud, neither of which is automatic here (BeamNG.drive doesn't ask for
+    # GameMode; MangoHud isn't session-wide, gaming.nix): the launcher spawns the game with its own
+    # environment, so the LD_PRELOAD and MANGOHUD they set reach the game.
     beammp-launcher =
       let
         steam-run =
@@ -56,7 +59,8 @@ _: {
         dir="''${XDG_DATA_HOME:-$HOME/.local/share}/BeamMP-Launcher"
         mkdir -p "$dir"
         cd "$dir"
-        exec ${steam-run}/bin/steam-run ${prev.beammp-launcher}/bin/BeamMP-Launcher "$@"
+        exec ${steam-run}/bin/steam-run ${final.gamemode}/bin/gamemoderun \
+          ${final.mangohud}/bin/mangohud ${prev.beammp-launcher}/bin/BeamMP-Launcher "$@"
       '';
 
     # Screen casting to Chromecast (the shell's Cast screen row). The TV fetches the stream over
