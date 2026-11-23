@@ -1,11 +1,7 @@
-{
-  pkgs,
-  meta,
-  unstable,
-  ...
-}:
+{ unstable, ... }:
 {
   imports = [
+    ../common/services/auto-upgrade.nix
     ../common/services/networkmanager.nix
     ../common/services/printing.nix
     ../common/services/vfio.nix
@@ -23,24 +19,6 @@
     # SN770 root took ~12ms to wake from deep APST, stalling btrfs commits.
     "nvme_core.default_ps_max_latency_us=0"
   ];
-
-  # Follows main each morning (or next boot if off). Main only gets changes after Hosts CI
-  # cached atlas in Attic, so the switch just downloads. Local-checkout switches revert.
-  system.autoUpgrade = {
-    enable = true;
-    flake = "github:coredev-uk/nixos#atlas";
-    upgrade = false; # flakes, no channels
-    dates = "05:00";
-    randomizedDelaySec = "30min";
-  };
-
-  # Notify the user what changed (home/common/auto-upgrade); fails quietly if they're logged out,
-  # and the next home upgrade reports it instead.
-  systemd.services.nixos-upgrade.serviceConfig.ExecStopPost =
-    "-${pkgs.writeShellScript "nixos-upgrade-report" ''
-      ${pkgs.systemd}/bin/systemctl --user -M ${meta.username}@ --no-block \
-        start "upgrade-report@system-$SERVICE_RESULT.service"
-    ''}";
 
   # Headset battery for the quickshell panel; udev rules give the user hidraw access.
   environment.systemPackages = [ unstable.headsetcontrol ];
