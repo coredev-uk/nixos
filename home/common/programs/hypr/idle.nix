@@ -2,6 +2,19 @@
 let
   # hyprctl from PATH matches the running compositor. Lua config: dispatch takes a Lua dispatcher.
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
+  loginctl = "${pkgs.systemd}/bin/loginctl";
+  # Off/on: after an NVIDIA resume outputs can stay black while reporting DPMS on; only a cycle forces a modeset.
+  # nvidia-sleep.sh parks the console on VT 63 across suspend and chvt's back only once nvidia-resume.service
+  # finishes, seconds after logind's resume signal; commits before then fail ("Session inactive") and leave the
+  # outputs dark while Hyprland believes DPMS is on. So wait for our session to be active again first.
+  afterSleep = pkgs.writeShellScript "hypr-after-sleep" ''
+    session=$(${loginctl} show-user "$(id -u)" -p Display --value)
+    until [ "$(${loginctl} show-session "$session" -p Active --value)" = yes ]; do sleep 0.2; done
+    sleep 1
+    ${dpms "disable"}
+    sleep 1
+    ${dpms "enable"}
+  '';
 in
 {
   # Idle inhibitor (honoured by hypridle) while PipeWire plays audio.
@@ -27,8 +40,7 @@ in
         # Delay suspend until locked (logind inhibit).
         inhibit_sleep = 3;
         before_sleep_cmd = "${pkgs.systemd}/bin/loginctl lock-session";
-        # Off/on: after an NVIDIA resume outputs can stay black while reporting DPMS on; only a cycle forces a modeset.
-        after_sleep_cmd = "${dpms "disable"}; sleep 1; ${dpms "enable"}";
+        after_sleep_cmd = "${afterSleep}";
         on_unlock_cmd = "set-brightness-all 100%";
       };
 
