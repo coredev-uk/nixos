@@ -34,37 +34,84 @@
         lock = "loginctl lock-session";
         animations = import ./config/animations.nix { inherit luaCall; };
 
+        # Zen (Firefox) quits with its last window on Linux and can't start windowless (-silent
+        # exits). Its main window is parked in special:browser instead of closed, so links open as
+        # Little Zen windows of the running instance instead of launching the full browser. Lua
+        # snippets over a window expression; the class is the command name.
+        zen = rec {
+          isMain = w: ''(${w}.class == "${browser}" and ${w}.initial_title ~= "Little Zen")'';
+          park =
+            w:
+            ''hl.dispatch(hl.dsp.window.move({ window = ${w}, workspace = "special:browser", follow = false }))'';
+          # Closes w unless it's the last main window (extra windows, Picture-in-Picture).
+          close = w: ''
+            local others = 0
+            for _, o in ipairs(hl.get_windows()) do
+              if o.address ~= ${w}.address and ${isMain "o"} then others = others + 1 end
+            end
+            if others > 0 then hl.dispatch(hl.dsp.window.close({ window = ${w} })) else ${park w} end
+          '';
+        };
+
         # "#rrggbb" -> "rgb(rrggbb)"
         color = name: "rgb(${lib.removePrefix "#" theme.meridian.${name}})";
       in
       {
         monitor = meta.monitors;
 
-        on = {
-          _args = [
-            "hyprland.start"
-            (lua ''
+        on =
+          let
+            # Zen's Close Window (Ctrl+Shift+W) acts like Super+Q on its main windows; bound only
+            # while one is focused so other apps keep the shortcut. A reload drops runtime binds.
+            bindZenClose = lua ''
               function()
-                -- Proton Pass serves the SSH agent (shell/ssh.nix), so it runs from login. It
-                -- always shows its window on Linux: close the first one (hides to tray); the 60 s
-                -- limit avoids closing a manual launch if none appears.
-                local passWindow
-                passWindow = hl.on("window.open", function(w)
-                  if w.class == "proton-pass" then
-                    passWindow:remove()
-                    hl.dispatch(hl.dsp.window.close({ window = w }))
-                  end
-                end)
-                hl.timer(function() passWindow:remove() end, { timeout = 60000, type = "oneshot" })
-                hl.exec_cmd("uwsm app -- proton-pass")
-
-                -- Proton Mail has no tray and quits on window close: it lives in the special:mail
-                -- scratchpad (window-rules.nix), shown with Super+M (keybindings.nix).
-                hl.exec_cmd("uwsm app -- proton-mail")
+                hl.unbind("CTRL + SHIFT + W")
+                local active = hl.get_active_window()
+                if active and ${zen.isMain "active"} then
+                  hl.bind("CTRL + SHIFT + W", function()
+                    local w = hl.get_active_window()
+                    if w then ${zen.close "w"} end
+                  end)
+                end
               end
-            '')
+            '';
+          in
+          [
+            (luaCall [
+              "hyprland.start"
+              (lua ''
+                function()
+                  -- Proton Pass serves the SSH agent (shell/ssh.nix), so it runs from login. It
+                  -- always shows its window on Linux: close the first one (hides to tray); the 60 s
+                  -- limit avoids closing a manual launch if none appears.
+                  local passWindow
+                  passWindow = hl.on("window.open", function(w)
+                    if w.class == "proton-pass" then
+                      passWindow:remove()
+                      hl.dispatch(hl.dsp.window.close({ window = w }))
+                    end
+                  end)
+                  hl.timer(function() passWindow:remove() end, { timeout = 60000, type = "oneshot" })
+                  hl.exec_cmd("uwsm app -- proton-pass")
+
+                  -- Proton Mail has no tray and quits on window close: it lives in the special:mail
+                  -- scratchpad (window-rules.nix), shown with Super+M (keybindings.nix).
+                  hl.exec_cmd("uwsm app -- proton-mail")
+
+                  -- Zen starts parked; Super+B shows or parks it (keybindings.nix).
+                  hl.exec_cmd("uwsm app -- ${browser}", { workspace = "special:browser silent" })
+                end
+              '')
+            ])
+            (luaCall [
+              "window.active"
+              bindZenClose
+            ])
+            (luaCall [
+              "config.reloaded"
+              bindZenClose
+            ])
           ];
-        };
 
         config = {
           general = {
@@ -202,12 +249,20 @@
                 terminal
                 lua
                 luaCall
+                zen
                 ;
             })
           )
           bind
           ;
       };
+  };
+
+  # Zen's main window is parked rather than closed (the zen helpers above): Ctrl+W on the empty tab
+  # doesn't close the window, and no close button (min/max mean nothing when tiled either).
+  programs.zen-browser.profiles.default.settings = {
+    "zen.tabs.close-window-with-empty" = false;
+    "zen.view.experimental-no-window-controls" = true;
   };
 
   # Hyprland on Nvidia

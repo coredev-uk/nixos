@@ -7,6 +7,7 @@
   terminal,
   lua,
   luaCall,
+  zen,
   ...
 }:
 let
@@ -47,7 +48,25 @@ in
     (bindWith "XF86AudioPrev" (exec "quickshell ipc -c bar call osd media previous") { locked = true; })
 
     (bind "${mod} + L" (exec lock))
-    (bind "${mod} + B" (exec "uwsm app -- ${browser}"))
+    # Show the main Zen window parked in special:browser (../default.nix), or park it when focused;
+    # otherwise open a new window.
+    (bind "${mod} + B" ''
+      function()
+        local active = hl.get_active_window()
+        if active and ${zen.isMain "active"} then
+          ${zen.park "active"}
+          return
+        end
+        for _, w in ipairs(hl.get_windows()) do
+          if ${zen.isMain "w"} and w.workspace and w.workspace.name == "special:browser" then
+            hl.dispatch(hl.dsp.window.move({ window = w, workspace = hl.get_active_workspace().id }))
+            hl.dispatch(hl.dsp.focus({ window = w }))
+            return
+          end
+        end
+        hl.exec_cmd("uwsm app -- ${browser}")
+      end
+    '')
     (bind "${mod} + Return" (exec terminal))
     (bind "${mod} + Space" (exec menu))
     (bind "${mod} + SHIFT + P" (exec "quickshell ipc -c bar call wallpapers toggle"))
@@ -78,7 +97,17 @@ in
     (bind "${mod} + R" (exec "hyprctl reload"))
     (bind "${mod} + SHIFT + Q" (exec "uwsm stop"))
 
-    (bind "${mod} + Q" "hl.dsp.window.close()")
+    # Zen's last main window is parked instead (../default.nix)
+    (bind "${mod} + Q" ''
+      function()
+        local active = hl.get_active_window()
+        if active and ${zen.isMain "active"} then
+          ${zen.close "active"}
+        else
+          hl.dispatch(hl.dsp.window.close())
+        end
+      end
+    '')
     (bind "${mod} + SHIFT + Space" "hl.dsp.window.float()")
     (bind "${mod} + P" "hl.dsp.window.pseudo()") # dwindle
     (bind "${mod} + J" "hl.dsp.layout(\"togglesplit\")") # dwindle
