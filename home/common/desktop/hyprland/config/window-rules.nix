@@ -55,6 +55,20 @@ _: {
       ];
     }
 
+    # Little Zen (links from other apps): a centred popup over the current workspace
+    {
+      match = {
+        class = "^(zen-twilight)$";
+        initial_title = "^(Little Zen)$";
+      };
+      float = true;
+      size = [
+        "monitor_w*0.5"
+        "monitor_h*0.7"
+      ];
+      center = true;
+    }
+
     # Collapse the Wine tray window
     {
       match.title = "^(Wine System Tray)$";
