@@ -46,6 +46,13 @@
     # Monthly scrub (once per filesystem despite many subvolume mounts).
     btrfs.autoScrub.enable = true;
 
+    # SMART health of both NVMe drives (NixOS's SN770, Windows' MP600). Nothing on the SN770 is backed
+    # up off the machine, so a failing check pops a desktop notification as well as wall.
+    smartd = {
+      enable = true;
+      notifications.systembus-notify.enable = true;
+    };
+
     # Hourly /home snapshots into @snapshots (disks.nix).
     btrbk.instances.btrbk = {
       onCalendar = "hourly";
