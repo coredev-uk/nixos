@@ -146,12 +146,6 @@ properties:
       id: rsi-launcher
       directives: { description: RSI Launcher (Star Citizen), securityContext: elevated, allowPrerelease: true }
       settings: { id: CloudImperiumGames.RSILauncher, source: winget }
-    # Game streaming to Moonlight, as atlas's services.sunshine (the MSI, as Sunshine recommends). Pair
-    # once in its web UI (https://localhost:47990), separately from atlas.
-    - resource: Microsoft.WinGet.DSC/WinGetPackage
-      id: sunshine
-      directives: { description: Sunshine (Moonlight host), securityContext: elevated, allowPrerelease: true }
-      settings: { id: LizardByte.Sunshine, source: winget }
 
     # Everyday
     - resource: Microsoft.WinGet.DSC/WinGetPackage
