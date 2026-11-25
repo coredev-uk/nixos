@@ -2,6 +2,8 @@
 let
   # hyprctl from PATH matches the running compositor. Lua config: dispatch takes a Lua dispatcher.
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
+  # Outputs in the layout only: a mirror keeps its signal (monitor-handoff.nix parks DP-1 as one).
+  dpmsOffLayout = "hyprctl eval 'for _, m in ipairs(hl.get_monitors()) do hl.dispatch(hl.dsp.dpms({ action = \"disable\", monitor = m.name })) end'";
   loginctl = "${pkgs.systemd}/bin/loginctl";
   # Off/on: after an NVIDIA resume outputs can stay black while reporting DPMS on; only a cycle forces a modeset.
   # nvidia-sleep.sh parks the console on VT 63 across suspend and chvt's back only once nvidia-resume.service
@@ -57,7 +59,7 @@ in
         }
         {
           timeout = 330; # 5.5 minutes
-          on-timeout = dpms "disable";
+          on-timeout = dpmsOffLayout;
           on-resume = "${dpms "enable"} && set-brightness-all 100%";
         }
         {

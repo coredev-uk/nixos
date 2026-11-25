@@ -40,7 +40,7 @@ Core's Nix flake for NixOS and macOS: one configuration per machine, from disk l
 | `hosts/<host>/` | One machine's system: `boot.nix`, `hardware.nix`, `extra.nix` |
 | `hosts/common/` | System modules the hosts share (base, desktop, hardware, services, users) |
 | `home/common/` | Home Manager: `shell` and `dev` everywhere, `desktop` on NixOS desktops, `programs/apps.nix` on every graphical host |
-| `home/hosts/<host>.nix` | One machine's home extras (atlas: Kraken screen, workspace layout) |
+| `home/hosts/<host>.nix` | One machine's home extras (atlas: Kraken screen, workspace layout, DP-1 handoff to the laptop) |
 | `overlays/default.nix` | Every patched or rebuilt nixpkgs package, each with why and when it can go |
 | `overlays/expiry.nix` | The same "when it can go", as data CI can check |
 | `pkgs/` | Packages nixpkgs doesn't have |

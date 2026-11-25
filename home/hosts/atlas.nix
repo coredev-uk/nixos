@@ -1,7 +1,11 @@
 { lib, meta, ... }:
 {
-  # NZXT Kraken Elite in atlas.
-  imports = [ ../common/programs/kraken-lcd ];
+  imports = [
+    # NZXT Kraken Elite in atlas.
+    ../common/programs/kraken-lcd
+    # DP-1 is shared with a laptop (HDMI 2).
+    ../common/programs/monitor-handoff.nix
+  ];
 
   # Primary screen takes workspaces 1-5, the second 6-10. Sunshine's headless STREAM output
   # (hosts/common/desktop/gaming.nix) opens on "tv", which comes back to it on the next stream.
