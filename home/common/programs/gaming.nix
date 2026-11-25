@@ -55,6 +55,19 @@ in
     categories = [ "Game" ];
   };
 
+  # Sunshine runs as a user service (hosts/common/desktop/gaming.nix). Its own entry starts a second,
+  # unprivileged server that fights the service for its ports; this one opens the service's web UI.
+  xdg.desktopEntries."dev.lizardbyte.app.Sunshine" = {
+    name = "Sunshine";
+    comment = "Game stream host for Moonlight";
+    exec = "${pkgs.writeShellScript "sunshine-ui" ''
+      systemctl --user start sunshine.service
+      exec ${pkgs.xdg-utils}/bin/xdg-open https://localhost:47990
+    ''}";
+    icon = "dev.lizardbyte.app.Sunshine";
+    categories = [ "Game" ];
+  };
+
   home.packages = with pkgs; [
     beammp-launcher
     heroic
