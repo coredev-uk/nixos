@@ -75,6 +75,12 @@ in
   # one and Sunshine fails to bind (RTSP on 48010). Keep them out of it.
   boot.kernel.sysctl."net.ipv4.ip_local_reserved_ports" = "47984-48010";
 
+  # MOZA wheel settings (Pit House's role on Windows); input and force feedback need only the kernel's
+  # hid-universal-pidff. Its udev rules open MOZA's ttyACM ports (0666) and give uinput the uaccess
+  # tag Sunshine's rules already add.
+  environment.systemPackages = [ pkgs.boxflat ];
+  services.udev.packages = [ pkgs.boxflat ];
+
   # Open-file limit for every unit, so the uwsm session too (Esync); systemd's default soft is 1024.
   systemd.settings.Manager = {
     DefaultLimitNOFILE = 524288;
