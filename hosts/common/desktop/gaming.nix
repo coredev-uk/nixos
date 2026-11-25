@@ -10,9 +10,10 @@ let
   nix-citizen = inputs.nix-citizen.packages.${pkgs.stdenv.hostPlatform.system};
 
   # Every stream gets its own headless output, STREAM, at the client's resolution (the Xbox gets
-  # real 4K) while the desk monitors stay as they are. It sits apart from them so the cursor can't
-  # wander onto it, and runs at twice the client's frame rate so wlr capture takes each new frame
-  # instead of ticking on Sunshine's clock. Removing it moves its windows to a desk monitor.
+  # real 4K) while the desk monitors stay as they are. Focusing it sends games launched from the
+  # stream there; it extends the desk to the right, so the mouse moves across and back. Twice the
+  # client's frame rate lets wlr capture take each new frame instead of ticking on Sunshine's clock.
+  # Removing it moves its windows to a desk monitor.
   streamDisplay = pkgs.writeShellApplication {
     name = "sunshine-stream-display";
     runtimeInputs = [
@@ -25,7 +26,7 @@ let
           hyprctl -j monitors | jq -e 'any(.[]; .name == "STREAM")' >/dev/null ||
             hyprctl output create headless STREAM
           mode="''${SUNSHINE_CLIENT_WIDTH}x''${SUNSHINE_CLIENT_HEIGHT}@$((SUNSHINE_CLIENT_FPS * 2))"
-          hyprctl eval "hl.monitor({ output = \"STREAM\", mode = \"$mode\", position = \"10240x0\", scale = 1 })"
+          hyprctl eval "hl.monitor({ output = \"STREAM\", mode = \"$mode\", position = \"auto-right\", scale = 1 })"
           hyprctl eval 'hl.dispatch(hl.dsp.focus({ monitor = "STREAM" }))'
           ;;
         stop)
