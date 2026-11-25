@@ -1,0 +1,94 @@
+diff --git a/src/portals/Screencopy.cpp b/src/portals/Screencopy.cpp
+index c5b0baf..45e32fe 100644
+--- a/src/portals/Screencopy.cpp
++++ b/src/portals/Screencopy.cpp
+@@ -351,6 +351,59 @@ dbUasv CScreencopyPortal::onStart(sdbus::ObjectPath requestHandle, sdbus::Object
+     return {0, options};
+ }
+ 
++uint32_t CScreencopyPortal::onSwitchSource() {
++    Debug::log(LOG, "[screencopy] SwitchSource");
++
++    std::vector<Hyprutils::Memory::CWeakPointer<SSession>> sharing;
++    for (const auto& session : m_vSessions) {
++        // Workspace shares run on image-copy-capture, set up once in startSharing.
++        if (session->sharingData.active && session->selection.type != TYPE_WORKSPACE)
++            sharing.emplace_back(session->self);
++    }
++
++    if (sharing.empty()) {
++        Debug::log(LOG, "[screencopy] SwitchSource: no switchable share");
++        return 0;
++    }
++
++    // Blocks the loop like SelectSources does: the shares hold their last frame while the picker is up.
++    SSelectionData selection = promptForScreencopySelection();
++
++    if (selection.type == TYPE_WORKSPACE) {
++        Debug::log(ERR, "[screencopy] SwitchSource: can't switch a running share to a workspace");
++        selection.type = TYPE_INVALID;
++    } else if (selection.type == TYPE_WINDOW && !m_sState.toplevel) {
++        Debug::log(ERR, "[screencopy] SwitchSource: window selected without the toplevel export protocol");
++        selection.type = TYPE_INVALID;
++    }
++
++    if (selection.type == TYPE_INVALID)
++        return 0;
++
++    uint32_t switched = 0;
++    for (const auto& session : sharing) {
++        if (!session || !session->sharingData.active)
++            continue;
++
++        // Drop the frame in flight from the old source; the next frame's buffer info renegotiates
++        // the stream if the size or format changed, as a resized window does.
++        m_pPipewire->removeSessionFrameCallbacks(session.get());
++
++        const bool ALLOWTOKEN         = session->selection.allowToken;
++        session->selection            = selection;
++        session->selection.allowToken = ALLOWTOKEN;
++
++        const auto PSTREAM = m_pPipewire->streamFromSession(session.get());
++        if (PSTREAM && PSTREAM->streamState)
++            startFrameCopy(session.get());
++
++        ++switched;
++    }
++
++    Debug::log(LOG, "[screencopy] SwitchSource: switched {} share(s) to selection {}", switched, (int)selection.type);
++    return switched;
++}
++
+ static bool waitForCaptureConstraints(wl_display* display, const std::function<bool()>& complete) {
+     const auto DEADLINE = std::chrono::steady_clock::now() + std::chrono::seconds(5);
+     while (std::chrono::steady_clock::now() < DEADLINE) {
+@@ -804,6 +857,8 @@ CScreencopyPortal::CScreencopyPortal(SP<CCZwlrScreencopyManagerV1> mgr) {
+                     sdbus::registerProperty("version").withGetter([]() { return uint32_t{6}; }))
+         .forInterface(INTERFACE_NAME);
+ 
++    m_pObject->addVTable(sdbus::registerMethod("SwitchSource").implementedAs([this]() { return onSwitchSource(); })).forInterface(SWITCH_INTERFACE_NAME);
++
+     m_sState.screencopy = mgr;
+     m_pPipewire         = std::make_unique<CPipewireConnection>();
+ 
+diff --git a/src/portals/Screencopy.hpp b/src/portals/Screencopy.hpp
+index f57e83a..8a8503e 100644
+--- a/src/portals/Screencopy.hpp
++++ b/src/portals/Screencopy.hpp
+@@ -68,6 +68,8 @@ class CScreencopyPortal {
+     dbUasv onSelectSources(sdbus::ObjectPath requestHandle, sdbus::ObjectPath sessionHandle, std::string appID, std::unordered_map<std::string, sdbus::Variant> opts);
+     dbUasv onStart(sdbus::ObjectPath requestHandle, sdbus::ObjectPath sessionHandle, std::string appID, std::string parentWindow,
+                    std::unordered_map<std::string, sdbus::Variant> opts);
++    // Re-asks the picker and points every active non-workspace share at the new source; returns how many.
++    uint32_t onSwitchSource();
+ 
+     struct SSession {
+         std::string                               appid;
+@@ -152,6 +154,7 @@ class CScreencopyPortal {
+ 
+     const sdbus::InterfaceName INTERFACE_NAME = sdbus::InterfaceName{"org.freedesktop.impl.portal.ScreenCast"};
+     const sdbus::ObjectPath    OBJECT_PATH    = sdbus::ObjectPath{"/org/freedesktop/portal/desktop"};
++    const sdbus::InterfaceName SWITCH_INTERFACE_NAME = sdbus::InterfaceName{"uk.coredev.xdph.ScreenCast"};
+ 
+     friend struct SSession;
+ };

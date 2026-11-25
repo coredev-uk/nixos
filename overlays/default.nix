@@ -106,5 +106,13 @@ _: {
         hash = "sha256-E2c4Hn4A0Vx3lcmP/Ms7FHEtxsDcxhCmcVFvct1Uv+0=";
       };
     };
+
+    # xdph can't change what a running screen share shows; the patch adds
+    # uk.coredev.xdph.ScreenCast.SwitchSource on /org/freedesktop/portal/desktop, which re-runs the
+    # picker and points every active share at the choice (the bar's screen-share glyph calls it,
+    # quickshell services/Privacy.qml). Drop when xdph can switch a running share's source.
+    xdg-desktop-portal-hyprland = prev.xdg-desktop-portal-hyprland.overrideAttrs (old: {
+      patches = (old.patches or [ ]) ++ [ ./xdph-switch-source.patch ];
+    });
   };
 }

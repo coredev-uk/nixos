@@ -29,6 +29,8 @@ let
     qtmultimedia-vaapi-layers = manual "upstream qtmultimedia enables VAExportUseLayers and imports planes with the driver's RG88/RG1616 formats";
 
     nvidia-vaapi-driver-git = nixpkgsAbove "nvidia-vaapi-driver" "0.0.18";
+
+    xdg-desktop-portal-hyprland = manual "xdg-desktop-portal-hyprland can change a running screen share's source (dynamic cast target)";
   };
 
   # Every nixpkgs the overlays are applied to (lib/helpers.nix): NixOS hosts use `nixpkgs`;

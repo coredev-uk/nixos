@@ -6,7 +6,8 @@ import qs.services
 import qs.widgets
 
 // Alert glyphs for anything being captured or cast; one colour for every kind. Hidden when idle.
-// Click lists the apps.
+// Clicking the screen-sharing glyph re-opens the share picker to change what the share shows;
+// any other click lists the apps.
 Item {
     id: root
 
@@ -41,6 +42,23 @@ Item {
     ]
     readonly property var activeCategories: categories.filter(category => Privacy[category.key].length > 0)
 
+    // Key of the shown glyph nearest x (in the row's coordinates); the click area overhangs the row.
+    function glyphAt(x: real): string {
+        let nearest = "";
+        let distance = Infinity;
+        for (let i = 0; i < glyphs.count; i++) {
+            const glyph = glyphs.itemAt(i);
+            if (!glyph?.shown)
+                continue;
+            const d = Math.abs(x - (glyph.x + glyph.width / 2));
+            if (d < distance) {
+                distance = d;
+                nearest = glyph.modelData.key;
+            }
+        }
+        return nearest;
+    }
+
     implicitWidth: row.implicitWidth
     implicitHeight: row.implicitHeight
     // Stay mapped while the last glyph fades out.
@@ -66,6 +84,8 @@ Item {
         spacing: 6
 
         Repeater {
+            id: glyphs
+
             model: root.categories
 
             Icon {
@@ -101,13 +121,20 @@ Item {
         anchors.margins: -4
         hoverEnabled: true
         cursorShape: Qt.PointingHandCursor
-        onClicked: popup.toggle()
+        onClicked: mouse => {
+            if (root.glyphAt(area.mapToItem(row, mouse.x, mouse.y).x) === "screen") {
+                popup.visible = false;
+                Privacy.switchScreen();
+            } else {
+                popup.toggle();
+            }
+        }
     }
 
     Tooltip {
         anchorItem: root
         active: area.containsMouse && !popup.visible
-        text: root.activeCategories.map(category => `${category.label} — ${Privacy[category.key].map(app => app.name).join(", ")}`).join("\n")
+        text: root.activeCategories.map(category => `${category.label} — ${Privacy[category.key].map(app => app.name).join(", ")}${category.key === "screen" ? " (click to switch)" : ""}`).join("\n")
     }
 
     BarPopup {
