@@ -4,7 +4,7 @@
     # NZXT Kraken Elite in atlas.
     ../common/programs/kraken-lcd
     # DP-1 is shared with a laptop (HDMI 2).
-    ../common/programs/monitor-handoff.nix
+    ../common/programs/monitor-handoff
   ];
 
   # Primary screen takes workspaces 1-5, the second 6-10. Sunshine's headless STREAM output

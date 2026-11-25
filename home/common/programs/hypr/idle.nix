@@ -2,7 +2,7 @@
 let
   # hyprctl from PATH matches the running compositor. Lua config: dispatch takes a Lua dispatcher.
   dpms = action: "hyprctl dispatch 'hl.dsp.dpms({ action = \"${action}\" })'";
-  # Outputs in the layout only: a mirror keeps its signal (monitor-handoff.nix parks DP-1 as one).
+  # Outputs in the layout only: a mirror keeps its signal (programs/monitor-handoff parks DP-1 as one).
   dpmsOffLayout = "hyprctl eval 'for _, m in ipairs(hl.get_monitors()) do hl.dispatch(hl.dsp.dpms({ action = \"disable\", monitor = m.name })) end'";
   loginctl = "${pkgs.systemd}/bin/loginctl";
   # Off/on: after an NVIDIA resume outputs can stay black while reporting DPMS on; only a cycle forces a modeset.
