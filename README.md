@@ -42,12 +42,42 @@ Core's Nix flake for NixOS and macOS: one configuration per machine, from disk l
 | `home/common/` | Home Manager: `shell` and `dev` everywhere, `desktop` on NixOS desktops, `programs/apps.nix` on every graphical host |
 | `home/hosts/<host>.nix` | One machine's home extras (atlas: Kraken screen, workspace layout) |
 | `overlays/default.nix` | Every patched or rebuilt nixpkgs package, each with why and when it can go |
+| `overlays/expiry.nix` | The same "when it can go", as data CI can check |
 | `pkgs/` | Packages nixpkgs doesn't have |
 
 Nixpkgs fixes go in `overlays/default.nix`, never inline in a module. Host-specific settings go in
 the host's files, never behind a `meta.hostname` check in a shared module.
 
+Each overlay carries a comment saying why it exists and when to drop it, and a matching entry in
+`overlays/expiry.nix`: either `nixpkgsAbove "<package>" "<version>"` (expired once every nixpkgs it
+is applied to, `nixpkgs` and `unstable`, has a newer version) or `manual "<what to look for>"` (not
+checkable, never reported). `nix flake check` fails if an overlay has no entry or an entry has no
+overlay, so a patch can't land without a removal condition. When a flake update makes a condition
+true, its PR gets a comment (`.github/scripts/overlay-expiry.sh`) naming the overlay to remove.
+
 </details>
+
+## Updates
+
+Every flake input is updated in its own pull request, so a broken input blocks only itself.
+`flake-update.yml` runs nightly (or on demand): it updates each input in a scratch lock and, for
+the ones that moved, opens or refreshes `flake-update/<input>` as `bot-cecil[bot]`, at most eight
+at a time. The pull request is written the way Renovate writes one (an update table, a rebase
+box, the `stop-updating` label) because [Clarence](https://github.com/coredev-uk/clarence) rules on
+it as on Renovate's, and nothing else merges it:
+
+- Clarence holds an input until its locked commit has aged (48 h for `nixpkgs` and `unstable`, none
+  for my own repositories, 72 h for the rest), then merges one update at a time, and waits for
+  `evaluate`, `flake-checker`, `atlas` and `poseidon` to pass on `main` before the next. A merge
+  that breaks `main` is reverted. The policy is `policy-nixos.json` in
+  [home-ops](https://github.com/coredev-uk/home-ops/blob/main/docs/renovate-and-clarence.md).
+- `hosts.yml` builds each update (poseidon only when its system changes), pushes it to the binary
+  cache, and comments how every host's closure changes: the packages that changed version and the
+  closure's size, against main's build.
+- The same pull request says which overlays the update lets go (above).
+
+A hand-made pull request (`nix flake update <input>` on a branch) gets Clarence's card but is never
+merged on its own; merge it with `@bot-clarence merge` once its checks pass.
 
 ## Bootstrap
 

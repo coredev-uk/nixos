@@ -30,8 +30,8 @@ Singleton {
     //
     // "loading" before the first read, "unreachable" while neither the cache nor GitHub's builds answer,
     // then first match wins: "failed" (main's latest host build failed, atlas's or poseidon's, so a switch
-    // may build here), "update-failing" (the nightly lock update, every flake input in one PR, has a failed
-    // check), "update-pending" (open, checks running or merging), "running" (a host build of main is in
+    // may build here), "update-failing" (an open lock update, one PR per flake input, has a failed
+    // check), "update-pending" (updates open, checks running or waiting for Clarence to merge), "running" (a host build of main is in
     // progress), "ok", or "never" (no finished host build of main to go by, or GitHub didn't answer).
     readonly property string state: stateOf(data)
     readonly property bool updateAvailable: data?.upstream?.update_available ?? false
@@ -83,14 +83,20 @@ Singleton {
         return times.length === 0 ? null : Math.min(...times);
     }
 
-    function updateOf(d: var): var {
-        return (d?.updates ?? [])[0] ?? null;
-    }
-
     // What an update bumps: "unstable", "unstable and sona", "5 inputs" past two, "the lock"
     // when its pull request doesn't say.
     function inputsOf(update: var): string {
         const inputs = update?.inputs ?? [];
+        if (inputs.length === 0)
+            return "the lock";
+        if (inputs.length > 2)
+            return `${inputs.length} inputs`;
+        return inputs.join(" and ");
+    }
+
+    // The same across every open update, each input once: "nixpkgs and sona", "4 inputs".
+    function inputsOfAll(d: var): string {
+        const inputs = [...new Set((d?.updates ?? []).flatMap(u => u.inputs ?? []))];
         if (inputs.length === 0)
             return "the lock";
         if (inputs.length > 2)
@@ -125,7 +131,7 @@ Singleton {
             }
         case "update-pending":
             {
-                parts.push(`Updating ${inputsOf(updateOf(d))}`);
+                parts.push(`Updating ${inputsOfAll(d)}`);
                 break;
             }
         case "running":

@@ -6,7 +6,7 @@ import qs.services
 import qs.widgets
 
 // Control panel's Nix view: the last auto-upgrade (what changed, expandable per package; what to
-// do), the pending lock update (nightly PR bumping every flake input; checks, failing duration),
+// do), the open lock updates (one PR per flake input, merged by Clarence; checks, failing duration),
 // main's host builds, the cache, this computer against them (services/NixStatus.qml), and failed
 // systemd units by name. Clicks copy a unit's journalctl command or open the update's PR / main's
 // latest run. Offline only the upgrade, failed units and the last section remain. Reads every
@@ -23,7 +23,7 @@ ColumnLayout {
     readonly property var head: {
         // Read from `data` alone: its derived properties update one after another.
         const build = NixStatus.data?.build;
-        const update = NixStatus.updateOf(NixStatus.data);
+        const updates = NixStatus.data?.updates ?? [];
         switch (NixStatus.stateOf(NixStatus.data)) {
         case "ok":
             return {
@@ -39,6 +39,7 @@ ColumnLayout {
             };
         case "update-failing":
             {
+                const update = NixStatus.failingUpdates(NixStatus.data)[0];
                 const since = NixStatus.updateFailingSince(update);
                 const span = since === null ? "" : `, for ${NixStatus.span(nowSeconds - since)}`;
                 return {
@@ -49,11 +50,24 @@ ColumnLayout {
             }
         case "update-pending":
             {
+                const title = `Updating ${NixStatus.inputsOfAll(NixStatus.data)}`;
+                if (updates.length > 1) {
+                    // Checks unknown without a token: only the count.
+                    const unknown = updates.some(u => u.checks === null);
+                    const waiting = updates.filter(u => NixStatus.pendingChecks(u).length > 0);
+                    const names = [...new Set(waiting.flatMap(u => NixStatus.pendingChecks(u).map(c => c.name)))];
+                    return {
+                        tone: Theme.text2,
+                        title,
+                        detail: unknown ? `${updates.length} updates open` : waiting.length === 0 ? `${updates.length} updates open, every check passed, waiting for Clarence` : `${updates.length} updates open, ${waiting.length} waiting on ${names.length > 2 ? `${names.length} checks` : names.join(" and ")}`
+                    };
+                }
+                const update = updates[0];
                 const pending = NixStatus.pendingChecks(update);
                 return {
                     tone: Theme.text2,
-                    title: `Updating ${NixStatus.inputsOf(update)}`,
-                    detail: update.checks === null ? `#${update.number}, opened ${NixStatus.ago(update.opened_at)}` : pending.length === 0 ? `#${update.number}, every check passed, merging` : `#${update.number}, waiting on ${NixStatus.names(pending)}`
+                    title,
+                    detail: update.checks === null ? `#${update.number}, opened ${NixStatus.ago(update.opened_at)}` : pending.length === 0 ? `#${update.number}, every check passed, waiting for Clarence` : `#${update.number}, waiting on ${NixStatus.names(pending)}`
                 };
             }
         case "running":
@@ -205,7 +219,7 @@ ColumnLayout {
         } else if (pending.length > 0) {
             value = `#${u.number}, waiting on ${NixStatus.names(pending)}`;
         } else {
-            value = u.auto_merge ? `#${u.number}, passed, merging` : `#${u.number}, passed; merge it on GitHub`;
+            value = `#${u.number}, passed; waiting for Clarence`;
         }
         return {
             key: NixStatus.inputsOf(u),

@@ -3,6 +3,8 @@ _: {
   additions = final: _prev: import ../pkgs { pkgs = final; };
 
   # Patched/rebuilt nixpkgs packages; applied to every nixpkgs the flake uses (lib/helpers.nix).
+  # Each needs a "why, and when to drop" comment and a machine-readable removal condition in
+  # ./expiry.nix (a check fails without one).
   modifications = final: prev: {
     # nh 4.5.0 passes `systemd-run --output=cat` (needs systemd >= 261); breaks `nh os switch` on
     # 26.05. Backport upstream fix; version guard skips other nh versions. Drop on nh > 4.5.0.
@@ -30,7 +32,8 @@ _: {
 
     # Launcher spawns BeamNG natively and needs a full FHS lib set (steam-run's lacks CEF deps).
     # Runs from its own XDG_DATA_HOME dir (writes cfg/logs/mods to cwd), under GameMode + MangoHud
-    # (neither automatic); the game inherits their LD_PRELOAD/MANGOHUD.
+    # (neither automatic); the game inherits their LD_PRELOAD/MANGOHUD. Drop when nixpkgs' launcher
+    # runs on NixOS as is.
     beammp-launcher =
       let
         steam-run =
@@ -53,6 +56,7 @@ _: {
 
     # Chromecast casting: the TV lags up to ~8 s with x264's 250-frame keyframe interval. Override
     # the "Zero Latency" preset (1 s keyframes, more bitrate) via GST_PRESET_PATH for this app only.
+    # Drop when the app's own preset has short keyframes.
     gnome-network-displays =
       let
         presets = final.runCommand "gnome-network-displays-presets" { } ''
