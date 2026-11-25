@@ -4,10 +4,3 @@ self-hosted-runner:
   labels:
     - ubuntu-26.04
     - nixos-runner
-
-# Bundled action metadata lags: create-github-app-token v3 takes client-id, not app-id.
-paths:
-  .github/workflows/update-flake-lock.yml:
-    ignore:
-      - 'missing input "app-id"'
-      - 'input "client-id" is not defined'

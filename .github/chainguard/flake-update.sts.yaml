@@ -1,9 +1,10 @@
 # yaml-language-server: $schema=https://raw.githubusercontent.com/octo-sts/app/refs/heads/main/pkg/octosts/octosts.TrustPolicy.json
-# Trust policy for update-flake-lock.yml on main (opens and auto-merges the flake-update PR).
+# Trust policy for flake-update.yml on main (opens and refreshes the flake-update/<input> PRs,
+# closes the stale ones; Clarence merges them).
 issuer: https://token.actions.githubusercontent.com
 subject: repo:coredev-uk@64542347/nixos@1102177616:ref:refs/heads/main
 claim_pattern:
-  workflow_ref: coredev-uk/nixos/\.github/workflows/update-flake-lock\.yml@refs/heads/main
+  workflow_ref: coredev-uk/nixos/\.github/workflows/flake-update\.yml@refs/heads/main
 permissions:
   contents: write
   pull_requests: write

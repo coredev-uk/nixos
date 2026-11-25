@@ -162,9 +162,31 @@
 
       formatter = libx.forAllSystems (system: (treefmtFor system).config.build.wrapper);
 
-      # `nix flake check` fails on unformatted files.
-      checks = libx.forAllSystems (system: {
-        formatting = (treefmtFor system).config.build.check self;
-      });
+      # `nix flake check` fails on unformatted files, or on an overlay without a removal condition
+      # (overlays/expiry.nix) and vice versa. Eval-only: attribute names, no package is built.
+      checks = libx.forAllSystems (
+        system:
+        let
+          inherit (import ./overlays/expiry.nix { inherit inputs; }) coverage;
+          problems =
+            map (n: "overlay `${n}` has no entry in overlays/expiry.nix") coverage.withoutCondition
+            ++ map (n: "overlays/expiry.nix entry `${n}` has no overlay") coverage.withoutOverlay;
+        in
+        {
+          formatting = (treefmtFor system).config.build.check self;
+
+          overlay-expiry = inputs.unstable.legacyPackages.${system}.runCommand "overlay-expiry" { } (
+            if problems == [ ] then
+              "touch $out"
+            else
+              ''
+                cat >&2 <<'EOF'
+                ${builtins.concatStringsSep "\n" problems}
+                EOF
+                exit 1
+              ''
+          );
+        }
+      );
     };
 }

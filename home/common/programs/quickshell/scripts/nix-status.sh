@@ -15,11 +15,12 @@
 #             answered, running = latest run not completed, main: {success (latest completed run,
 #             cancelled skipped; null if none), finished, failing_since (start of the oldest run in
 #             the unbroken failed streak; null on success), url}
-#   updates   the open lock update from BOT Cecil (nightly flake-update PR, self-merging once checks
-#             pass): [{inputs (from its body's marker), number, url, opened_at, auto_merge, checks:
-#             [{name, state: success|failure|pending, since}]}], empty when none is open; checks only
-#             with gh's token (evaluate, flake-checker, poseidon, atlas required), else null; null
-#             when GitHub didn't answer
+#   updates   the open lock updates from BOT Cecil, one PR per flake input (flake-update/<input>),
+#             merged by Clarence once its checks pass and its release cooldown has passed:
+#             [{inputs (from its body's marker), number, url, opened_at, checks: [{name, state:
+#             success|failure|pending, since}]}], empty when none is open; checks only with gh's
+#             token (evaluate, flake-checker, poseidon, atlas required), else null; null when GitHub
+#             didn't answer
 #   failed_units  [{scope, name, description}] from systemctl --failed, system and user
 #             (scope "system" | "user"); null when neither manager answered
 # Epoch seconds everywhere; sizes in bytes.
@@ -59,12 +60,12 @@ runs() {
 		jq -r 'first(.[] | select(.context == "nix-cache/atlas") | .description) // empty' >"$tmp/pin" 2>/dev/null || true
 }
 runs &
-# The update PR (BOT Cecil's), then its check runs.
+# The update PRs (BOT Cecil's, one per input), then their check runs.
 : >"$tmp/updates"
 updates() {
 	github '/pulls?state=open&per_page=100' |
 		jq -c '[.[] | select(.user.login == "bot-cecil[bot]" and .head.repo.full_name == .base.repo.full_name
-			and .head.ref == "flake-update")]' >"$tmp/updates" 2>/dev/null || return 0
+			and (.head.ref | startswith("flake-update/")))]' >"$tmp/updates" 2>/dev/null || return 0
 	# No answer from GitHub: leave empty; reads as unknown below.
 	[ -s "$tmp/updates" ] || return 0
 	local number sha
@@ -191,7 +192,6 @@ jq -n \
           number: $pr.number,
           url: $pr.html_url,
           opened_at: ($pr.created_at | epoch),
-          auto_merge: ($pr.auto_merge != null),
           checks: (
             if .runs == null then null
             else

@@ -1,0 +1,109 @@
+name: "Update flake inputs"
+
+# One pull request per flake input, from bot-cecil[bot] on `flake-update/<input>`, so a broken
+# input blocks only itself. The pull request is written the way Renovate writes one (the update
+# table, the rebase box, the stop-updating label) because Clarence (home-ops
+# policy-nixos.json) rules on it as it does on Renovate's: it holds the input until its locked
+# commit has aged, merges one pull request at a time once Flake Checks and the atlas and poseidon
+# builds in hosts.yml pass (they also fill the cache), and checks main builds before the next.
+# Nothing here merges.
+#
+# Each night every input is updated in a scratch lock, and the ones that moved get (or refresh) a
+# pull request, at most eight open at a time. An open one is left alone while it still holds the
+# newest commit without a conflict, while Clarence has it pinned (it is waiting out its release
+# age), and until its rebase box is ticked; Clarence ticks the box on a conflict and dispatches
+# this workflow. One whose input has nothing newer any more is closed.
+on:
+  schedule:
+    - cron: "30 23 * * *" # so both systems are built and cached by morning
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}
+  cancel-in-progress: false
+
+jobs:
+  plan:
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      id-token: write
+    outputs:
+      matrix: ${{ steps.plan.outputs.matrix }}
+    steps:
+      # octo-sts token for bot-cecil (home-ops octo-sts), granted by
+      # .github/chainguard/flake-update.sts.yaml. Unlike GITHUB_TOKEN, its pushes trigger checks.
+      - name: Generate BOT Cecil token
+        id: app-token
+        uses: octo-sts/action@v1.1.1
+        with:
+          domain: octo-sts.hera.ac
+          scope: ${{ github.repository }}
+          identity: flake-update
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      - name: Find the inputs with updates
+        id: plan
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+        run: .github/scripts/flake-update-plan.sh
+
+  update:
+    needs: plan
+    if: needs.plan.outputs.matrix != '[]'
+    name: ${{ matrix.input }}
+    runs-on: ubuntu-26.04
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      # One input failing to update doesn't stop the others.
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        input: ${{ fromJSON(needs.plan.outputs.matrix) }}
+    steps:
+      - name: Generate BOT Cecil token
+        id: app-token
+        uses: octo-sts/action@v1.1.1
+        with:
+          domain: octo-sts.hera.ac
+          scope: ${{ github.repository }}
+          identity: flake-update
+
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Install nix
+        uses: DeterminateSystems/nix-installer-action@v23
+
+      - name: Update ${{ matrix.input }}
+        id: update
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          INPUT: ${{ matrix.input }}
+        run: .github/scripts/flake-update-input.sh "$INPUT"
+
+      # sign-commits: commit goes via GitHub's API, so it's Verified as the bot.
+      - name: Open or refresh the pull request
+        if: steps.update.outputs.skip != 'true'
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.app-token.outputs.token }}
+          sign-commits: true
+          branch: flake-update/${{ matrix.input }}
+          delete-branch: true
+          add-paths: flake.lock
+          commit-message: "chore(flake): update ${{ matrix.input }}"
+          title: ${{ steps.update.outputs.title }}
+          body-path: ${{ steps.update.outputs.body-path }}
