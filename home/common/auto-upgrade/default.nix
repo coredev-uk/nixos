@@ -30,11 +30,19 @@ let
     name = "home-manager-auto-upgrade";
     runtimeInputs = [
       config.programs.home-manager.package
+      pkgs.curl
       pkgs.nix
       report
     ];
     text = ''
-      # A catch-up run at login can start before the network is up: retry for half an hour.
+      # A catch-up run at login can start before the network is up. Nix then switches to its cached
+      # copy of main instead of failing, and the report finds nothing new: wait until GitHub answers.
+      for _ in $(seq 180); do
+        curl --silent --fail --max-time 10 --output /dev/null \
+          https://api.github.com/repos/coredev-uk/nixos/commits/HEAD && break
+        sleep 10
+      done
+      # Retry for half an hour.
       for attempt in 1 2 3 4 5 6; do
         if home-manager switch --refresh --flake github:coredev-uk/nixos#${meta.username}@${meta.hostname}; then
           exec upgrade-report home-success
