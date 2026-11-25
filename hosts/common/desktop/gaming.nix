@@ -59,15 +59,21 @@ in
     gamescope.enable = true;
   };
 
-  # Game streaming to Moonlight (the Bravia's Google TV, the Mac), encoded by NVENC. Pair and
-  # pick apps in the web UI at https://localhost:47990; set its login on first visit, since
-  # openFirewall exposes it to the LAN. KMS capture under Wayland needs CAP_SYS_ADMIN. The VFIO
-  # hook ends the user session, so Sunshine lets go of the GPU before the VM takes it.
+  # Game streaming to Moonlight (the Bravia's Google TV, the Mac). Pair and pick apps in the web UI
+  # at https://localhost:47990; set its login on first visit, since openFirewall exposes it to the
+  # LAN. KMS capture under Wayland needs CAP_SYS_ADMIN. The VFIO hook ends the user session, so
+  # Sunshine lets go of the GPU before the VM takes it.
   services.sunshine = {
     enable = true;
     openFirewall = true;
     capSysAdmin = true;
+    # Without CUDA the build can't load libcuda, so NVENC fails and it falls back to libx264.
+    package = pkgs.sunshine.override { cudaSupport = true; };
   };
+
+  # Sunshine's ports (47984-48010) sit inside the ephemeral range, so an outgoing connection can hold
+  # one and Sunshine fails to bind (RTSP on 48010). Keep them out of it.
+  boot.kernel.sysctl."net.ipv4.ip_local_reserved_ports" = "47984-48010";
 
   # Open-file limit for every unit, so the uwsm session too (Esync); systemd's default soft is 1024.
   systemd.settings.Manager = {
