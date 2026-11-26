@@ -14,9 +14,12 @@ let
     # Nerd Font glyphs (Symbols Nerd Font, installed with Ghostty).
     symbolPreset = "nerd";
     composer.shape = "box";
+    # Ghostty <= 1.4.0 answers the colour-scheme query (CSI ?996n) with "light" unless its theme
+    # is a light:/dark: pair (ghostty-org/ghostty#13604), and omp >= 19.2 trusts that over the
+    # dark background, so a light mapping drew dark text on Meridian. Meridian is dark only.
     theme = {
       dark = "titanium";
-      light = "light";
+      light = "titanium";
     };
     retry = {
       waitForUsageReset = true;
