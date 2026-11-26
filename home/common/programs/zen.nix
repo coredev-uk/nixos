@@ -299,55 +299,47 @@ in
           container = containers.Work.id;
           position = 3000;
           pins = {
-            "Lockheed Martin" = {
-              id = "e4fa46bc-cfd5-4c31-8289-4aeda3adf048";
-              isFolderCollapsed = true;
-              editedTitle = true;
+            Outlook = {
+              id = "2f0b7918-5ed2-4ca0-8696-cd0944434e5f";
+              container = containers.Work.id;
+              url = "https://owa.external.lmco.com/owa/";
               position = 501;
-              pins = {
-                MyLM = {
-                  id = "c3bd2ad5-aaf6-4258-ac63-0d80fe16cb73";
-                  container = containers.Work.id;
-                  url = "https://lmc-wz4hr-prod-qcdjf9te.workzonehr.cfapps.us10.hana.ondemand.com/site#workzone-home&/home";
-                  position = 502;
-                };
-                "My Timecard" = {
-                  id = "1f0a1ce0-0c29-4cd9-9ed1-345b4cccf515";
-                  container = containers.Work.id;
-                  url = "https://mytimecard.external.lmco.com/";
-                  position = 503;
-                };
-                TEMPO = {
-                  id = "6a72e8fa-20f4-4c7b-a22f-d059d3f2560e";
-                  container = containers.Work.id;
-                  url = "https://tempo.external.lmco.com/fiori";
-                  position = 504;
-                };
-                "LMTalent Central" = {
-                  id = "878bdfdb-db9a-46bb-bdb5-8565532b3cd8";
-                  container = containers.Work.id;
-                  url = "https://performancemanager8.successfactors.com/login?company=Lockheed";
-                  position = 505;
-                };
-                "Benefits Compass" = {
-                  id = "81802c4b-523b-4ccb-9c5b-d2c31510ffad";
-                  container = containers.Work.id;
-                  url = "https://lmbenefitscompass.com/";
-                  position = 506;
-                };
-                "My Pension Estimator" = {
-                  id = "e4b1397f-d565-48a4-8021-5d70f2e4e52f";
-                  container = containers.Work.id;
-                  url = "https://lmc.lifeatworkportal.com/";
-                  position = 507;
-                };
-                "Annual Reports of Benefit Plans" = {
-                  id = "076a9968-8b01-4e71-9673-aabf5c9bde66";
-                  container = containers.Work.id;
-                  url = "https://www.lockheedmartin.com/en-us/employees/benefit-plans.html";
-                  position = 508;
-                };
-              };
+            };
+            MyLM = {
+              id = "c3bd2ad5-aaf6-4258-ac63-0d80fe16cb73";
+              container = containers.Work.id;
+              url = "https://lmc-wz4hr-prod-qcdjf9te.workzonehr.cfapps.us10.hana.ondemand.com/site#workzone-home&/home";
+              position = 502;
+            };
+            "My Timecard" = {
+              id = "1f0a1ce0-0c29-4cd9-9ed1-345b4cccf515";
+              container = containers.Work.id;
+              url = "https://mytimecard.external.lmco.com/";
+              position = 503;
+            };
+            TEMPO = {
+              id = "6a72e8fa-20f4-4c7b-a22f-d059d3f2560e";
+              container = containers.Work.id;
+              url = "https://tempo.external.lmco.com/fiori";
+              position = 504;
+            };
+            "LMTalent Central" = {
+              id = "878bdfdb-db9a-46bb-bdb5-8565532b3cd8";
+              container = containers.Work.id;
+              url = "https://performancemanager8.successfactors.com/login?company=Lockheed";
+              position = 505;
+            };
+            "Benefits Compass" = {
+              id = "81802c4b-523b-4ccb-9c5b-d2c31510ffad";
+              container = containers.Work.id;
+              url = "https://lmbenefitscompass.com/";
+              position = 506;
+            };
+            "Legal & General" = {
+              id = "0ec95231-008d-43be-8cc5-607b97c6eded";
+              container = containers.Work.id;
+              url = "https://myaccount.landg.com/";
+              position = 507;
             };
           };
           theme = {
