@@ -35,11 +35,15 @@ let
 
   # Every nixpkgs the overlays are applied to (lib/helpers.nix): NixOS hosts use `nixpkgs`;
   # home-manager, nix-darwin and the `unstable` module argument use `unstable`. athena (WSL) is
-  # x86_64-linux, poseidon aarch64-darwin.
+  # x86_64-linux, poseidon aarch64-darwin, hermes (Raspberry Pi) aarch64-linux.
   targets = [
     {
       name = "nixpkgs";
       pkgs = inputs.nixpkgs.legacyPackages.x86_64-linux;
+    }
+    {
+      name = "nixpkgs";
+      pkgs = inputs.nixpkgs.legacyPackages.aarch64-linux;
     }
     {
       name = "unstable";
