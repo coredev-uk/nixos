@@ -311,35 +311,29 @@ in
               url = "https://lmc-wz4hr-prod-qcdjf9te.workzonehr.cfapps.us10.hana.ondemand.com/site#workzone-home&/home";
               position = 502;
             };
-            "My Timecard" = {
-              id = "1f0a1ce0-0c29-4cd9-9ed1-345b4cccf515";
-              container = containers.Work.id;
-              url = "https://mytimecard.external.lmco.com/";
-              position = 503;
-            };
             TEMPO = {
               id = "6a72e8fa-20f4-4c7b-a22f-d059d3f2560e";
               container = containers.Work.id;
               url = "https://tempo.external.lmco.com/fiori";
-              position = 504;
+              position = 503;
             };
             "LMTalent Central" = {
               id = "878bdfdb-db9a-46bb-bdb5-8565532b3cd8";
               container = containers.Work.id;
               url = "https://performancemanager8.successfactors.com/login?company=Lockheed";
-              position = 505;
+              position = 504;
             };
             "Benefits Compass" = {
               id = "81802c4b-523b-4ccb-9c5b-d2c31510ffad";
               container = containers.Work.id;
               url = "https://lmbenefitscompass.com/";
-              position = 506;
+              position = 505;
             };
             "Legal & General" = {
               id = "0ec95231-008d-43be-8cc5-607b97c6eded";
               container = containers.Work.id;
               url = "https://myaccount.landg.com/";
-              position = 507;
+              position = 506;
             };
           };
           theme = {
