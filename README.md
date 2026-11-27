@@ -69,8 +69,8 @@ it as on Renovate's, and nothing else merges it:
 
 - Clarence holds an input until its locked commit has aged (48 h for `nixpkgs` and `unstable`, none
   for my own repositories, 72 h for the rest), then merges one update at a time, and waits for
-  `evaluate`, `flake-checker`, `atlas` and `poseidon` to pass on `main` before the next. A merge
-  that breaks `main` is reverted. The policy is `policy-nixos.json` in
+  `evaluate`, `flake-checker`, `atlas`, `poseidon` and `hermes` to pass on `main` before the
+  next. A merge that breaks `main` is reverted. The policy is `policy-nixos.json` in
   [home-ops](https://github.com/coredev-uk/home-ops/blob/main/docs/renovate-and-clarence.md).
 - `hosts.yml` builds each update (poseidon only when its system changes), pushes it to the binary
   cache, and comments how every host's closure changes: the packages that changed version and the
