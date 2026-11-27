@@ -36,6 +36,10 @@
     nix-index-database.url = "github:nix-community/nix-index-database";
     nix-index-database.inputs.nixpkgs.follows = "unstable";
 
+    # hermes (hosts/hermes): Raspberry Pi kernel, firmware and boot loader. No nixpkgs follows: its
+    # kernel is only in nixos-raspberrypi.cachix.org when built against its own nixpkgs pin.
+    nixos-raspberrypi.url = "github:nvmd/nixos-raspberrypi/main";
+
     # athena's NixOS-WSL side (hosts/athena).
     nixos-wsl.url = "github:nix-community/NixOS-WSL/main";
     nixos-wsl.inputs.nixpkgs.follows = "nixpkgs";
@@ -129,6 +133,11 @@
         athena = libx.mkHost {
           hostname = "athena";
           type = "wsl";
+        };
+        # Raspberry Pi 4 on the IoT VLAN: Home Assistant's Bluetooth proxy (home-ops).
+        hermes = libx.mkHost {
+          hostname = "hermes";
+          system = "aarch64-linux";
         };
       };
 

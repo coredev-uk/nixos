@@ -27,6 +27,7 @@ Core's Nix flake for NixOS and macOS: one configuration per machine, from disk l
 |  `atlas`   |       NixOS        | Desktop | Hyprland | Working |
 | `poseidon` | macOS (nix-darwin) | Laptop  |   N/A    | Working |
 |  `athena`  | Windows + NixOS-WSL | Desktop |   N/A    | Working |
+|  `hermes`  |       NixOS        | Raspberry Pi 4 |   N/A    |   New   |
 
 </details>
 
@@ -161,6 +162,31 @@ powershell -ExecutionPolicy Bypass -File \\wsl.localhost\NixOS\home\paul\.dotfil
 
 What winget can't install is listed at the top of `gaming.winget`. Zen gets atlas's setup
 (`zen.nix`) once it has a profile: start it once, close it, apply again.
+
+</details>
+
+<details>
+<summary>Setting up hermes (Raspberry Pi 4)</summary>
+
+hermes is a Raspberry Pi 4 with a PoE+ HAT on the IoT VLAN: Home Assistant's Bluetooth proxy
+([btproxy](https://github.com/yuzi-co/btproxy), the ESPHome API on port 6053, open to Home
+Assistant's address only). Its kernel, firmware and boot loader come from
+[nixos-raspberrypi](https://github.com/nvmd/nixos-raspberrypi), whose cache has the kernel built.
+
+1. Run the `Hosts` workflow by hand on main and download the `hermes-sd-image` artifact from
+   hermes' job.
+2. Write it to the SD card:
+
+   ```sh
+   unzip hermes-sd-image.zip
+   zstdcat nixos-image-rpi4-kernel.img.zst | sudo dd of=/dev/sdX bs=4M conv=fsync status=progress
+   ```
+
+3. Boot it on a switch port whose native network is the IoT VLAN, reserve its address in UniFi,
+   and SSH in as paul (atlas's key). From then on it follows main each morning, like atlas.
+4. In Home Assistant, add an ESPHome device at hermes' address, port 6053, with the key from
+   `ssh hermes sudo cat /var/lib/btproxy/api.key`, and set the proxy's Bluetooth scanning mode to
+   Active.
 
 </details>
 

@@ -1,6 +1,7 @@
-# actionlint's label list lags GitHub: ubuntu-26.04 is a hosted runner; nixos-runner is the home
-# cluster's runner scale set (home-ops actions-runner-system).
+# actionlint's label list lags GitHub: ubuntu-26.04 and ubuntu-26.04-arm are hosted runners;
+# nixos-runner is the home cluster's runner scale set (home-ops actions-runner-system).
 self-hosted-runner:
   labels:
     - ubuntu-26.04
+    - ubuntu-26.04-arm
     - nixos-runner

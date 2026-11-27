@@ -9,7 +9,7 @@
 }:
 let
   # Shared by nix.settings and Determinate's nix.custom.conf. attic.hera.ac/coredev holds what CI
-  # builds for atlas and poseidon (.github/workflows/hosts.yml); Attic lives in home-ops.
+  # builds for atlas, poseidon and hermes (.github/workflows/hosts.yml); Attic lives in home-ops.
   substituters = [
     "https://attic.hera.ac/coredev"
     "https://nix-citizen.cachix.org"
