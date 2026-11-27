@@ -22,6 +22,9 @@ let
     ""
     "# atlas (its /etc/ssh/ssh_host_ed25519_key.pub)"
     "atlas ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIOSWafFdU4bGttTPya205vZdasfISB9uv8v34syjjkPr"
+    ""
+    "# hermes (its /etc/ssh/ssh_host_ed25519_key.pub; HostKeyAlias below)"
+    "hermes ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIJzc+SJiZZ+TRt2BeVumrUw8dodC3BzYH62A27dVYXge"
   ];
 
   # Proton Pass desktop app's SSH agent (Settings → SSH agent), same path on Linux and macOS.
@@ -90,6 +93,16 @@ in
       // identity "aur";
 
       "atlas" = {
+        User = meta.username;
+      }
+      // identity "atlas";
+
+      # The Raspberry Pi on the IoT VLAN (hosts/hermes), at its fixed UniFi address. The host key
+      # is checked under its name, so the address can change. Same login key as atlas
+      # (hosts/common/users/paul).
+      "hermes" = {
+        HostName = "192.168.130.15";
+        HostKeyAlias = "hermes";
         User = meta.username;
       }
       // identity "atlas";
