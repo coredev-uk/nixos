@@ -8,9 +8,16 @@ let
   # Home Assistant's address on the IoT VLAN (home-ops: kubernetes/apps/default/home-assistant).
   homeAssistant = "192.168.130.20";
   stateDir = "/var/lib/btproxy";
+  # home-ops: the nodes' network (talos) and the default LAN.
+  clusterNodes = "192.168.110.0/24";
+  lan = "192.168.100.0/24";
 in
 {
-  imports = [ ../common/services/auto-upgrade.nix ];
+  imports = [
+    ../common/services/auto-upgrade.nix
+    ./metrics.nix
+    ./watchdog.nix
+  ];
 
   # Key-only SSH (common/services/openssh.nix) and no password set for the user.
   security.sudo.wheelNeedsPassword = false;
@@ -89,9 +96,13 @@ in
   networking.firewall = {
     # btproxy's mDNS answers, for Home Assistant's discovery.
     allowedUDPPorts = [ 5353 ];
-    # The API (6053) for Home Assistant only; the rest of the IoT VLAN can't reach it.
+    # The API (6053) for Home Assistant only; the rest of the IoT VLAN can't reach it. From the
+    # cluster's nodes (pods leave masqueraded to them): Alertmanager's heartbeat to Gatus (8080)
+    # and Prometheus's scrape of node_exporter (9100). The LAN can look at Gatus.
     extraCommands = ''
       iptables -A nixos-fw -p tcp -s ${homeAssistant} --dport 6053 -j nixos-fw-accept
+      iptables -A nixos-fw -p tcp -s ${clusterNodes} -m multiport --dports 8080,9100 -j nixos-fw-accept
+      iptables -A nixos-fw -p tcp -s ${lan} --dport 8080 -j nixos-fw-accept
     '';
   };
 }

@@ -170,8 +170,11 @@ What winget can't install is listed at the top of `gaming.winget`. Zen gets atla
 
 hermes is a Raspberry Pi 4 with a PoE+ HAT on the IoT VLAN: Home Assistant's Bluetooth proxy
 ([btproxy](https://github.com/yuzi-co/btproxy), the ESPHome API on port 6053, open to Home
-Assistant's address only). Its kernel, firmware and boot loader come from
-[nixos-raspberrypi](https://github.com/nvmd/nixos-raspberrypi), whose cache has the kernel built.
+Assistant's address only), and a watchdog from outside the cluster: Gatus (`hosts/hermes/watchdog.nix`)
+sends Pushover alerts when Home Assistant, `status.hera.ac` or Alertmanager's Watchdog heartbeat
+goes quiet, and node_exporter with SD card metrics (`metrics.nix`) is scraped by the cluster. Its
+kernel, firmware and boot loader come from [nixos-raspberrypi](https://github.com/nvmd/nixos-raspberrypi),
+whose cache has the kernel built.
 
 1. Run the `Hosts` workflow by hand on main and download the `hermes-sd-image` artifact from
    hermes' job.
@@ -187,6 +190,15 @@ Assistant's address only). Its kernel, firmware and boot loader come from
 4. In Home Assistant, add an ESPHome device at hermes' address, port 6053, with the key from
    `ssh hermes sudo cat /var/lib/btproxy/api.key`, and set the proxy's Bluetooth scanning mode to
    Active.
+5. Give Gatus its secrets from 1Password, with home-ops' `.env` loaded for `op`:
+
+   ```sh
+   printf '%s\n' \
+     'PUSHOVER_TOKEN={{ op://kubernetes/alertmanager/ALERTMANAGER_PUSHOVER_TOKEN }}' \
+     'PUSHOVER_USER_KEY={{ op://kubernetes/pushover/PUSHOVER_USER_KEY }}' \
+     'HEARTBEAT_TOKEN={{ op://kubernetes/alertmanager/HERMES_HEARTBEAT_TOKEN }}' \
+     | op inject | ssh hermes 'sudo install -D -m 0600 /dev/stdin /var/lib/secrets/gatus.env'
+   ```
 
 </details>
 
